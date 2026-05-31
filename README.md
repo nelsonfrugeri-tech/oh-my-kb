@@ -18,22 +18,18 @@ tests/
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
+- `make`
 
-## Setup
+## Usage
 
-```bash
-uv sync
-```
-
-## Running tests
+All workflows are wrapped by `make`. Run `make` (or `make help`) to list every target.
 
 ```bash
-uv run pytest
-```
-
-## Lint & type-check
-
-```bash
-uv run ruff check .
-uv run mypy oh_my_kb
+make venv       # create .venv and install all dependencies (uv sync)
+make test       # run the test suite (uv run pytest)
+make lint       # lint with ruff
+make format     # format with ruff
+make typecheck  # type-check with mypy
+make check      # lint + typecheck + test (the CI gate)
+make clean      # remove .venv and tool caches
 ```
