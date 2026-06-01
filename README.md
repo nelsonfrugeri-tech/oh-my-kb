@@ -8,10 +8,11 @@ Domain logic lives in `oh_my_kb/core/` with no MCP, CLI, or network dependencies
 
 ```
 oh_my_kb/
-  core/     # pure domain logic — no MCP / CLI / network
-  storage/  # infrastructure adapters (Qdrant)
-  mcp/      # MCP server adapter
-  cli/      # CLI adapter
+  core/       # pure domain logic — no MCP / CLI / network
+  storage/    # infrastructure adapters (Qdrant)
+  embedding/  # embedding interface + bge-m3 implementation
+  mcp/        # MCP server adapter
+  cli/        # CLI adapter
 tests/
 ```
 
@@ -52,3 +53,20 @@ docker compose down    # stop it
 The storage adapter reads the URL from the `KB_QDRANT_URL` env var, falling
 back to `http://localhost:6333`. Tests use the qdrant-client `:memory:`
 backend, so Docker is not required to run the suite.
+
+## Embedding
+
+Hybrid retrieval uses [bge-m3](https://huggingface.co/BAAI/bge-m3) via
+`FlagEmbedding`, producing a 1024-dim dense vector plus a lexical sparse
+vector from a single model. The implementation lives in
+`oh_my_kb/embedding/bge_m3_embedder.py` behind the abstract
+`Embedder` interface (`oh_my_kb/embedding/base.py`).
+
+The first run downloads ~2 GB of model weights from HuggingFace into
+`~/.cache/huggingface`. Subsequent runs reuse the cache. Tests that load the
+real model are tagged with `@pytest.mark.slow`:
+
+```bash
+make test                      # all tests, including the slow real-model run
+uv run pytest -m "not slow"    # fast loop — skip the model load
+```

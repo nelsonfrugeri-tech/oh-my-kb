@@ -9,6 +9,7 @@ authors = [
     { name = "Nelson Frugeri" },
 ]
 dependencies = [
+    "FlagEmbedding>=1.3",
     "pydantic>=2.9",
     "python-frontmatter>=1.1",
     "qdrant-client>=1.12",
@@ -33,6 +34,9 @@ packages = ["oh_my_kb"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = [
+    "slow: tests that load the real bge-m3 model (deselect with -m 'not slow')",
+]
 
 [tool.ruff]
 line-length = 100
@@ -68,4 +72,8 @@ warn_return_any = true
 
 [[tool.mypy.overrides]]
 module = "frontmatter"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "FlagEmbedding"
 ignore_missing_imports = true
