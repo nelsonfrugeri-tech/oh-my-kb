@@ -8,9 +8,10 @@ Domain logic lives in `oh_my_kb/core/` with no MCP, CLI, or network dependencies
 
 ```
 oh_my_kb/
-  core/   # pure domain logic — no MCP / CLI / network
-  mcp/    # MCP server adapter
-  cli/    # CLI adapter
+  core/     # pure domain logic — no MCP / CLI / network
+  storage/  # infrastructure adapters (Qdrant)
+  mcp/      # MCP server adapter
+  cli/      # CLI adapter
 tests/
 ```
 
@@ -19,6 +20,7 @@ tests/
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 - `make`
+- Docker + Docker Compose (for the local Qdrant)
 
 ## Usage
 
@@ -35,3 +37,18 @@ make clean      # remove .venv and tool caches
 ```
 
 `make venv` and `make sync` are aliases for `make install`.
+
+## Local infrastructure (Qdrant)
+
+The hybrid search index lives in Qdrant. A `docker-compose.yml` at the repo
+root brings up a local instance with a persistent volume at `./.data/qdrant`
+(git-ignored).
+
+```bash
+docker compose up -d   # start Qdrant (HTTP on 6333, gRPC on 6334)
+docker compose down    # stop it
+```
+
+The storage adapter reads the URL from the `KB_QDRANT_URL` env var, falling
+back to `http://localhost:6333`. Tests use the qdrant-client `:memory:`
+backend, so Docker is not required to run the suite.
