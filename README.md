@@ -11,6 +11,7 @@ oh_my_kb/
   core/       # pure domain logic — no MCP / CLI / network
   storage/    # infrastructure adapters (Qdrant)
   embedding/  # embedding interface + bge-m3 implementation
+  services/   # application services (Indexer) — orchestrate core/storage/embedding
   mcp/        # MCP server adapter
   cli/        # CLI adapter
 tests/
@@ -70,3 +71,12 @@ real model are tagged with `@pytest.mark.slow`:
 make test                      # all tests, including the slow real-model run
 uv run pytest -m "not slow"    # fast loop — skip the model load
 ```
+
+## Notes on disk and indexing
+
+The `Indexer` application service writes notes as `.md` files and upserts
+their index entries into Qdrant.
+
+- **Filesystem layout:** `<KB_NOTES_ROOT>/<slug(universe)>/<slug(project)>/<note.slug>.md`. `KB_NOTES_ROOT` defaults to `~/kb`.
+- **Collection naming:** one Qdrant collection per universe, named `kb_<slug(universe)>`. Search never crosses universes.
+- **Indexed payload:** the note's identity + the absolute path to the file. The full body is **not** stored in Qdrant — it lives on disk and is read back via the payload's `path` when needed.
