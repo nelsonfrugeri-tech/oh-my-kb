@@ -154,4 +154,5 @@ class Indexer:
             "path": str(path.relative_to(self._notes_root)),
             "supersedes": str(note.supersedes) if note.supersedes is not None else None,
             "archived": note.archived,
+            "summary": note.summary,
         }

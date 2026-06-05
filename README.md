@@ -79,4 +79,29 @@ their index entries into Qdrant.
 
 - **Filesystem layout:** `<KB_NOTES_ROOT>/<slug(universe)>/<slug(project)>/<note.slug>.md`. `KB_NOTES_ROOT` defaults to `~/kb`.
 - **Collection naming:** one Qdrant collection per universe, named `kb_<slug(universe)>`. Search never crosses universes.
-- **Indexed payload:** the note's identity + the absolute path to the file. The full body is **not** stored in Qdrant — it lives on disk and is read back via the payload's `path` when needed.
+- **Indexed payload:** the note's identity + `summary` + the absolute path to the file. The full body and `links_out` are **not** stored in Qdrant — the body lives on disk and is read back via the payload's `path` when needed.
+
+## Hybrid search
+
+`SearchService` (`oh_my_kb/services/search.py`) turns a natural-language
+query into dense + sparse vectors, asks Qdrant's Query API to prefetch the
+top hits for each vector, and fuses the two ranked lists with **Reciprocal
+Rank Fusion** (`Fusion.RRF`) server-side. Filters (`project`,
+`archived`) are pushed down as payload conditions, so they run before
+fusion rather than after.
+
+```python
+from oh_my_kb.services import SearchService
+
+results = SearchService(store, embedder).search(
+    "como armazenamos vetores?",
+    universe="engineering",
+    project="oh-my-kb",          # optional
+    top_k=5,
+    include_archived=False,      # archived notes are skipped by default
+)
+```
+
+A missing universe collection is *not* an error — the service returns an
+empty list. Each `SearchResult` carries `id`, `title`, `summary`, `type`,
+`project`, `created_at`, `path`, and the fused `score`.

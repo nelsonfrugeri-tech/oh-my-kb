@@ -163,6 +163,7 @@ def test_payload_has_all_required_fields_and_excludes_body_links_out(
         "path",
         "supersedes",
         "archived",
+        "summary",
     }
     assert payload["id"] == str(note.id)
     assert payload["slug"] == note.slug
@@ -176,6 +177,7 @@ def test_payload_has_all_required_fields_and_excludes_body_links_out(
     assert (tmp_path / payload["path"]).is_file()
     assert payload["supersedes"] is None
     assert payload["archived"] is False
+    assert payload["summary"] == note.summary
 
     assert "body" not in payload
     assert "links_out" not in payload
