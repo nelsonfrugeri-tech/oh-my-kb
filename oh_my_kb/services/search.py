@@ -45,6 +45,11 @@ class SearchResult:
     ``score`` is an RRF rank-fusion score, not a raw cosine similarity — do
     not interpret it as a probability or threshold against a fixed value.
 
+    ``path`` is **relative to the universe's** ``notes_root`` (matches the
+    Indexer payload, kept relative for portability across machines). The
+    caller resolves it to an absolute path via the notes_root it already
+    knows for the universe being searched.
+
     Fields intentionally omitted for now: ``universe``, ``entities``,
     ``supersedes``. They can be added when a downstream consumer needs them.
     See issue #9 for the full payload spec discussion.
