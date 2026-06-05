@@ -11,9 +11,9 @@ oh_my_kb/
   core/       # pure domain logic — no MCP / CLI / network
   storage/    # infrastructure adapters (Qdrant)
   embedding/  # embedding interface + bge-m3 implementation
-  services/   # application services (Indexer) — orchestrate core/storage/embedding
-  mcp/        # MCP server adapter
-  cli/        # CLI adapter
+  services/   # application services (Indexer, SearchService)
+  cli/        # o-kb-client (omk) — install + multiverse management
+  mcp/        # MCP server adapter (knowledge interaction only)
 tests/
 ```
 
@@ -105,3 +105,26 @@ results = SearchService(store, embedder).search(
 A missing universe collection is *not* an error — the service returns an
 empty list. Each `SearchResult` carries `id`, `title`, `summary`, `type`,
 `project`, `created_at`, `path`, and the fused `score`.
+
+## CLI — `omk`
+
+The `omk` (o-kb-client) command is the user-facing entry point for **infra
+and lifecycle**. Knowledge interaction (search / write) stays in MCP — the
+CLI only provisions and manages the environment.
+
+```bash
+omk help                    # list every command
+omk install                 # start Qdrant, ensure bge-m3, create default universe
+omk universe create <name>  # add a universe (dir + collection + config entry)
+omk universe list           # list configured universes ('*' marks the active one)
+omk universe use <name>     # set the active universe
+```
+
+`omk install` is idempotent — re-running it just confirms the current state
+(Qdrant healthy, model cached, universe + collection in place). The config
+file lives at `~/.config/oh-my-kb/config.toml` (XDG-style hidden), while
+note data lives in the **visible** `~/oh-my-kb/<universe>/` so notes are
+easy to open, edit and version-control.
+
+The data root can be overridden with the `KB_NOTES_ROOT` env var; the
+config directory with `OMK_CONFIG_DIR` (useful for tests).

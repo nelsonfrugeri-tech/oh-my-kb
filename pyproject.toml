@@ -13,7 +13,12 @@ dependencies = [
     "pydantic>=2.9",
     "python-frontmatter>=1.1",
     "qdrant-client>=1.12",
+    "tomli-w>=1.0",
+    "typer>=0.12",
 ]
+
+[project.scripts]
+omk = "oh_my_kb.cli.app:app"
 
 [dependency-groups]
 dev = [

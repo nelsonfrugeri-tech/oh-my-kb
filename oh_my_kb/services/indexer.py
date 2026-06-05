@@ -8,12 +8,13 @@ Orchestrates the three layers below it:
 
 Dependencies arrive by constructor injection so tests can use the
 ``QdrantStore(':memory:')`` backend and a stub embedder. No env var lookups
-happen here — the CLI/MCP layer resolves :data:`KB_NOTES_ROOT` and passes a
-concrete ``Path`` to the constructor.
+happen here — the CLI/MCP layer resolves the per-universe ``notes_root``
+and passes a concrete ``Path`` to the constructor.
 
 Collection layout: each ``universe`` maps to its own Qdrant collection named
 ``kb_<slug(universe)>``. Per-note files live under
-``<notes_root>/<slug(universe)>/<slug(project)>/<note.slug>.md``.
+``<notes_root>/<slug(project)>/<note.slug>.md`` — ``notes_root`` is already
+universe-scoped, so the indexer adds only the project subdirectory.
 """
 
 from __future__ import annotations
@@ -52,13 +53,12 @@ class Indexer:
         self._notes_root = notes_root
 
     def path_for(self, note: Note) -> Path:
-        """Return the filesystem path where this note's .md will live."""
-        return (
-            self._notes_root
-            / slugify(note.universe)
-            / slugify(note.project)
-            / f"{note.slug}.md"
-        )
+        """Return the filesystem path where this note's .md will live.
+
+        ``notes_root`` is already universe-scoped, so only the project
+        slug is added under it before the file name.
+        """
+        return self._notes_root / slugify(note.project) / f"{note.slug}.md"
 
     def write_note(self, note: Note) -> Path:
         """Persist the note as a .md file and upsert its index entry in Qdrant.

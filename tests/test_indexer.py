@@ -92,7 +92,10 @@ def test_write_note_writes_file_at_expected_path(
     note = _make_note()
     path = indexer.write_note(note)
 
-    expected = tmp_path / "engineering" / "oh-my-kb" / f"{note.slug}.md"
+    # notes_root is universe-rooted: the CLI/MCP resolves
+    # <data_root>/<slug(universe)>/ before constructing the Indexer, so the
+    # path under the root is just <slug(project)>/<slug>.md.
+    expected = tmp_path / "oh-my-kb" / f"{note.slug}.md"
     assert path == expected
     assert path.is_file()
 
@@ -105,17 +108,13 @@ def test_written_file_roundtrips_via_from_markdown(indexer: Indexer) -> None:
     assert restored == note
 
 
-def test_path_slugifies_universe_and_project(
+def test_path_slugifies_project(
     indexer: Indexer, tmp_path: Path
 ) -> None:
-    note = _make_note(
-        universe="Pessoal & Família",
-        project="Decisões — Importantes",
-    )
+    note = _make_note(project="Decisões — Importantes")
     path = indexer.write_note(note)
 
-    # No spaces, no accents, no punctuation in the directory components.
-    assert path.parent == tmp_path / "pessoal-familia" / "decisoes-importantes"
+    assert path.parent == tmp_path / "decisoes-importantes"
     assert path.is_file()
 
 
