@@ -106,6 +106,22 @@ A missing universe collection is *not* an error — the service returns an
 empty list. Each `SearchResult` carries `id`, `title`, `summary`, `type`,
 `project`, `created_at`, `path`, and the fused `score`.
 
+## Navigation
+
+`NavigationService` (`oh_my_kb/services/navigation.py`) is the second way
+into the knowledge base: when search-by-similarity isn't the right
+abstraction (small universe, relationship-heavy structure), the harness
+can ask for a *map* of the universe and then expand specific nodes.
+
+- `get_tree(universe, project=None, include_archived=False)` — returns a
+  `dict[project, list[TreeNode]]` built **entirely from Qdrant payloads**.
+  No `.md` files are read. This keeps the tree cheap regardless of universe
+  size and is exactly why `summary` lives in the payload.
+- `expand(note_id, universe)` — reconstructs the full `Note` from disk
+  (one file read) **plus** payload-only `ResolvedLink` metadata for every
+  UUID in its `links_out`. Broken or archived link targets are silently
+  dropped, so the harness shouldn't try to follow them.
+
 ## CLI — `omk`
 
 The `omk` (o-kb-client) command is the user-facing entry point for **infra
