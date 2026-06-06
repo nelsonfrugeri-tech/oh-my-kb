@@ -15,7 +15,9 @@ from oh_my_kb.services.navigation import (
     Tree,
     TreeNode,
 )
+from oh_my_kb.services.recent import RecentService
 from oh_my_kb.services.search import SearchResult, SearchService
+from oh_my_kb.services.temporal import parse_since
 
 __all__ = [
     "COLLECTION_PREFIX",
@@ -24,6 +26,7 @@ __all__ = [
     "Indexer",
     "NavigationService",
     "NoteNotFoundError",
+    "RecentService",
     "ResolvedLink",
     "SearchResult",
     "SearchService",
@@ -31,4 +34,5 @@ __all__ = [
     "TreeNode",
     "collection_name_for",
     "get_notes_root",
+    "parse_since",
 ]

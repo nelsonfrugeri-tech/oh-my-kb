@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Final
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, SparseVectorParams, VectorParams
+from qdrant_client.models import Distance, PayloadSchemaType, SparseVectorParams, VectorParams
 
 DENSE_VECTOR_NAME: Final[str] = "dense"
 SPARSE_VECTOR_NAME: Final[str] = "sparse"
@@ -53,7 +53,13 @@ class QdrantStore:
         return bool(self._client.collection_exists(collection_name=name))
 
     def ensure_collection(self, name: str) -> None:
-        """Create the hybrid collection if it doesn't exist (idempotent)."""
+        """Create the hybrid collection if it doesn't exist (idempotent).
+
+        A ``DATETIME`` payload index is created on ``created_at`` so that
+        :meth:`qdrant_client.QdrantClient.scroll` can use ``order_by`` on
+        that field without a full-scan error from the server.  The
+        ``KEYWORD`` index on ``project`` speeds up project-filter queries.
+        """
         if self.collection_exists(name):
             return
         self._client.create_collection(
@@ -62,6 +68,17 @@ class QdrantStore:
                 DENSE_VECTOR_NAME: VectorParams(size=DENSE_DIM, distance=Distance.COSINE),
             },
             sparse_vectors_config={SPARSE_VECTOR_NAME: SparseVectorParams()},
+        )
+        # Payload indexes — required for server-side order_by and efficient filtering.
+        self._client.create_payload_index(
+            collection_name=name,
+            field_name="created_at",
+            field_schema=PayloadSchemaType.DATETIME,
+        )
+        self._client.create_payload_index(
+            collection_name=name,
+            field_name="project",
+            field_schema=PayloadSchemaType.KEYWORD,
         )
 
     def delete_collection(self, name: str) -> None:

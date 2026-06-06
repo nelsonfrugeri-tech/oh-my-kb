@@ -1,10 +1,10 @@
-"""``o-kb-mcp`` — stdio server exposing kb_write and kb_search.
+"""``o-kb-mcp`` — stdio server exposing kb_write, kb_search, and kb_recent.
 
 Dependencies (``QdrantStore``, ``BGEM3Embedder``, ``Indexer``,
-:class:`SearchService`) are built **once** when the server boots and reused
-for every tool invocation — that's the whole point of running an MCP
-server instead of doing one-shot CLIs. Universe is server-bound via
-``KB_UNIVERSE``; tool inputs cannot widen it.
+:class:`SearchService`, :class:`RecentService`) are built **once** when the
+server boots and reused for every tool invocation — that's the whole point of
+running an MCP server instead of doing one-shot CLIs.  Universe is
+server-bound via ``KB_UNIVERSE``; tool inputs cannot widen it.
 
 The handlers themselves live in :mod:`oh_my_kb.mcp.tools` so they can be
 unit-tested without touching the SDK; this module only wires them into the
@@ -29,12 +29,14 @@ from oh_my_kb.embedding import BGEM3Embedder, Embedder
 from oh_my_kb.mcp.config import get_active_notes_root, get_active_universe
 from oh_my_kb.mcp.resources import list_scribe_resources, read_scribe_resource
 from oh_my_kb.mcp.tools import (
+    KB_RECENT_TOOL,
     KB_SEARCH_TOOL,
     KB_WRITE_TOOL,
+    handle_kb_recent,
     handle_kb_search,
     handle_kb_write,
 )
-from oh_my_kb.services import Indexer, SearchService
+from oh_my_kb.services import Indexer, RecentService, SearchService
 from oh_my_kb.storage import QdrantStore, get_qdrant_url
 
 SERVER_NAME = "o-kb-mcp"
@@ -55,6 +57,7 @@ class KBServerContext:
     embedder: Embedder
     indexer: Indexer
     search_service: SearchService
+    recent_service: RecentService
 
 
 def build_context(
@@ -79,6 +82,7 @@ def build_context(
         notes_root=resolved_root,
     )
     search_service = SearchService(store=resolved_store, embedder=resolved_embedder)
+    recent_service = RecentService(store=resolved_store, embedder=resolved_embedder)
     return KBServerContext(
         universe=resolved_universe,
         qdrant_url=resolved_url,
@@ -87,18 +91,19 @@ def build_context(
         embedder=resolved_embedder,
         indexer=indexer,
         search_service=search_service,
+        recent_service=recent_service,
     )
 
 
 def build_server(context: KBServerContext) -> Server[Any, Any]:
-    """Construct a :class:`Server` with kb_write + kb_search registered."""
+    """Construct a :class:`Server` with kb_write, kb_search, and kb_recent registered."""
     server: Server[Any, Any] = Server(SERVER_NAME)
 
     # mcp's decorator factories aren't typed — silence the strict-mypy
     # noise; the inner function signatures are still typed below.
     @server.list_tools()  # type: ignore[no-untyped-call, untyped-decorator]
     async def _list_tools() -> list[Tool]:
-        return [KB_WRITE_TOOL, KB_SEARCH_TOOL]
+        return [KB_WRITE_TOOL, KB_SEARCH_TOOL, KB_RECENT_TOOL]
 
     @server.call_tool()  # type: ignore[untyped-decorator]
     async def _call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
@@ -107,6 +112,10 @@ def build_server(context: KBServerContext) -> Server[Any, Any]:
         if name == "kb_search":
             return await handle_kb_search(
                 context.search_service, context.universe, arguments
+            )
+        if name == "kb_recent":
+            return await handle_kb_recent(
+                context.recent_service, context.universe, arguments
             )
         return [TextContent(type="text", text=f"unknown tool: {name}")]
 
@@ -128,7 +137,7 @@ def _log_startup(context: KBServerContext) -> None:
             f"  universe   : {context.universe}\n"
             f"  qdrant_url : {context.qdrant_url}\n"
             f"  notes_root : {context.notes_root}\n"
-            f"  tools      : kb_write, kb_search\n"
+            f"  tools      : kb_write, kb_search, kb_recent\n"
             f"  model      : bge-m3 (lazy — first call triggers load/download ~2 GB)\n"
             f"  resources  : skill://scribe/SKILL.md, skill://scribe/template.md"
         ),

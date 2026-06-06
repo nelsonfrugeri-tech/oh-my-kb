@@ -157,10 +157,15 @@ server that exposes two core tools the harness calls into:
   write into the wrong universe by accident.
 - **`kb_search`** — hybrid retrieval (`SearchService`) over the active
   universe with optional `project` and `include_archived` filters.
+- **`kb_recent`** — temporal recall (`RecentService`) ordered by
+  `created_at` descending. Use for questions about *time* — "what changed
+  recently", "latest decisions on project X", "what happened in the last 7
+  days". See [Temporal recall — kb_recent](#temporal-recall--kb_recent)
+  below.
 
 The server builds its dependencies (`QdrantStore`, `BGEM3Embedder`,
-`Indexer`, `SearchService`) **once** at boot and reuses them for every
-request — bge-m3 doesn't reload per call.
+`Indexer`, `SearchService`, `RecentService`) **once** at boot and reuses
+them for every request — bge-m3 doesn't reload per call.
 
 Run it directly via the installed script:
 
@@ -174,6 +179,49 @@ Environment:
 - `KB_UNIVERSE` — active universe (default `default`).
 - `KB_NOTES_ROOT` — notes-root override for the active universe (default
   `~/oh-my-kb/<slug(universe)>`).
+
+### Temporal recall — kb_recent
+
+`kb_recent` answers time-based questions. Use it when the user asks about
+*recency* rather than *content similarity*:
+
+| Use case | Right tool |
+|----------|------------|
+| "What do we know about Qdrant?" | `kb_search` |
+| "What changed in the last 7 days?" | `kb_recent` |
+| "Latest decisions on project alpha" | `kb_recent` |
+| "Show the knowledge map" | `kb_tree` |
+
+```python
+# Recent notes — newest first (no topic)
+results = recent_service.recent("engineering", limit=10)
+
+# Within a time window
+from oh_my_kb.services import parse_since
+from datetime import UTC, datetime
+since = parse_since("7d", now=datetime.now(tz=UTC))
+results = recent_service.recent("engineering", since=since, project="oh-my-kb")
+
+# Combine with topic: rank semantically within the window
+results = recent_service.recent("engineering", topic="qdrant architecture", since=since)
+```
+
+**Accepted `since` formats:**
+
+| Format | Example | Meaning |
+|--------|---------|---------|
+| Relative days | `"7d"`, `"30d"` | Last N days |
+| Relative hours | `"24h"` | Last N hours |
+| Relative minutes | `"90m"` | Last N minutes |
+| ISO date | `"2026-06-01"` | From midnight UTC on that date |
+| ISO datetime (tz-aware) | `"2026-06-01T00:00:00+00:00"` | Exact UTC timestamp |
+
+Naive ISO datetimes (without timezone) are rejected — they are ambiguous.
+
+When `topic` is provided the service uses RRF fusion (same path as
+`kb_search`) to rank by semantic relevance within the time window.  When
+`topic` is absent, results are ordered purely by `created_at` descending
+and `score` is `0.0` (the MCP formatter labels it "n/a").
 
 Subsequent issues will add `kb_tree`/`kb_expand` (#17) on top of this
 server.
