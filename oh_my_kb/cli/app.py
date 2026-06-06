@@ -185,5 +185,40 @@ def bootstrap_cmd(
     typer.echo(f"  bytes      : {report.bytes_written}")
 
 
+@app.command("reindex")
+def reindex_cmd(
+    universe_name: str | None = typer.Option(
+        None,
+        "--universe",
+        "-u",
+        help="Universe to reindex. Defaults to the active universe.",
+    ),
+) -> None:
+    """Reconcile the Qdrant collection with markdown files on disk.
+
+    Scans the universe's notes directory, upserts every .md found (refreshing
+    embeddings and correcting paths), and removes Qdrant points whose file no
+    longer exists on disk.  Safe to run multiple times — fully idempotent.
+    """
+    from oh_my_kb.cli.reindex import NoActiveUniverseError, ReindexRunner
+
+    try:
+        runner = ReindexRunner()
+        report = runner.run(universe_name)
+    except NoActiveUniverseError as exc:
+        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    except UniverseNotFoundError as exc:
+        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.secho(
+        f"scanned {report.scanned} files, upserted {report.upserted} points, "
+        f"removed {report.removed} orphans",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

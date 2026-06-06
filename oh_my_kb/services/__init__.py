@@ -17,6 +17,7 @@ from oh_my_kb.services.paths import (
     get_notes_root,
 )
 from oh_my_kb.services.recent import RecentService
+from oh_my_kb.services.reindex import ReindexReport, ReindexService, reindex_universe
 from oh_my_kb.services.search import SearchResult, SearchService
 from oh_my_kb.services.temporal import is_before_since, parse_since
 
@@ -28,6 +29,8 @@ __all__ = [
     "NavigationService",
     "NoteNotFoundError",
     "RecentService",
+    "ReindexReport",
+    "ReindexService",
     "ResolvedLink",
     "SearchResult",
     "SearchService",
@@ -38,4 +41,5 @@ __all__ = [
     "get_notes_root",
     "is_before_since",
     "parse_since",
+    "reindex_universe",
 ]

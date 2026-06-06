@@ -129,6 +129,46 @@ class Indexer:
             absolute_path=path,
         )
 
+    def upsert_from_disk(self, note: Note, current_path: Path) -> None:
+        """Embed and upsert a note whose ``.md`` already exists at ``current_path``.
+
+        This is the reindex primitive: it updates the Qdrant point for ``note``
+        with a fresh embedding and the **actual** ``current_path`` on disk, without
+        touching the file.  It is safe to call even when the note has been moved
+        (``current_path`` differs from the original ``path_for(note)``).
+
+        Design rationale
+        ----------------
+        ``write_note`` always writes the .md file as its final step.  For reindex
+        the file already exists — re-writing it would be a no-op but could
+        produce a duplicate file if the slug changed since the note was first
+        indexed.  Skipping the write is the correct behaviour and preserves the
+        post-#25 invariant that Qdrant is the source of truth for location.
+
+        Operation order mirrors ``write_note``:
+        (1) ensure_collection
+        (2) embed_text  — fails fast before mutation
+        (3) upsert      — idempotent
+        (no file write)
+        """
+        collection = collection_name_for(note.universe)
+        self._store.ensure_collection(collection)
+
+        embedding = self._embedder.embed_text(note.summary)
+        payload = self._payload(note, current_path)
+        point = PointStruct(
+            id=str(note.id),
+            vector={
+                DENSE_VECTOR_NAME: embedding.dense,
+                SPARSE_VECTOR_NAME: QdrantSparseVector(
+                    indices=embedding.sparse.indices,
+                    values=embedding.sparse.values,
+                ),
+            },
+            payload=payload,
+        )
+        self._store.client.upsert(collection_name=collection, points=[point])
+
     def read_note_by_id(self, note_id: UUID, universe: str) -> Note:
         """Load a note's full content from disk using the Qdrant payload's path.
 
