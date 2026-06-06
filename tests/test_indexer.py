@@ -165,6 +165,12 @@ def test_point_has_dense_and_sparse_named_vectors(
     assert DENSE_VECTOR_NAME in vectors
     assert SPARSE_VECTOR_NAME in vectors
     assert len(vectors[DENSE_VECTOR_NAME]) == DENSE_DIM
+    # Regression guard: stub must produce at least 2 sparse entries so that
+    # dot-product ranking is non-trivial (prevents regression to 1 sparse entry).
+    sparse = vectors[SPARSE_VECTOR_NAME]
+    assert len(sparse.indices) >= 2, (
+        "sparse vector must have at least 2 entries to preserve ranking utility"
+    )
 
 
 # --- idempotency ---------------------------------------------------------

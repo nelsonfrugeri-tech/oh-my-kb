@@ -6,40 +6,16 @@ Docker is required.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from _helpers import StubEmbedder
 
 from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_kb.mcp.tools.kb_recent import handle_kb_recent
 from oh_my_kb.services import Indexer, RecentService
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
-
-# ---------------------------------------------------------------------------
-# Stub embedder
-# ---------------------------------------------------------------------------
-
-
-class _StubEmbedder(Embedder):
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        results: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode()).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[int.from_bytes(digest[0:2], "little")],
-                values=[1.0],
-            )
-            results.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return results
-
+from oh_my_kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -52,17 +28,17 @@ def store() -> QdrantStore:
 
 
 @pytest.fixture
-def embedder() -> _StubEmbedder:
-    return _StubEmbedder()
+def embedder() -> StubEmbedder:
+    return StubEmbedder()
 
 
 @pytest.fixture
-def indexer(store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path) -> Indexer:
+def indexer(store: QdrantStore, embedder: StubEmbedder, tmp_path: Path) -> Indexer:
     return Indexer(store=store, embedder=embedder, notes_root=tmp_path)
 
 
 @pytest.fixture
-def recent_service(store: QdrantStore, embedder: _StubEmbedder) -> RecentService:
+def recent_service(store: QdrantStore, embedder: StubEmbedder) -> RecentService:
     return RecentService(store=store, embedder=embedder)
 
 
