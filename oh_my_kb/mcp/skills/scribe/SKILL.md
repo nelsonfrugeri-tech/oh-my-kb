@@ -140,11 +140,20 @@ link the reader couldn't predict from context is a wrong link.
 
 ### Quanto linkar (quantitative caps)
 
+*Estes são limites de julgamento — `kb_write` não os enforça. O servidor
+aceita notas com qualquer número de `links_out` e não valida scores. A
+responsabilidade de aplicar estes critérios é sua.*
+
 **Cap superior: máximo 5 links por nota.**
 Acima de 5, a lista vira ruído de navegação — o leitor (humano ou agente)
 perde a capacidade de distinguir o link central dos links periféricos.
 Se `kb_search` devolver mais de 5 candidatos com relação genuína, escolha os
 5 mais próximos semanticamente do tema da nota nova.
+
+Ao buscar candidatos para `links_out`, use `top_k >= 10` — não o default de 5.
+Com `top_k=5`, o filtro de score nunca elimina nada porque o harness já
+recebe no máximo 5 candidatos. Um pool de 10 candidatos permite que o critério
+qualitativo e o piso de score trabalhem como filtros reais.
 
 **Piso de score: descarte hits com `score < 0.02`.**
 O `score` devolvido por `kb_search` é uma pontuação RRF (Reciprocal Rank
@@ -153,18 +162,34 @@ entre 0 e 1. Com dois prefetch (vetor denso + vetor esparso) e o parâmetro
 padrão `k = 60`, o score máximo teórico para um documento que apareça em
 primeiro lugar nas duas listas é `2 / (60 + 1) ≈ 0.033`. Na prática:
 
-| Faixa de score RRF | Interpretação empírica |
-|--------------------|------------------------|
-| ≥ 0.025            | Hit forte — aparece no top-1 ou top-2 de ambas as listas |
-| 0.015 – 0.025      | Hit razoável — top-3 a top-5 em pelo menos uma lista |
-| < 0.015            | Hit fraco — coincidência superficial ou ruído |
+| Faixa de score RRF | O que implica (com k=60, 2 listas) |
+|--------------------|-------------------------------------|
+| ≥ 0.025            | Rank ≤ 20 em ambas as listas, ou muito bem rankeado em uma (top-3 ou melhor) com presença razoável na outra |
+| 0.015 – 0.025      | Presença moderada: top-50 em pelo menos uma lista, posição mais fraca na outra |
+| < 0.015            | Hit fraco — ranking ≥ 73 em ambas as listas; coincidência superficial ou ruído |
+
+*Derivação: `score = 1/(60+rank_a) + 1/(60+rank_b)`. Para score = 0.025 com ranks iguais: `2/(60+N) = 0.025 → N = 20`.*
 
 O threshold de **0.02** é conservador: captura hits que aparecem
-consistentemente nas duas listas sem incluir ruído. Os critérios qualitativos
-da seção acima continuam sendo condição necessária — score ≥ 0.02 é condição
-necessária, não suficiente.
+consistentemente nas duas listas sem incluir ruído.
+
+> **Aviso — corpus pequeno:** em bases com ≤ 50 notas, o pior score
+> possível já é `2/(60+50) ≈ 0.018`, e com ≤ 20 notas é `2/(60+20) = 0.025`
+> — praticamente todos os resultados ficam acima de 0.02. Nesses casos o
+> filtro de score não discrimina: confie inteiramente no critério qualitativo
+> da seção anterior (relação semântica real, não similaridade de palavras).
+
+Score ≥ 0.02 é condição necessária para considerar um candidato — mas não
+é suficiente: um hit com score alto e sem relação semântica real com a nota
+nova **não deve** ser linkado. O critério qualitativo da seção acima prevalece.
 
 ### Como calibrar
+
+**Quando recalibrar:** mude estes números se algum destes parâmetros mudar:
+- Modelo de embedding (substituir BGE-M3 por outro modelo)
+- `k` do Qdrant RRF (padrão atual: 60)
+- `_PREFETCH_MULTIPLIER` em `oh_my_kb/services/search.py` (padrão atual: 4)
+- Tamanho típico do corpus (corpus > 500 notas pode tolerar threshold maior)
 
 Os números acima derivam da fórmula RRF com `k = 60` (padrão do Qdrant) e
 dois prefetches independentes. Para ajustá-los ao seu corpus:
@@ -186,6 +211,18 @@ dois prefetches independentes. Para ajustá-los ao seu corpus:
    (SIGIR 2009) e implementado nativamente pelo Qdrant Query API
    (`Fusion.RRF`). O `k = 60` original foi escolhido empiricamente pelos
    autores para suprimir outliers de ranking.
+
+5. **Parâmetro interno `_PREFETCH_MULTIPLIER`:** o Qdrant pré-busca
+   `top_k × 4` candidatos por sub-query antes de calcular o RRF. Com
+   `top_k=10` (recomendado para links_out), o pool de candidatos por lista é
+   40 documentos. Se `_PREFETCH_MULTIPLIER` mudar em
+   `oh_my_kb/services/search.py`, toda a distribuição de scores muda — recalibre.
+
+**BGE-M3:** os vetores denso e esparso do BGE-M3 são treinados com objetivos
+complementares (semântica vs. lexical). A concordância entre as duas listas
+tende a ser menor do que com modelos unimodais — os scores RRF médios ficam
+no intervalo 0.018–0.028 em buscas típicas, raramente chegando ao máximo
+teórico. Leve isso em conta ao interpretar histogramas de scores.
 
 ## 6. Mechanical rules (enforced by code, listed for awareness only)
 
