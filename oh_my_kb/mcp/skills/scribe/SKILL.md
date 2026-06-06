@@ -138,6 +138,55 @@ Heuristics for what to link:
 Don't link by similarity of words — link by actual semantic relationship. A
 link the reader couldn't predict from context is a wrong link.
 
+### Quanto linkar (quantitative caps)
+
+**Cap superior: máximo 5 links por nota.**
+Acima de 5, a lista vira ruído de navegação — o leitor (humano ou agente)
+perde a capacidade de distinguir o link central dos links periféricos.
+Se `kb_search` devolver mais de 5 candidatos com relação genuína, escolha os
+5 mais próximos semanticamente do tema da nota nova.
+
+**Piso de score: descarte hits com `score < 0.02`.**
+O `score` devolvido por `kb_search` é uma pontuação RRF (Reciprocal Rank
+Fusion) produzida pelo Qdrant, não uma similaridade de cosseno normalizada
+entre 0 e 1. Com dois prefetch (vetor denso + vetor esparso) e o parâmetro
+padrão `k = 60`, o score máximo teórico para um documento que apareça em
+primeiro lugar nas duas listas é `2 / (60 + 1) ≈ 0.033`. Na prática:
+
+| Faixa de score RRF | Interpretação empírica |
+|--------------------|------------------------|
+| ≥ 0.025            | Hit forte — aparece no top-1 ou top-2 de ambas as listas |
+| 0.015 – 0.025      | Hit razoável — top-3 a top-5 em pelo menos uma lista |
+| < 0.015            | Hit fraco — coincidência superficial ou ruído |
+
+O threshold de **0.02** é conservador: captura hits que aparecem
+consistentemente nas duas listas sem incluir ruído. Os critérios qualitativos
+da seção acima continuam sendo condição necessária — score ≥ 0.02 é condição
+necessária, não suficiente.
+
+### Como calibrar
+
+Os números acima derivam da fórmula RRF com `k = 60` (padrão do Qdrant) e
+dois prefetches independentes. Para ajustá-los ao seu corpus:
+
+1. **Observe a distribuição real.** Execute `kb_search` com 5–10 queries
+   representativas do corpus e anote os scores dos hits. Olhe o histograma:
+   onde há um vale natural entre hits relevantes e irrelevantes? Esse vale é
+   o threshold ideal.
+
+2. **Corpus muito especializado** (ex.: todas as notas falam do mesmo sistema)
+   tem scores médios mais baixos porque a discriminação entre notas vizinhas é
+   menor. Nesse caso considere baixar o threshold para 0.015.
+
+3. **Corpus muito variado** (múltiplos projetos, domínios distintos) tem mais
+   separação entre hits. Pode elevar o threshold para 0.025 sem perder recall
+   relevante.
+
+4. **Referência:** o algoritmo RRF é descrito em Cormack, Clarke & Buettcher
+   (SIGIR 2009) e implementado nativamente pelo Qdrant Query API
+   (`Fusion.RRF`). O `k = 60` original foi escolhido empiricamente pelos
+   autores para suprimir outliers de ranking.
+
 ## 6. Mechanical rules (enforced by code, listed for awareness only)
 
 These are validated by the `Note` model and the `kb_write` handler. You
