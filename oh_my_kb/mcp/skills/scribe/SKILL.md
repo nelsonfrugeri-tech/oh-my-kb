@@ -150,6 +150,7 @@ with a clear message — but knowing them avoids round-trips:
 - `summary` must not equal the `title` (after trimming whitespace).
 - `type` must be one of the five enum values.
 - `links_out` and `supersedes` must be valid UUIDs.
+- `universe` is **server-bound** and not part of the tool input — never include it. The server resolves the active universe at boot from `KB_UNIVERSE`; the input schema rejects extra fields. See [ADR-002](../../../../docs/adr/ADR-002-server-bound-universe.md).
 
 Everything else — the *quality* of the summary, the *right* choice of type,
 the *non-trivial* entities — is your job.

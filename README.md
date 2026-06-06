@@ -171,7 +171,7 @@ o-kb-mcp                       # stdio transport, ready to be wired into a harne
 Environment:
 
 - `KB_QDRANT_URL` — Qdrant URL (default `http://localhost:6333`).
-- `KB_UNIVERSE` — active universe (default `default`).
+- `KB_UNIVERSE` — active universe (default `default`). See [ADR-002](docs/adr/ADR-002-server-bound-universe.md) for the rationale and alternatives considered.
 - `KB_NOTES_ROOT` — notes-root override for the active universe (default
   `~/oh-my-kb/<slug(universe)>`).
 
