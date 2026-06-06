@@ -148,7 +148,7 @@ config directory with `OMK_CONFIG_DIR` (useful for tests).
 ## MCP server — `o-kb-mcp`
 
 Knowledge interaction lives in the MCP server. `o-kb-mcp` is a stdio
-server that exposes two core tools the harness calls into:
+server that exposes four tools the harness calls into:
 
 - **`kb_write`** — register a note (decision / event / procedure /
   reference / conversation). Validates the input via the `Note` pydantic
@@ -156,11 +156,26 @@ server that exposes two core tools the harness calls into:
   active universe is **server-bound** (`KB_UNIVERSE`) so the harness can't
   write into the wrong universe by accident.
 - **`kb_search`** — hybrid retrieval (`SearchService`) over the active
-  universe with optional `project` and `include_archived` filters.
+  universe with optional `project` and `include_archived` filters. Use
+  when the question is about content or theme ("what do we know about X?").
+- **`kb_tree`** — map the universe as a project-grouped directory of note
+  summaries (id, title, type, summary per note). Use when the question is
+  about what *exists* or what *relates* ("what notes are in project X?"),
+  or when you need ids to pass into `kb_expand`. No semantic scoring — it
+  is a structural view, not a similarity search.
+- **`kb_expand`** — read a note in full (title, metadata, complete body)
+  and resolve its outbound links as a list (id, title, type, summary). Use
+  to follow the knowledge graph hop by hop: call `kb_expand` again on any
+  link id returned here. The id comes from a prior `kb_search` hit,
+  `kb_tree` row, or `kb_expand` link.
+
+**Navigate vs. search:** prefer `kb_tree` + `kb_expand` when exploring
+structure or relationships; prefer `kb_search` when looking for notes by
+semantic content.
 
 The server builds its dependencies (`QdrantStore`, `BGEM3Embedder`,
-`Indexer`, `SearchService`) **once** at boot and reuses them for every
-request — bge-m3 doesn't reload per call.
+`Indexer`, `SearchService`, `NavigationService`) **once** at boot and
+reuses them for every request — bge-m3 doesn't reload per call.
 
 Run it directly via the installed script:
 
@@ -175,8 +190,6 @@ Environment:
 - `KB_NOTES_ROOT` — notes-root override for the active universe (default
   `~/oh-my-kb/<slug(universe)>`).
 
-Subsequent issues will add `kb_tree`/`kb_expand` (#17) on top of this
-server.
 
 ### Scribe skill (resources)
 

@@ -2,9 +2,10 @@
 
 We don't spin up the stdio transport here — that's integration work. We
 prove the wiring at the function level: ``build_context`` resolves env into
-concrete deps, ``build_server`` registers exactly the two core tools, and
-the same dependencies are reused across multiple tool calls (i.e. nothing
-in the call path re-instantiates the embedder per request).
+concrete deps, ``build_server`` registers exactly the four tools
+(kb_write, kb_search, kb_tree, kb_expand), and the same dependencies are
+reused across multiple tool calls (i.e. nothing in the call path
+re-instantiates the embedder per request).
 """
 
 from __future__ import annotations
@@ -66,9 +67,14 @@ def test_build_context_overrides_all_dependencies(tmp_path: Path) -> None:
     assert ctx.embedder is embedder
     assert ctx.indexer.notes_root == tmp_path
     assert ctx.search_service._store is store
+    # navigation_service must be wired to the same store and indexer
+    assert ctx.navigation_service is not None
 
 
-def test_build_server_registers_only_core_tools(tmp_path: Path) -> None:
+async def test_build_server_registers_four_tools(tmp_path: Path) -> None:
+    """``_list_tools`` must return exactly kb_write, kb_search, kb_tree, kb_expand."""
+    from mcp.types import ListToolsRequest, Tool
+
     ctx = build_context(
         universe="engineering",
         qdrant_url="http://stub:6333",
@@ -77,9 +83,19 @@ def test_build_server_registers_only_core_tools(tmp_path: Path) -> None:
         embedder=_StubEmbedder(),
     )
     server = build_server(ctx)
-    # The Server's name matches what we expect, and the tool definitions
-    # come from the modules.
     assert server.name == "o-kb-mcp"
+
+    # The MCP Server stores handlers keyed by the request *class*, not a string.
+    list_tools_handler = server.request_handlers.get(ListToolsRequest)
+    assert list_tools_handler is not None, "tools/list handler not registered"
+
+    request = ListToolsRequest(method="tools/list")
+    response = await list_tools_handler(request)
+    # The MCP SDK wraps the result in a ServerResult with a `.root` attribute.
+    tools: list[Tool] = response.root.tools  # type: ignore[union-attr]
+
+    tool_names = [t.name for t in tools]
+    assert tool_names == ["kb_write", "kb_search", "kb_tree", "kb_expand"]
 
 
 async def test_dependencies_are_built_once_and_reused(tmp_path: Path) -> None:
