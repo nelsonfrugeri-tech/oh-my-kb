@@ -71,8 +71,8 @@ def test_build_context_overrides_all_dependencies(tmp_path: Path) -> None:
     assert ctx.navigation_service is not None
 
 
-async def test_build_server_registers_four_tools(tmp_path: Path) -> None:
-    """``_list_tools`` must return exactly kb_write, kb_search, kb_tree, kb_expand."""
+async def test_build_server_registers_five_tools(tmp_path: Path) -> None:
+    """``_list_tools`` must return exactly the five core tools."""
     from mcp.types import ListToolsRequest, Tool
 
     ctx = build_context(
@@ -95,7 +95,13 @@ async def test_build_server_registers_four_tools(tmp_path: Path) -> None:
     tools: list[Tool] = response.root.tools  # type: ignore[union-attr]
 
     tool_names = [t.name for t in tools]
-    assert tool_names == ["kb_write", "kb_search", "kb_tree", "kb_expand"]
+    assert tool_names == [
+        "kb_write",
+        "kb_search",
+        "kb_recent",
+        "kb_tree",
+        "kb_expand",
+    ]
 
 
 async def test_dependencies_are_built_once_and_reused(tmp_path: Path) -> None:
