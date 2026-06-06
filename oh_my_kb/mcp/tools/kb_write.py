@@ -13,7 +13,7 @@ accident.
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Final
 from uuid import UUID
 
 from mcp.types import TextContent, Tool
@@ -21,6 +21,12 @@ from pydantic import ValidationError
 
 from oh_my_kb.core import Note, NoteType
 from oh_my_kb.services import Indexer
+
+# Light summary validation — the scribe skill defines *quality*; these
+# constants define the *floor and ceiling* the kb_write boundary enforces
+# so a careless caller can't accept a label-as-summary or a body-in-summary.
+SUMMARY_MIN_LEN: Final[int] = 200
+SUMMARY_MAX_LEN: Final[int] = 800
 
 KB_WRITE_TOOL = Tool(
     name="kb_write",
@@ -83,6 +89,13 @@ async def handle_kb_write(
     arguments: dict[str, Any],
 ) -> list[TextContent]:
     """Execute ``kb_write`` against ``indexer`` (server-bound to ``universe``)."""
+    summary_error = _validate_summary(
+        title=str(arguments.get("title", "")),
+        summary=str(arguments.get("summary", "")),
+    )
+    if summary_error is not None:
+        return [TextContent(type="text", text=f"kb_write: invalid input — {summary_error}")]
+
     try:
         note = _build_note(arguments, universe=universe)
     except (ValidationError, ValueError) as exc:
@@ -105,6 +118,36 @@ async def handle_kb_write(
         f"  universe:{universe}"
     )
     return [TextContent(type="text", text=body)]
+
+
+def _validate_summary(*, title: str, summary: str) -> str | None:
+    """Return an error message if the summary violates the light rules.
+
+    These checks live here (the kb_write boundary) rather than in
+    :class:`Note` because they're MCP-tool-shape rules — the indexer must
+    still accept short summaries written before this validation existed.
+    The :class:`Note` model already rejects empty / whitespace-only
+    summaries; this layer adds length-floor, length-ceiling and the
+    title-not-equal-to-summary checks. See ``skill://scribe/SKILL.md``
+    for the rationale.
+    """
+    stripped = summary.strip()
+    if not stripped:
+        return "summary must not be empty or whitespace"
+    if stripped == title.strip():
+        return "summary must not be identical to the title"
+    length = len(stripped)
+    if length < SUMMARY_MIN_LEN:
+        return (
+            f"summary is too short ({length} chars); minimum is "
+            f"{SUMMARY_MIN_LEN}. Read skill://scribe/SKILL.md for examples."
+        )
+    if length > SUMMARY_MAX_LEN:
+        return (
+            f"summary is too long ({length} chars); maximum is "
+            f"{SUMMARY_MAX_LEN}. The body field is for long-form content."
+        )
+    return None
 
 
 def _build_note(arguments: dict[str, Any], *, universe: str) -> Note:

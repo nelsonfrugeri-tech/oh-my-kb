@@ -22,10 +22,12 @@ from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import Resource, TextContent, Tool
+from pydantic import AnyUrl
 
 from oh_my_kb.embedding import BGEM3Embedder, Embedder
 from oh_my_kb.mcp.config import get_active_notes_root, get_active_universe
+from oh_my_kb.mcp.resources import list_scribe_resources, read_scribe_resource
 from oh_my_kb.mcp.tools import (
     KB_SEARCH_TOOL,
     KB_WRITE_TOOL,
@@ -108,6 +110,14 @@ def build_server(context: KBServerContext) -> Server[Any, Any]:
             )
         return [TextContent(type="text", text=f"unknown tool: {name}")]
 
+    @server.list_resources()  # type: ignore[no-untyped-call, untyped-decorator]
+    async def _list_resources() -> list[Resource]:
+        return list_scribe_resources()
+
+    @server.read_resource()  # type: ignore[no-untyped-call, untyped-decorator]
+    async def _read_resource(uri: AnyUrl) -> str:
+        return read_scribe_resource(str(uri))
+
     return server
 
 
@@ -119,7 +129,8 @@ def _log_startup(context: KBServerContext) -> None:
             f"  qdrant_url : {context.qdrant_url}\n"
             f"  notes_root : {context.notes_root}\n"
             f"  tools      : kb_write, kb_search\n"
-            f"  model      : bge-m3 (lazy — first call triggers load/download ~2 GB)"
+            f"  model      : bge-m3 (lazy — first call triggers load/download ~2 GB)\n"
+            f"  resources  : skill://scribe/SKILL.md, skill://scribe/template.md"
         ),
         file=sys.stderr,
         flush=True,
