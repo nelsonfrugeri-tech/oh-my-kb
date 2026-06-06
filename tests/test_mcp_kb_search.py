@@ -1,54 +1,13 @@
 from __future__ import annotations
 
-import hashlib
 from datetime import UTC, datetime
-from pathlib import Path
-
-import pytest
 
 from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_kb.mcp.tools.kb_search import handle_kb_search
 from oh_my_kb.services import Indexer, SearchService
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
 
-
-class _StubEmbedder(Embedder):
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        results: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode("utf-8")).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[int.from_bytes(digest[0:2], "little")],
-                values=[1.0],
-            )
-            results.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return results
-
-
-@pytest.fixture
-def store() -> QdrantStore:
-    return QdrantStore(IN_MEMORY)
-
-
-@pytest.fixture
-def embedder() -> _StubEmbedder:
-    return _StubEmbedder()
-
-
-@pytest.fixture
-def indexer(store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path) -> Indexer:
-    return Indexer(store=store, embedder=embedder, notes_root=tmp_path)
-
-
-@pytest.fixture
-def search_service(store: QdrantStore, embedder: _StubEmbedder) -> SearchService:
-    return SearchService(store=store, embedder=embedder)
+# ``store``, ``embedder``, ``indexer``, ``search_service`` fixtures are
+# provided by tests/conftest.py.
 
 
 def _note(summary: str, project: str = "oh-my-kb") -> Note:

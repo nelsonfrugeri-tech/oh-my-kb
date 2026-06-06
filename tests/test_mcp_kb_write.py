@@ -1,43 +1,12 @@
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from uuid import uuid4
 
-import pytest
-
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_kb.mcp.tools.kb_write import handle_kb_write
 from oh_my_kb.services import Indexer
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
 
-
-class _StubEmbedder(Embedder):
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        results: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode("utf-8")).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[int.from_bytes(digest[0:2], "little")],
-                values=[1.0],
-            )
-            results.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return results
-
-
-@pytest.fixture
-def indexer(tmp_path: Path) -> Indexer:
-    return Indexer(
-        store=QdrantStore(IN_MEMORY),
-        embedder=_StubEmbedder(),
-        notes_root=tmp_path,
-    )
-
+# ``indexer`` fixture is provided by tests/conftest.py.
 
 _LONG_VALID_SUMMARY = (
     "Resumo denso suficiente para passar pela faixa de comprimento mínima "

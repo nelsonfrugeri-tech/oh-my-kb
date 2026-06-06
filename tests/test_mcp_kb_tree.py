@@ -7,51 +7,18 @@ NavigationService to prove the handler formats output correctly.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import UTC, datetime
-from pathlib import Path
 from uuid import UUID
 
 import pytest
 
 from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_kb.mcp.tools.kb_tree import handle_kb_tree
 from oh_my_kb.services import Indexer, NavigationService
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
+from oh_my_kb.storage import QdrantStore
 
-
-class _StubEmbedder(Embedder):
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        results: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode("utf-8")).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[int.from_bytes(digest[0:2], "little")],
-                values=[1.0],
-            )
-            results.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return results
-
-
-@pytest.fixture
-def store() -> QdrantStore:
-    return QdrantStore(IN_MEMORY)
-
-
-@pytest.fixture
-def embedder() -> _StubEmbedder:
-    return _StubEmbedder()
-
-
-@pytest.fixture
-def indexer(store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path) -> Indexer:
-    return Indexer(store=store, embedder=embedder, notes_root=tmp_path)
+# ``store``, ``embedder``, ``indexer`` fixtures are provided by
+# tests/conftest.py.
 
 
 @pytest.fixture

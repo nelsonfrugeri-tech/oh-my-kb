@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import hashlib
-from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
+from _helpers import StubEmbedder, make_note
 
-from oh_my_kb.core import Note, NoteType, from_markdown
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
+from oh_my_kb.core import from_markdown
+from oh_my_kb.embedding import Embedder, EmbeddingResult
 from oh_my_kb.services import (
     COLLECTION_PREFIX,
     Indexer,
@@ -18,7 +17,6 @@ from oh_my_kb.services import (
 from oh_my_kb.storage import (
     DENSE_DIM,
     DENSE_VECTOR_NAME,
-    IN_MEMORY,
     SPARSE_VECTOR_NAME,
     QdrantStore,
 )
@@ -35,72 +33,13 @@ class _BrokenEmbedder(Embedder):
         raise RuntimeError("embedder failed")
 
 
-class _StubEmbedder(Embedder):
-    """Deterministic, fast stand-in for the real bge-m3 model.
-
-    Same text → same vector across calls (so tests can rely on it),
-    different text → different vector (so we can tell them apart in
-    e.g. similarity-based assertions later). No model loading involved.
-    """
-
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        results: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode("utf-8")).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[
-                    int.from_bytes(digest[0:2], "little"),
-                    int.from_bytes(digest[2:4], "little"),
-                ],
-                values=[0.5, 0.3],
-            )
-            results.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return results
-
-
-@pytest.fixture
-def store() -> QdrantStore:
-    return QdrantStore(IN_MEMORY)
-
-
-@pytest.fixture
-def embedder() -> _StubEmbedder:
-    return _StubEmbedder()
-
-
-@pytest.fixture
-def indexer(store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path) -> Indexer:
-    return Indexer(store=store, embedder=embedder, notes_root=tmp_path)
-
-
-def _make_note(**overrides: object) -> Note:
-    payload: dict[str, object] = {
-        "title": "Arquitetura do KB",
-        "type": NoteType.DECISION,
-        "project": "oh-my-kb",
-        "universe": "engineering",
-        "created_at": datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
-        "summary": "Decisão sobre como as camadas se conversam.",
-        "body": "# Detalhes\n\nDescrição longa que não vai pro payload.",
-        "entities": ["nelson", "qdrant"],
-        "links_out": [uuid4()],
-    }
-    payload.update(overrides)
-    return Note(**payload)  # type: ignore[arg-type]
-
-
 # --- file layout ---------------------------------------------------------
 
 
 def test_write_note_writes_file_at_expected_path(
     indexer: Indexer, tmp_path: Path
 ) -> None:
-    note = _make_note()
+    note = make_note()
     path = indexer.write_note(note)
 
     # notes_root is universe-rooted: the CLI/MCP resolves
@@ -112,7 +51,7 @@ def test_write_note_writes_file_at_expected_path(
 
 
 def test_written_file_roundtrips_via_from_markdown(indexer: Indexer) -> None:
-    note = _make_note()
+    note = make_note()
     path = indexer.write_note(note)
 
     restored = from_markdown(path.read_text(encoding="utf-8"))
@@ -122,7 +61,7 @@ def test_written_file_roundtrips_via_from_markdown(indexer: Indexer) -> None:
 def test_path_slugifies_project(
     indexer: Indexer, tmp_path: Path
 ) -> None:
-    note = _make_note(project="Decisões — Importantes")
+    note = make_note(project="Decisões — Importantes")
     path = indexer.write_note(note)
 
     assert path.parent == tmp_path / "decisoes-importantes"
@@ -135,7 +74,7 @@ def test_path_slugifies_project(
 def test_write_note_creates_collection_for_universe(
     indexer: Indexer, store: QdrantStore
 ) -> None:
-    note = _make_note(universe="research")
+    note = make_note(universe="research")
     collection = collection_name_for("research")
     assert collection == f"{COLLECTION_PREFIX}research"
     assert store.collection_exists(collection) is False
@@ -147,7 +86,7 @@ def test_write_note_creates_collection_for_universe(
 def test_payload_has_all_required_fields_and_excludes_body_links_out(
     indexer: Indexer, store: QdrantStore, tmp_path: Path
 ) -> None:
-    note = _make_note()
+    note = make_note()
     indexer.write_note(note)
 
     collection = collection_name_for(note.universe)
@@ -195,7 +134,7 @@ def test_payload_has_all_required_fields_and_excludes_body_links_out(
 
 def test_payload_supersedes_serialized_as_uuid_string(indexer: Indexer, store: QdrantStore) -> None:
     superseded = uuid4()
-    note = _make_note(supersedes=superseded)
+    note = make_note(supersedes=superseded)
     indexer.write_note(note)
 
     collection = collection_name_for(note.universe)
@@ -211,7 +150,7 @@ def test_payload_supersedes_serialized_as_uuid_string(indexer: Indexer, store: Q
 def test_point_has_dense_and_sparse_named_vectors(
     indexer: Indexer, store: QdrantStore
 ) -> None:
-    note = _make_note()
+    note = make_note()
     indexer.write_note(note)
 
     collection = collection_name_for(note.universe)
@@ -226,13 +165,19 @@ def test_point_has_dense_and_sparse_named_vectors(
     assert DENSE_VECTOR_NAME in vectors
     assert SPARSE_VECTOR_NAME in vectors
     assert len(vectors[DENSE_VECTOR_NAME]) == DENSE_DIM
+    # Regression guard: stub must produce at least 2 sparse entries so that
+    # dot-product ranking is non-trivial (prevents regression to 1 sparse entry).
+    sparse = vectors[SPARSE_VECTOR_NAME]
+    assert len(sparse.indices) >= 2, (
+        "sparse vector must have at least 2 entries to preserve ranking utility"
+    )
 
 
 # --- idempotency ---------------------------------------------------------
 
 
 def test_write_note_is_idempotent(indexer: Indexer, store: QdrantStore) -> None:
-    note = _make_note()
+    note = make_note()
     path_first = indexer.write_note(note)
     path_second = indexer.write_note(note)
 
@@ -252,7 +197,7 @@ def test_write_note_is_idempotent(indexer: Indexer, store: QdrantStore) -> None:
 
 
 def test_read_note_by_id_round_trips(indexer: Indexer) -> None:
-    note = _make_note()
+    note = make_note()
     indexer.write_note(note)
 
     restored = indexer.read_note_by_id(note.id, note.universe)
@@ -262,7 +207,7 @@ def test_read_note_by_id_round_trips(indexer: Indexer) -> None:
 def test_read_note_by_id_raises_when_missing(indexer: Indexer) -> None:
     # Need a collection to retrieve from first — create one but with a
     # different id than what we query.
-    note = _make_note()
+    note = make_note()
     indexer.write_note(note)
 
     with pytest.raises(NoteNotFoundError):
@@ -273,7 +218,7 @@ def test_read_note_by_id_raises_when_file_deleted(
     indexer: Indexer, tmp_path: Path
 ) -> None:
     """FileNotFoundError from the FS must surface as NoteNotFoundError."""
-    note = _make_note()
+    note = make_note()
     path = indexer.write_note(note)
     path.unlink()  # simulate the file being removed from disk
 
@@ -285,7 +230,7 @@ def test_read_note_by_id_raises_on_universe_mismatch(
     indexer: Indexer, store: QdrantStore
 ) -> None:
     """Payload universe mismatch triggers NoteNotFoundError (defence-in-depth)."""
-    note = _make_note(universe="engineering")
+    note = make_note(universe="engineering")
     indexer.write_note(note)
 
     # Manually corrupt the payload to simulate a mis-indexed point.
@@ -322,7 +267,7 @@ def test_write_note_leaves_no_file_on_embedder_failure(
     store: QdrantStore, tmp_path: Path
 ) -> None:
     broken = Indexer(store=store, embedder=_BrokenEmbedder(), notes_root=tmp_path)
-    note = _make_note()
+    note = make_note()
 
     with pytest.raises(RuntimeError, match="embedder failed"):
         broken.write_note(note)
@@ -331,10 +276,10 @@ def test_write_note_leaves_no_file_on_embedder_failure(
 
 
 def test_write_note_leaves_no_file_on_upsert_failure(
-    store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    store: QdrantStore, embedder: StubEmbedder, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     indexer = Indexer(store=store, embedder=embedder, notes_root=tmp_path)
-    note = _make_note()
+    note = make_note()
 
     def _fail(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError("qdrant down")
@@ -357,11 +302,11 @@ def test_write_note_leaves_no_file_on_upsert_failure(
 
 
 def test_write_note_leaves_qdrant_point_on_write_md_failure(
-    store: QdrantStore, embedder: _StubEmbedder, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    store: QdrantStore, embedder: StubEmbedder, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """write_md fails after embed+upsert OK: Qdrant point stays (retry is idempotent)."""
     indexer = Indexer(store=store, embedder=embedder, notes_root=tmp_path)
-    note = _make_note()
+    note = make_note()
 
     def _fail_write(self: Path, *args: object, **kwargs: object) -> None:
         raise OSError("disk full")

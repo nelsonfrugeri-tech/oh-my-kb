@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -8,45 +7,16 @@ from uuid import UUID, uuid4
 import pytest
 
 from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_kb.services import (
     Indexer,
     NavigationService,
     NoteNotFoundError,
     TreeNode,
 )
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
+from oh_my_kb.storage import QdrantStore
 
-
-class _StubEmbedder(Embedder):
-    @property
-    def dense_dim(self) -> int:
-        return DENSE_DIM
-
-    def embed_texts(self, texts: list[str]) -> list[EmbeddingResult]:
-        out: list[EmbeddingResult] = []
-        for text in texts:
-            digest = hashlib.sha256(text.encode("utf-8")).digest()
-            dense = [digest[i % 32] / 255.0 for i in range(DENSE_DIM)]
-            sparse = SparseVector(
-                indices=[
-                    int.from_bytes(digest[0:2], "little"),
-                    int.from_bytes(digest[2:4], "little"),
-                ],
-                values=[0.5, 0.3],
-            )
-            out.append(EmbeddingResult(dense=dense, sparse=sparse))
-        return out
-
-
-@pytest.fixture
-def store() -> QdrantStore:
-    return QdrantStore(IN_MEMORY)
-
-
-@pytest.fixture
-def indexer(store: QdrantStore, tmp_path: Path) -> Indexer:
-    return Indexer(store=store, embedder=_StubEmbedder(), notes_root=tmp_path)
+# ``store``, ``embedder``, ``indexer`` fixtures are provided by
+# tests/conftest.py.
 
 
 @pytest.fixture
