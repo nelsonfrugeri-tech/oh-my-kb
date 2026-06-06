@@ -52,6 +52,11 @@ class Indexer:
         self._embedder = embedder
         self._notes_root = notes_root
 
+    @property
+    def notes_root(self) -> Path:
+        """The universe-scoped directory where this indexer writes notes."""
+        return self._notes_root
+
     def path_for(self, note: Note) -> Path:
         """Return the filesystem path where this note's .md will live.
 

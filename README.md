@@ -144,3 +144,36 @@ easy to open, edit and version-control.
 
 The data root can be overridden with the `KB_NOTES_ROOT` env var; the
 config directory with `OMK_CONFIG_DIR` (useful for tests).
+
+## MCP server — `o-kb-mcp`
+
+Knowledge interaction lives in the MCP server. `o-kb-mcp` is a stdio
+server that exposes two core tools the harness calls into:
+
+- **`kb_write`** — register a note (decision / event / procedure /
+  reference / conversation). Validates the input via the `Note` pydantic
+  model and persists the `.md` + Qdrant point via the `Indexer`. The
+  active universe is **server-bound** (`KB_UNIVERSE`) so the harness can't
+  write into the wrong universe by accident.
+- **`kb_search`** — hybrid retrieval (`SearchService`) over the active
+  universe with optional `project` and `include_archived` filters.
+
+The server builds its dependencies (`QdrantStore`, `BGEM3Embedder`,
+`Indexer`, `SearchService`) **once** at boot and reuses them for every
+request — bge-m3 doesn't reload per call.
+
+Run it directly via the installed script:
+
+```bash
+o-kb-mcp                       # stdio transport, ready to be wired into a harness
+```
+
+Environment:
+
+- `KB_QDRANT_URL` — Qdrant URL (default `http://localhost:6333`).
+- `KB_UNIVERSE` — active universe (default `default`).
+- `KB_NOTES_ROOT` — notes-root override for the active universe (default
+  `~/oh-my-kb/<slug(universe)>`).
+
+Subsequent issues will add `kb_tree`/`kb_expand` (#17) and the scribe
+skill resources (#12) on top of this server.
