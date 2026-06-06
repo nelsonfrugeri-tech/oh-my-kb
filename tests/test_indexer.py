@@ -12,6 +12,7 @@ from oh_my_kb.services import (
     COLLECTION_PREFIX,
     Indexer,
     NoteNotFoundError,
+    WriteResult,
     collection_name_for,
 )
 from oh_my_kb.storage import (
@@ -40,21 +41,38 @@ def test_write_note_writes_file_at_expected_path(
     indexer: Indexer, tmp_path: Path
 ) -> None:
     note = make_note()
-    path = indexer.write_note(note)
+    result = indexer.write_note(note)
 
     # notes_root is universe-rooted: the CLI/MCP resolves
     # <data_root>/<slug(universe)>/ before constructing the Indexer, so the
     # path under the root is just <slug(project)>/<slug>.md.
     expected = tmp_path / "oh-my-kb" / f"{note.slug}.md"
-    assert path == expected
-    assert path.is_file()
+    assert result.absolute_path == expected
+    assert result.absolute_path.is_file()
+    assert result.id == note.id
+    assert result.slug == note.slug
+    assert result.relative_path == Path("oh-my-kb") / f"{note.slug}.md"
+
+
+def test_write_note_returns_write_result_with_all_fields(
+    indexer: Indexer, tmp_path: Path
+) -> None:
+    note = make_note()
+    result = indexer.write_note(note)
+
+    assert isinstance(result, WriteResult)
+    assert result.id == note.id
+    assert result.slug == note.slug
+    assert result.absolute_path == tmp_path / "oh-my-kb" / f"{note.slug}.md"
+    assert result.relative_path == Path("oh-my-kb") / f"{note.slug}.md"
+    assert result.absolute_path == indexer.notes_root / result.relative_path
 
 
 def test_written_file_roundtrips_via_from_markdown(indexer: Indexer) -> None:
     note = make_note()
-    path = indexer.write_note(note)
+    result = indexer.write_note(note)
 
-    restored = from_markdown(path.read_text(encoding="utf-8"))
+    restored = from_markdown(result.absolute_path.read_text(encoding="utf-8"))
     assert restored == note
 
 
@@ -62,10 +80,10 @@ def test_path_slugifies_project(
     indexer: Indexer, tmp_path: Path
 ) -> None:
     note = make_note(project="Decisões — Importantes")
-    path = indexer.write_note(note)
+    result = indexer.write_note(note)
 
-    assert path.parent == tmp_path / "decisoes-importantes"
-    assert path.is_file()
+    assert result.absolute_path.parent == tmp_path / "decisoes-importantes"
+    assert result.absolute_path.is_file()
 
 
 # --- Qdrant side ---------------------------------------------------------
@@ -165,6 +183,12 @@ def test_point_has_dense_and_sparse_named_vectors(
     assert DENSE_VECTOR_NAME in vectors
     assert SPARSE_VECTOR_NAME in vectors
     assert len(vectors[DENSE_VECTOR_NAME]) == DENSE_DIM
+    # Regression guard: stub must produce at least 2 sparse entries so that
+    # dot-product ranking is non-trivial (prevents regression to 1 sparse entry).
+    sparse = vectors[SPARSE_VECTOR_NAME]
+    assert len(sparse.indices) >= 2, (
+        "sparse vector must have at least 2 entries to preserve ranking utility"
+    )
 
 
 # --- idempotency ---------------------------------------------------------
@@ -172,17 +196,17 @@ def test_point_has_dense_and_sparse_named_vectors(
 
 def test_write_note_is_idempotent(indexer: Indexer, store: QdrantStore) -> None:
     note = make_note()
-    path_first = indexer.write_note(note)
-    path_second = indexer.write_note(note)
+    result_first = indexer.write_note(note)
+    result_second = indexer.write_note(note)
 
-    assert path_first == path_second
-    assert path_first.is_file()
+    assert result_first == result_second
+    assert result_first.absolute_path.is_file()
 
     collection = collection_name_for(note.universe)
     count_result = store.client.count(collection_name=collection)
     assert count_result.count == 1
 
-    universe_dir = path_first.parent
+    universe_dir = result_first.absolute_path.parent
     md_files = list(universe_dir.glob("*.md"))
     assert len(md_files) == 1
 
@@ -213,8 +237,8 @@ def test_read_note_by_id_raises_when_file_deleted(
 ) -> None:
     """FileNotFoundError from the FS must surface as NoteNotFoundError."""
     note = make_note()
-    path = indexer.write_note(note)
-    path.unlink()  # simulate the file being removed from disk
+    result = indexer.write_note(note)
+    result.absolute_path.unlink()  # simulate the file being removed from disk
 
     with pytest.raises(NoteNotFoundError):
         indexer.read_note_by_id(note.id, note.universe)

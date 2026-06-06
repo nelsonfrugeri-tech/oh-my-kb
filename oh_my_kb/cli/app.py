@@ -125,5 +125,65 @@ def universe_use_cmd(
     typer.secho(f"✓ active universe is now '{name}'.", fg=typer.colors.GREEN, bold=True)
 
 
+@app.command("bootstrap")
+def bootstrap_cmd(
+    harness: str = typer.Option(
+        ...,
+        "--harness",
+        "-H",
+        help="Target harness: claude-code | claude-desktop.",
+    ),
+    project_path: Path = typer.Option(  # noqa: B008
+        None,
+        "--project-path",
+        "-p",
+        help="Project root where the rules file lives. Defaults to current directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+) -> None:
+    """Inject the kb-mcp rules block into the harness's rules file (idempotent)."""
+    from oh_my_kb.agents import NoActiveUniverseError, bootstrap
+    from oh_my_kb.agents.harness import UnknownHarnessError
+    from oh_my_kb.agents.injector import MalformedBlockError
+
+    resolved_path = project_path if project_path is not None else Path.cwd()
+
+    cfg = load_config()
+    try:
+        report = bootstrap(
+            harness=harness.lower(),
+            project_path=resolved_path,
+            active_universe=cfg.active,
+        )
+    except (
+        UnknownHarnessError,
+        NoActiveUniverseError,
+        MalformedBlockError,
+        FileNotFoundError,
+    ) as exc:
+        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    action_label = {
+        "created": "created",
+        "inserted": "inserted",
+        "replaced": "updated",
+        "unchanged": "already up to date",
+    }.get(report.action, report.action)
+
+    typer.secho(
+        f"✓ kb-mcp rules {action_label} for '{report.harness}'.",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+    typer.echo(f"  universe   : {report.universe}")
+    typer.echo(f"  target     : {report.target_file}")
+    typer.echo(f"  action     : {report.action}")
+    typer.echo(f"  bytes      : {report.bytes_written}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

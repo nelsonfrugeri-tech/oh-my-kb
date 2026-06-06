@@ -37,8 +37,8 @@ def test_write_then_read_round_trip_with_real_embedder(tmp_path: Path) -> None:
         body="Conteúdo livre que deve fazer round-trip via from_markdown.",
     )
 
-    path = indexer.write_note(note)
-    assert path.is_file()
+    result = indexer.write_note(note)
+    assert result.absolute_path.is_file()
 
     restored = indexer.read_note_by_id(note.id, note.universe)
     assert restored == note

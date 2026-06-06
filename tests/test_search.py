@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 from oh_my_kb.core import Note, NoteType
@@ -22,8 +23,6 @@ def _note(
     archived: bool = False,
     title: str | None = None,
 ) -> Note:
-    from datetime import UTC, datetime
-
     return Note(
         title=title or summary.split(".")[0][:80],
         type=NoteType.DECISION,
