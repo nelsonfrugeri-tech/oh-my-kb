@@ -3,9 +3,9 @@
 The scribe skill (``skill://scribe/SKILL.md``) and its body template
 (``skill://scribe/template.md``) are served from disk **on every request**
 so editing the file shows up on the next read without restarting the
-server. The disk files live next to this module under ``skills/``, so the
-package install is the unit of distribution and the running server is the
-unit of editing.
+server. The disk files live next to this module under ``skills/scribe/<locale>/``,
+so the package install is the unit of distribution and the running server is
+the unit of editing.
 """
 
 from __future__ import annotations
@@ -14,14 +14,17 @@ from pathlib import Path
 
 from mcp.types import Resource
 
+from oh_my_kb.i18n import DEFAULT_LOCALE, resolve_locale_path
+
 SKILLS_DIR = Path(__file__).parent / "skills"
+SCRIBE_DIR = SKILLS_DIR / "scribe"
 
 SCRIBE_SKILL_URI = "skill://scribe/SKILL.md"
 SCRIBE_TEMPLATE_URI = "skill://scribe/template.md"
 
-_URI_TO_PATH: dict[str, Path] = {
-    SCRIBE_SKILL_URI: SKILLS_DIR / "scribe" / "SKILL.md",
-    SCRIBE_TEMPLATE_URI: SKILLS_DIR / "scribe" / "template.md",
+_URI_TO_FILENAME: dict[str, str] = {
+    SCRIBE_SKILL_URI: "SKILL.md",
+    SCRIBE_TEMPLATE_URI: "template.md",
 }
 
 
@@ -54,13 +57,16 @@ def list_scribe_resources() -> list[Resource]:
     ]
 
 
-def read_scribe_resource(uri: str) -> str:
-    """Return the markdown content of the resource at ``uri``.
+def read_scribe_resource(uri: str, locale: str = DEFAULT_LOCALE) -> str:
+    """Return the markdown content of the resource at ``uri`` for ``locale``.
 
     Reads the disk file each call — edits to the markdown reflect on the
     next read without a server restart.
+
+    ``locale`` defaults to ``DEFAULT_LOCALE``; the MCP server call site passes
+    no locale so existing ``read_scribe_resource(uri)`` callers are unaffected.
     """
-    path = _URI_TO_PATH.get(uri)
-    if path is None:
+    filename = _URI_TO_FILENAME.get(uri)
+    if filename is None:
         raise ValueError(f"unknown resource uri: {uri!r}")
-    return path.read_text(encoding="utf-8")
+    return resolve_locale_path(SCRIBE_DIR, filename, locale).read_text(encoding="utf-8")

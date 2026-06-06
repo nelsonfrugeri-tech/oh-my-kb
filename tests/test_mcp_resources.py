@@ -14,9 +14,9 @@ import pytest
 
 from oh_my_kb.mcp import resources as resources_module
 from oh_my_kb.mcp.resources import (
+    SCRIBE_DIR,
     SCRIBE_SKILL_URI,
     SCRIBE_TEMPLATE_URI,
-    SKILLS_DIR,
     list_scribe_resources,
     read_scribe_resource,
 )
@@ -66,9 +66,12 @@ def test_read_unknown_uri_raises() -> None:
 def test_edits_to_disk_reflect_on_re_read(monkeypatch: pytest.MonkeyPatch) -> None:
     """Resources are read from disk **on every call** so edits show up live."""
     with tempfile.TemporaryDirectory() as td:
-        fake = Path(td) / "SKILL.md"
+        fake_scribe_dir = Path(td) / "scribe"
+        fake_locale_dir = fake_scribe_dir / "pt-BR"
+        fake_locale_dir.mkdir(parents=True)
+        fake = fake_locale_dir / "SKILL.md"
         fake.write_text("version-one", encoding="utf-8")
-        monkeypatch.setitem(resources_module._URI_TO_PATH, SCRIBE_SKILL_URI, fake)
+        monkeypatch.setattr(resources_module, "SCRIBE_DIR", fake_scribe_dir)
 
         assert read_scribe_resource(SCRIBE_SKILL_URI) == "version-one"
 
@@ -77,5 +80,7 @@ def test_edits_to_disk_reflect_on_re_read(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_skill_and_template_files_exist_in_package() -> None:
-    assert (SKILLS_DIR / "scribe" / "SKILL.md").is_file()
-    assert (SKILLS_DIR / "scribe" / "template.md").is_file()
+    from oh_my_kb.i18n import DEFAULT_LOCALE
+
+    assert (SCRIBE_DIR / DEFAULT_LOCALE / "SKILL.md").is_file()
+    assert (SCRIBE_DIR / DEFAULT_LOCALE / "template.md").is_file()
