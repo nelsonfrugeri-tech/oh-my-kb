@@ -10,6 +10,7 @@ authors = [
 ]
 dependencies = [
     "FlagEmbedding>=1.3",
+    "mcp>=1.0",
     "pydantic>=2.9",
     "python-frontmatter>=1.1",
     "qdrant-client>=1.12",
@@ -18,6 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
+o-kb-mcp = "oh_my_kb.mcp.server:main"
 omk = "oh_my_kb.cli.app:app"
 
 [dependency-groups]
@@ -82,3 +84,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "FlagEmbedding"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "mcp.*"
+follow_untyped_imports = true
