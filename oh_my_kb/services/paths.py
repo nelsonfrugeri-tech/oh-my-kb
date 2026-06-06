@@ -7,6 +7,10 @@ layer (neutral between adapters) prevents ``mcp/`` from importing ``cli/``.
 ``cli/paths.py`` re-exports :data:`DATA_ROOT_ENV` and
 :func:`default_notes_root_for` from here to preserve its existing public
 surface.
+
+``NOTES_ROOT_ENV`` and :func:`get_notes_root` are compatibility aliases kept
+so that :mod:`oh_my_kb.services` (the package public surface) does not need to
+import the now-deleted ``services/config`` module.
 """
 
 from __future__ import annotations
@@ -17,6 +21,10 @@ from pathlib import Path
 from oh_my_kb.core import slugify
 
 DATA_ROOT_ENV = "KB_NOTES_ROOT"
+# Compatibility alias — same env var string.
+# New code should use DATA_ROOT_ENV; NOTES_ROOT_ENV kept for the services public surface.
+NOTES_ROOT_ENV = DATA_ROOT_ENV
+
 DEFAULT_DATA_ROOT = Path.home() / "oh-my-kb"
 
 
@@ -26,6 +34,12 @@ def get_data_root() -> Path:
     if raw:
         return Path(raw).expanduser()
     return DEFAULT_DATA_ROOT
+
+
+# Compatibility alias — ``get_notes_root`` was the original name exported by
+# the now-deleted ``services/config`` module.
+# New code should call get_data_root() directly.
+get_notes_root = get_data_root
 
 
 def default_notes_root_for(universe: str, data_root: Path | None = None) -> Path:
