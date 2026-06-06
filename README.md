@@ -77,7 +77,7 @@ uv run pytest -m "not slow"    # fast loop — skip the model load
 The `Indexer` application service writes notes as `.md` files and upserts
 their index entries into Qdrant.
 
-- **Filesystem layout:** `<KB_NOTES_ROOT>/<slug(universe)>/<slug(project)>/<note.slug>.md`. `KB_NOTES_ROOT` defaults to `~/kb`.
+- **Filesystem layout:** `<KB_NOTES_ROOT>/<slug(universe)>/<slug(project)>/<note.slug>.md`. `KB_NOTES_ROOT` defaults to `~/oh-my-kb`.
 - **Collection naming:** one Qdrant collection per universe, named `kb_<slug(universe)>`. Search never crosses universes.
 - **Indexed payload:** the note's identity + `summary` + the absolute path to the file. The full body and `links_out` are **not** stored in Qdrant — the body lives on disk and is read back via the payload's `path` when needed.
 
