@@ -16,7 +16,7 @@ import pytest
 
 from oh_my_kb.core import Note, NoteType
 from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
-from oh_my_kb.mcp.tools.kb_expand import handle_kb_expand
+from oh_my_kb.mcp.tools.kb_expand import _MAX_BODY_CHARS, handle_kb_expand
 from oh_my_kb.services import Indexer, NavigationService
 from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
 
@@ -186,3 +186,28 @@ async def test_kb_expand_invalid_uuid_returns_friendly_error(
     text = result[0].text
     assert "invalid input" in text
     assert "UUID" in text
+
+
+async def test_kb_expand_truncates_oversized_body(
+    indexer: Indexer, navigation: NavigationService
+) -> None:
+    """Body exceeding _MAX_BODY_CHARS is capped with a visible truncation marker."""
+    long_body = "A" * (_MAX_BODY_CHARS + 500)
+    note = _note(title="Big Note", body=long_body)
+    indexer.write_note(note)
+
+    result = await handle_kb_expand(navigation, "work", {"id": str(note.id)})
+
+    assert len(result) == 1
+    text = result[0].text
+
+    # Truncation marker must be present
+    assert "truncated" in text
+    assert "500 chars omitted" in text
+
+    # The body section must be capped — the 501st char must not appear in body
+    assert "A" * (_MAX_BODY_CHARS + 1) not in text
+
+    # Markers still present
+    assert "--- body ---" in text
+    assert "--- end body ---" in text

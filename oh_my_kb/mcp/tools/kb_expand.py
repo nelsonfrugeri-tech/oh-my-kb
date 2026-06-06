@@ -4,17 +4,30 @@ The handler is a thin adapter over :class:`NavigationService.expand`. It uses
 ``asyncio.to_thread`` because ``expand`` calls ``Indexer.read_note_by_id``
 which does filesystem I/O — consistent with how ``kb_write`` and ``kb_search``
 handle their blocking operations.
+
+Body truncation
+---------------
+Notes can grow arbitrarily large. To prevent a single ``kb_expand`` call from
+consuming the model's entire context budget, the body is capped at
+:data:`_MAX_BODY_CHARS` characters. When truncated, a visible marker is
+appended so the model knows the content is incomplete and should not treat
+the snippet as exhaustive.
 """
 
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Final
 from uuid import UUID
 
 from mcp.types import TextContent, Tool
 
 from oh_my_kb.services import ExpandResult, NavigationService, NoteNotFoundError, ResolvedLink
+
+# 8 192 chars ≈ ~2 000 tokens (gpt-4 / claude counting), a reasonable cap for
+# a single note body within a multi-turn agent context.  Increase if the
+# universe contains intentionally long reference notes.
+_MAX_BODY_CHARS: Final[int] = 8_192
 
 KB_EXPAND_TOOL = Tool(
     name="kb_expand",
@@ -98,7 +111,16 @@ def _format_result(result: ExpandResult) -> str:
         f"  summary:    {note.summary}"
     )
 
-    body_section = f"\n--- body ---\n{note.body}\n--- end body ---"
+    raw_body = note.body or ""
+    if len(raw_body) > _MAX_BODY_CHARS:
+        truncated = raw_body[:_MAX_BODY_CHARS]
+        body_section = (
+            f"\n--- body ---\n{truncated}\n"
+            f"[...truncated — {len(raw_body) - _MAX_BODY_CHARS} chars omitted; "
+            f"open the note file directly for the full text]\n--- end body ---"
+        )
+    else:
+        body_section = f"\n--- body ---\n{raw_body}\n--- end body ---"
 
     links_section = _format_links(result.links)
 
