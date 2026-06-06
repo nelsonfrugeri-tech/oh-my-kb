@@ -175,5 +175,24 @@ Environment:
 - `KB_NOTES_ROOT` — notes-root override for the active universe (default
   `~/oh-my-kb/<slug(universe)>`).
 
-Subsequent issues will add `kb_tree`/`kb_expand` (#17) and the scribe
-skill resources (#12) on top of this server.
+Subsequent issues will add `kb_tree`/`kb_expand` (#17) on top of this
+server.
+
+### Scribe skill (resources)
+
+The server also exposes the **scribe playbook** as MCP resources so the
+harness can read the same writing guidance the human team agreed on:
+
+- `skill://scribe/SKILL.md` — judgement rules for `kb_write`: when to
+  create vs. supersede, how to pick a `type`, how to write a summary
+  that recalls well, how to extract entities, how to discover related
+  notes for `links_out`.
+- `skill://scribe/template.md` — the required structure of the note
+  `body` (sections per `type`).
+
+Until `o-kb-agents` (#18) automates the bootstrap, the harness should
+**read these resources before every `kb_write`** to keep the summary
+prose-shaped (the floor and ceiling — 200–800 chars, ≠ title — are
+enforced server-side by `kb_write`, so violations come back as clear
+tool errors). Editing the markdown reflects on the next read; no rebuild
+needed.
