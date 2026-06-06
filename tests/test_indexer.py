@@ -134,7 +134,7 @@ def test_write_note_creates_collection_for_universe(
 
 
 def test_payload_has_all_required_fields_and_excludes_body_links_out(
-    indexer: Indexer, store: QdrantStore
+    indexer: Indexer, store: QdrantStore, tmp_path: Path
 ) -> None:
     note = _make_note()
     indexer.write_note(note)
@@ -172,7 +172,8 @@ def test_payload_has_all_required_fields_and_excludes_body_links_out(
     assert payload["universe"] == note.universe
     assert payload["created_at"] == note.created_at.isoformat()
     assert payload["entities"] == list(note.entities)
-    assert Path(payload["path"]).is_file()
+    # path is stored relative to notes_root; reconstruct to verify the file exists
+    assert (tmp_path / payload["path"]).is_file()
     assert payload["supersedes"] is None
     assert payload["archived"] is False
     assert payload["summary"] == note.summary
@@ -255,3 +256,49 @@ def test_read_note_by_id_raises_when_missing(indexer: Indexer) -> None:
 
     with pytest.raises(NoteNotFoundError):
         indexer.read_note_by_id(UUID(int=0), note.universe)
+
+
+def test_read_note_by_id_raises_when_file_deleted(
+    indexer: Indexer, tmp_path: Path
+) -> None:
+    """FileNotFoundError from the FS must surface as NoteNotFoundError."""
+    note = _make_note()
+    path = indexer.write_note(note)
+    path.unlink()  # simulate the file being removed from disk
+
+    with pytest.raises(NoteNotFoundError):
+        indexer.read_note_by_id(note.id, note.universe)
+
+
+def test_read_note_by_id_raises_on_universe_mismatch(
+    indexer: Indexer, store: QdrantStore
+) -> None:
+    """Payload universe mismatch triggers NoteNotFoundError (defence-in-depth)."""
+    note = _make_note(universe="engineering")
+    indexer.write_note(note)
+
+    # Manually corrupt the payload to simulate a mis-indexed point.
+    collection = collection_name_for("engineering")
+    records = store.client.retrieve(
+        collection_name=collection,
+        ids=[str(note.id)],
+        with_payload=True,
+        with_vectors=False,
+    )
+    payload = dict(records[0].payload or {})
+    payload["universe"] = "wrong-universe"
+    from qdrant_client.models import PointStruct
+
+    store.client.upsert(
+        collection_name=collection,
+        points=[
+            PointStruct(
+                id=str(note.id),
+                vector=records[0].vector or {},
+                payload=payload,
+            )
+        ],
+    )
+
+    with pytest.raises(NoteNotFoundError):
+        indexer.read_note_by_id(note.id, "engineering")

@@ -10,12 +10,20 @@ import os
 from pathlib import Path
 
 NOTES_ROOT_ENV = "KB_NOTES_ROOT"
-DEFAULT_NOTES_ROOT = Path.home() / "kb"
+
+
+def _default_notes_root() -> Path:
+    """Return the default notes root based on the current ``$HOME``."""
+    return Path.home() / "kb"
 
 
 def get_notes_root() -> Path:
-    """Return the notes-root directory from ``$KB_NOTES_ROOT`` or the default."""
+    """Return the notes-root directory from ``$KB_NOTES_ROOT`` or the default.
+
+    ``Path.home()`` is evaluated lazily (inside the function) so tests that
+    monkeypatch ``$HOME`` after import time see the correct value.
+    """
     raw = os.environ.get(NOTES_ROOT_ENV)
     if raw:
         return Path(raw).expanduser()
-    return DEFAULT_NOTES_ROOT
+    return _default_notes_root()

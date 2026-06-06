@@ -93,7 +93,9 @@ def test_missing_collection_returns_empty_list(search_service: SearchService) ->
 def test_existing_but_empty_collection_returns_empty_list(
     search_service: SearchService, store: QdrantStore, indexer: Indexer
 ) -> None:
-    indexer._store.ensure_collection("kb_engineering")
+    from oh_my_kb.services.indexer import collection_name_for
+
+    store.ensure_collection(collection_name_for("engineering"))
     assert search_service.search("anything", universe="engineering") == []
 
 
@@ -101,7 +103,7 @@ def test_existing_but_empty_collection_returns_empty_list(
 
 
 def test_returns_search_result_with_payload_fields(
-    indexer: Indexer, search_service: SearchService
+    indexer: Indexer, search_service: SearchService, tmp_path: Path
 ) -> None:
     note = _note(summary="Decisão sobre arquitetura de tools no MCP.")
     indexer.write_note(note)
@@ -116,8 +118,12 @@ def test_returns_search_result_with_payload_fields(
     assert hit.summary == note.summary
     assert hit.type == note.type.value
     assert hit.project == note.project
-    assert hit.created_at == note.created_at.isoformat()
-    assert Path(hit.path).is_file()
+    assert hit.archived == note.archived
+    assert hit.created_at == note.created_at
+    # path is relative to notes_root (matches the Indexer payload contract);
+    # caller resolves to absolute via the universe's notes_root.
+    assert not Path(hit.path).is_absolute()
+    assert (tmp_path / hit.path).is_file()
     assert hit.score > 0.0
 
 
