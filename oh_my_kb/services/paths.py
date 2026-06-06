@@ -21,7 +21,8 @@ from pathlib import Path
 from oh_my_kb.core import slugify
 
 DATA_ROOT_ENV = "KB_NOTES_ROOT"
-# Backwards-compatible alias — both names refer to the same env var string.
+# Compatibility alias — same env var string.
+# New code should use DATA_ROOT_ENV; NOTES_ROOT_ENV kept for the services public surface.
 NOTES_ROOT_ENV = DATA_ROOT_ENV
 
 DEFAULT_DATA_ROOT = Path.home() / "oh-my-kb"
@@ -35,8 +36,9 @@ def get_data_root() -> Path:
     return DEFAULT_DATA_ROOT
 
 
-# Backwards-compatible alias — ``get_notes_root`` was the original name
-# exported by the now-deleted ``services/config`` module.
+# Compatibility alias — ``get_notes_root`` was the original name exported by
+# the now-deleted ``services/config`` module.
+# New code should call get_data_root() directly.
 get_notes_root = get_data_root
 
 
