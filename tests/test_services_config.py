@@ -2,12 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.services import DEFAULT_NOTES_ROOT, NOTES_ROOT_ENV, get_notes_root
+from oh_my_kb.services import NOTES_ROOT_ENV, get_notes_root
 
 
 def test_default_notes_root_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(NOTES_ROOT_ENV, raising=False)
-    assert get_notes_root() == DEFAULT_NOTES_ROOT
+    assert get_notes_root() == Path.home() / "kb"
 
 
 def test_env_var_overrides_default(

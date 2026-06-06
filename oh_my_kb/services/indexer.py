@@ -63,9 +63,16 @@ class Indexer:
     def write_note(self, note: Note) -> Path:
         """Persist the note as a .md file and upsert its index entry in Qdrant.
 
-        Idempotent: re-running with the same ``note.id`` updates the existing
+        Idempotent: re-running with the **same** ``note.id`` *and* the same
+        ``title``/``created_at`` (i.e. the same slug) updates the existing
         Qdrant point and rewrites the file in place — no duplicate points,
         no duplicate files.
+
+        Scope note: mutating ``title`` or ``created_at`` on an already-indexed
+        note changes the slug, which means a new ``.md`` is written at a new
+        path while the previous file is left on disk.  Cleaning up stale files
+        from slug mutations is out of scope for ``write_note``; it is the
+        responsibility of the future ``kb_write`` / update workflow.
         """
         collection = collection_name_for(note.universe)
         self._store.ensure_collection(collection)
@@ -93,8 +100,12 @@ class Indexer:
     def read_note_by_id(self, note_id: UUID, universe: str) -> Note:
         """Load a note's full content from disk using the Qdrant payload's path.
 
-        Raises :class:`NoteNotFoundError` if no point exists for ``note_id``
-        in ``universe``'s collection.
+        Raises :class:`NoteNotFoundError` when:
+        * no point exists for ``note_id`` in ``universe``'s collection,
+        * the payload is missing the ``path`` field,
+        * the payload's ``universe`` field does not match the requested
+          universe (defence-in-depth against index corruption),
+        * the file at the stored path no longer exists on disk.
         """
         collection = collection_name_for(universe)
         records = self._store.client.retrieve(
@@ -108,16 +119,26 @@ class Indexer:
                 f"note {note_id} not found in universe '{universe}'"
             )
         payload = records[0].payload or {}
+        if payload.get("universe") != universe:
+            raise NoteNotFoundError(
+                f"note {note_id} payload universe '{payload.get('universe')}' "
+                f"does not match requested universe '{universe}'"
+            )
         path_str = payload.get("path")
         if not isinstance(path_str, str):
             raise NoteNotFoundError(
                 f"note {note_id} payload is missing the 'path' field"
             )
-        content = Path(path_str).read_text(encoding="utf-8")
+        abs_path = self._notes_root / path_str
+        try:
+            content = abs_path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            raise NoteNotFoundError(
+                f"note {note_id} file not found on disk: {abs_path}"
+            ) from exc
         return from_markdown(content)
 
-    @staticmethod
-    def _payload(note: Note, path: Path) -> dict[str, Any]:
+    def _payload(self, note: Note, path: Path) -> dict[str, Any]:
         return {
             "id": str(note.id),
             "slug": note.slug,
@@ -127,7 +148,10 @@ class Indexer:
             "universe": note.universe,
             "created_at": note.created_at.isoformat(),
             "entities": list(note.entities),
-            "path": str(path.resolve()),
+            # Store a path relative to notes_root so the index is portable
+            # across machines and notes_root relocations.  Reconstructed in
+            # read_note_by_id as ``self._notes_root / path_str``.
+            "path": str(path.relative_to(self._notes_root)),
             "supersedes": str(note.supersedes) if note.supersedes is not None else None,
             "archived": note.archived,
             "summary": note.summary,
