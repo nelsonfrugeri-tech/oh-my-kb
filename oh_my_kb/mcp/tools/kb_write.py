@@ -105,16 +105,15 @@ async def handle_kb_write(
         # write_note calls BGEM3Embedder.embed_text (CPU/GPU-bound, ~50-500 ms).
         # Running in a thread pool keeps the event loop free for concurrent MCP
         # messages and the stdio keep-alive.
-        path = await asyncio.to_thread(indexer.write_note, note)
+        result = await asyncio.to_thread(indexer.write_note, note)
     except Exception as exc:  # safety net so the server stays up
         return [TextContent(type="text", text=f"kb_write: indexer error — {exc}")]
 
-    relative_path = path.relative_to(indexer.notes_root)
     body = (
         f"kb_write: wrote note\n"
-        f"  id:      {note.id}\n"
-        f"  slug:    {note.slug}\n"
-        f"  path:    {relative_path}\n"
+        f"  id:      {result.id}\n"
+        f"  slug:    {result.slug}\n"
+        f"  path:    {result.relative_path}\n"
         f"  universe:{universe}"
     )
     return [TextContent(type="text", text=body)]

@@ -19,6 +19,7 @@ universe-scoped, so the indexer adds only the project subdirectory.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
 from uuid import UUID
@@ -35,6 +36,14 @@ COLLECTION_PREFIX: Final[str] = "kb_"
 
 class NoteNotFoundError(LookupError):
     """Raised when ``read_note_by_id`` finds no point with the requested id."""
+
+
+@dataclass(frozen=True, slots=True)
+class WriteResult:
+    id: UUID
+    slug: str
+    relative_path: Path
+    absolute_path: Path
 
 
 def collection_name_for(universe: str) -> str:
@@ -65,7 +74,7 @@ class Indexer:
         """
         return self._notes_root / slugify(note.project) / f"{note.slug}.md"
 
-    def write_note(self, note: Note) -> Path:
+    def write_note(self, note: Note) -> WriteResult:
         """Persist the note as a .md file and upsert its index entry in Qdrant.
 
         Idempotent: re-running with the **same** ``note.id`` *and* the same
@@ -94,9 +103,10 @@ class Indexer:
         self._store.ensure_collection(collection)
 
         path = self.path_for(note)
+        relative_path = path.relative_to(self._notes_root)
 
         embedding = self._embedder.embed_text(note.summary)
-        payload = self._payload(note, path)
+        payload = self._payload(note, relative_path)
         point = PointStruct(
             id=str(note.id),
             vector={
@@ -112,7 +122,12 @@ class Indexer:
 
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(to_markdown(note), encoding="utf-8")
-        return path
+        return WriteResult(
+            id=note.id,
+            slug=note.slug,
+            relative_path=relative_path,
+            absolute_path=path,
+        )
 
     def read_note_by_id(self, note_id: UUID, universe: str) -> Note:
         """Load a note's full content from disk using the Qdrant payload's path.
@@ -155,7 +170,7 @@ class Indexer:
             ) from exc
         return from_markdown(content)
 
-    def _payload(self, note: Note, path: Path) -> dict[str, Any]:
+    def _payload(self, note: Note, relative_path: Path) -> dict[str, Any]:
         return {
             "id": str(note.id),
             "slug": note.slug,
@@ -168,7 +183,7 @@ class Indexer:
             # Store a path relative to notes_root so the index is portable
             # across machines and notes_root relocations.  Reconstructed in
             # read_note_by_id as ``self._notes_root / path_str``.
-            "path": str(path.relative_to(self._notes_root)),
+            "path": str(relative_path),
             "supersedes": str(note.supersedes) if note.supersedes is not None else None,
             "archived": note.archived,
             "summary": note.summary,

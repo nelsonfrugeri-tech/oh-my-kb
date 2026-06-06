@@ -2,6 +2,7 @@ from oh_my_kb.services.indexer import (
     COLLECTION_PREFIX,
     Indexer,
     NoteNotFoundError,
+    WriteResult,
     collection_name_for,
 )
 from oh_my_kb.services.navigation import (
@@ -32,6 +33,7 @@ __all__ = [
     "SearchService",
     "Tree",
     "TreeNode",
+    "WriteResult",
     "collection_name_for",
     "get_notes_root",
     "is_before_since",
