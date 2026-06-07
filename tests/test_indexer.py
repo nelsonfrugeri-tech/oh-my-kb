@@ -9,12 +9,11 @@ from _helpers import StubEmbedder, make_note
 from oh_my_kb.core import from_markdown
 from oh_my_kb.embedding import Embedder, EmbeddingResult
 from oh_my_kb.services import (
-    COLLECTION_PREFIX,
     Indexer,
     NoteNotFoundError,
-    WriteResult,
     collection_name_for,
 )
+from oh_my_kb.services.indexer import COLLECTION_PREFIX, WriteResult
 from oh_my_kb.storage import (
     DENSE_DIM,
     DENSE_VECTOR_NAME,
