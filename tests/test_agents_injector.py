@@ -37,26 +37,38 @@ class TestInjectBlockInserted:
         _, action = inject_block("", _BLOCK)
         assert action == InjectAction.INSERTED
 
-    def test_empty_string_no_leading_blank_line(self) -> None:
+    def test_empty_string_starts_with_marker(self) -> None:
         content, _ = inject_block("", _BLOCK)
-        # Empty file: no blank line prefix expected — starts directly with the marker
+        # Empty file: starts directly with the block marker
         assert content.startswith(START_MARKER)
 
     def test_user_text_no_markers_returns_inserted(self) -> None:
         _, action = inject_block("# My CLAUDE.md\n\nSome instructions here.\n", _BLOCK)
         assert action == InjectAction.INSERTED
 
-    def test_user_text_preserved_before_block(self) -> None:
+    def test_block_prepended_before_user_text(self) -> None:
+        """Bug 3 fix: block is at the TOP, user text follows below."""
         user_text = "# My CLAUDE.md\n\nSome instructions here.\n"
         content, _ = inject_block(user_text, _BLOCK)
-        assert content.startswith(user_text)
+        # Block must appear before user text
+        assert content.startswith(START_MARKER)
+        block_end_idx = content.find(END_MARKER) + len(END_MARKER)
+        tail = content[block_end_idx:]
+        assert "# My CLAUDE.md" in tail
+        assert "Some instructions here." in tail
 
-    def test_wrapped_block_appended_after_blank_line(self) -> None:
+    def test_user_text_preserved_after_block(self) -> None:
         user_text = "# My CLAUDE.md\n\nSome instructions here.\n"
         content, _ = inject_block(user_text, _BLOCK)
         assert _wrap(_BLOCK) in content
-        # A blank line separates user text from the injected block
-        assert "\n\n" + START_MARKER in content
+        assert "# My CLAUDE.md" in content
+        assert "Some instructions here." in content
+
+    def test_wrapped_block_at_start(self) -> None:
+        user_text = "# My CLAUDE.md\n\nSome instructions here.\n"
+        content, _ = inject_block(user_text, _BLOCK)
+        # Block must be at the very start of the file
+        assert content.index(START_MARKER) < content.index("# My CLAUDE.md")
 
 
 class TestInjectBlockUnchanged:
@@ -82,7 +94,7 @@ class TestInjectBlockReplaced:
         content, _ = inject_block(initial, _DIFFERENT_BLOCK)
         assert _DIFFERENT_BLOCK.rstrip() in content
 
-    def test_user_text_before_markers_preserved_on_replace(self) -> None:
+    def test_user_text_preserved_on_replace(self) -> None:
         user_text = "# Project rules\n\nDo not disturb.\n"
         inserted, _ = inject_block(user_text, _BLOCK)
         replaced, action = inject_block(inserted, _DIFFERENT_BLOCK)
@@ -92,9 +104,10 @@ class TestInjectBlockReplaced:
 
     def test_user_text_after_markers_preserved_on_replace(self) -> None:
         after_text = "After text.\n"
+        before_text = "Before text.\n"
         initial = (
-            f"Before text.\n\n"
             f"{START_MARKER}\n{_BLOCK.rstrip()}\n{END_MARKER}\n\n"
+            f"{before_text}\n"
             f"{after_text}"
         )
         content, action = inject_block(initial, _DIFFERENT_BLOCK)
@@ -110,6 +123,39 @@ class TestInjectBlockReplaced:
         assert action == InjectAction.REPLACED
         assert "other-universe" in content
         assert "my-universe" not in content
+
+
+class TestInjectBlockPrepend:
+    """Tests for the prepend-first behaviour (Bug 3 fix)."""
+
+    def test_inserted_block_is_at_file_start(self) -> None:
+        user_text = "Some existing content.\n"
+        content, action = inject_block(user_text, _BLOCK)
+        assert action == InjectAction.INSERTED
+        assert content.startswith(START_MARKER)
+
+    def test_replaced_block_stays_at_file_start(self) -> None:
+        # First insert
+        content_v1, _ = inject_block("User notes.\n", _BLOCK)
+        # Now replace with new block
+        content_v2, _ = inject_block(content_v1, _DIFFERENT_BLOCK)
+        assert content_v2.startswith(START_MARKER)
+
+    def test_legacy_appended_block_moved_to_top(self) -> None:
+        """Bug 5 fix: block present at non-top position is moved to top on next write."""
+        user_text = "# User Content\n\nImportant.\n"
+        # Simulate the old append behavior: user content then block
+        legacy = user_text + "\n" + _wrap(_BLOCK)
+        # A second inject with the SAME block should move it to the top
+        content, _action = inject_block(legacy, _BLOCK)
+        # Block is at the top now
+        assert content.startswith(START_MARKER)
+        # User content is preserved
+        assert "# User Content" in content
+        assert "Important." in content
+        # No duplicate markers
+        assert content.count(START_MARKER) == 1
+        assert content.count(END_MARKER) == 1
 
 
 class TestInjectBlockCRLF:

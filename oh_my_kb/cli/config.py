@@ -9,6 +9,10 @@ because it's machine config — note **data** lives in plain sight under
 The collection name is **never** computed locally — it is delegated to
 :func:`oh_my_kb.services.collection_name_for` so the CLI and the indexer
 never disagree.
+
+Two schemas coexist in the same TOML file using disjoint top-level sections:
+- :class:`CLIConfig` — ``universes`` + ``active`` (original schema).
+- :class:`OmkConfig` — ``[core]``, ``[qdrant]``, ``[harness]`` sections.
 """
 
 from __future__ import annotations
@@ -93,23 +97,35 @@ def load_config() -> CLIConfig:
 
 
 def save_config(cfg: CLIConfig) -> Path:
-    """Persist ``cfg`` to ``config_path``, creating the directory if missing."""
+    """Persist ``cfg`` to ``config_path``, creating the directory if missing.
+
+    Reads the existing file first so that :class:`OmkConfig` sections
+    (``[core]``, ``[qdrant]``, ``[harness]``) are not overwritten.
+    """
     path = config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    data: dict[str, object] = {
-        "universes": [
-            {
-                "name": u.name,
-                "notes_root": str(u.notes_root),
-                "collection": u.collection,
-            }
-            for u in cfg.universes
-        ],
-    }
+
+    # Preserve any existing sections (e.g. OmkConfig's [core]/[qdrant]/[harness])
+    existing: dict[str, object] = {}
+    if path.exists():
+        with path.open("rb") as fh:
+            existing = dict(tomllib.load(fh))
+
+    existing["universes"] = [
+        {
+            "name": u.name,
+            "notes_root": str(u.notes_root),
+            "collection": u.collection,
+        }
+        for u in cfg.universes
+    ]
     if cfg.active is not None:
-        data["active"] = cfg.active
+        existing["active"] = cfg.active
+    elif "active" in existing:
+        del existing["active"]
+
     with path.open("wb") as fh:
-        tomli_w.dump(data, fh)
+        tomli_w.dump(existing, fh)
     return path
 
 
@@ -138,3 +154,127 @@ def set_active(cfg: CLIConfig, name: str) -> CLIConfig:
     if not cfg.has(name):
         raise UniverseNotFoundError(f"universe '{name}' is not configured")
     return replace(cfg, active=name)
+
+
+# ---------------------------------------------------------------------------
+# OmkConfig — extended install configuration (disjoint TOML sections)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class OmkCoreConfig:
+    """``[core]`` section of ``config.toml``."""
+
+    notes_root: Path = field(default_factory=lambda: Path.home() / "oh-my-kb")
+    default_universe: str = "default"
+    models_cache: Path = field(
+        default_factory=lambda: Path.home() / ".cache" / "oh-my-kb" / "models"
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class OmkQdrantConfig:
+    """``[qdrant]`` section of ``config.toml``."""
+
+    port: int = 6333
+    container_name: str = "oh-my-kb-qdrant"
+
+
+@dataclass(frozen=True, slots=True)
+class OmkHarnessConfig:
+    """``[harness]`` section of ``config.toml``."""
+
+    active: str = "claude-code"
+
+
+@dataclass(frozen=True, slots=True)
+class OmkConfig:
+    """Extended installation configuration — coexists with :class:`CLIConfig`.
+
+    Stored under the ``[core]``, ``[qdrant]``, and ``[harness]`` sections of
+    ``~/.config/oh-my-kb/config.toml``, which are disjoint from the
+    ``universes`` / ``active`` keys used by :class:`CLIConfig`.
+    """
+
+    core: OmkCoreConfig = field(default_factory=OmkCoreConfig)
+    qdrant: OmkQdrantConfig = field(default_factory=OmkQdrantConfig)
+    harness: OmkHarnessConfig = field(default_factory=OmkHarnessConfig)
+
+
+def omk_config_path() -> Path:
+    """Return the path to the config file (same as :func:`config_path`)."""
+    return config_path()
+
+
+def load_omk_config() -> OmkConfig:
+    """Load :class:`OmkConfig` from ``config.toml``.
+
+    Returns defaults if the file is absent or if the relevant sections
+    are not yet present (e.g. on a fresh install or upgrade from an older
+    version).
+    """
+    path = omk_config_path()
+    if not path.exists():
+        return OmkConfig()
+
+    with path.open("rb") as fh:
+        raw = tomllib.load(fh)
+
+    core_raw = raw.get("core", {})
+    qdrant_raw = raw.get("qdrant", {})
+    harness_raw = raw.get("harness", {})
+
+    _defaults = OmkCoreConfig()
+    core = OmkCoreConfig(
+        notes_root=(
+            Path(str(core_raw["notes_root"])) if "notes_root" in core_raw else _defaults.notes_root
+        ),
+        default_universe=str(core_raw.get("default_universe", _defaults.default_universe)),
+        models_cache=(
+            Path(str(core_raw["models_cache"]))
+            if "models_cache" in core_raw
+            else _defaults.models_cache
+        ),
+    )
+    qdrant = OmkQdrantConfig(
+        port=int(qdrant_raw.get("port", OmkQdrantConfig().port)),
+        container_name=str(qdrant_raw.get("container_name", OmkQdrantConfig().container_name)),
+    )
+    harness = OmkHarnessConfig(
+        active=str(harness_raw.get("active", OmkHarnessConfig().active)),
+    )
+    return OmkConfig(core=core, qdrant=qdrant, harness=harness)
+
+
+def save_omk_config(cfg: OmkConfig) -> Path:
+    """Persist :class:`OmkConfig` to ``config.toml``.
+
+    Reads the existing file first and merges the new sections in, so that
+    :class:`CLIConfig` data (``universes`` / ``active``) is preserved.
+    """
+    path = omk_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Read existing data to preserve CLIConfig sections
+    existing: dict[str, object] = {}
+    if path.exists():
+        with path.open("rb") as fh:
+            existing = dict(tomllib.load(fh))
+
+    # Merge in the new OmkConfig sections (overwrite only our sections)
+    existing["core"] = {
+        "notes_root": str(cfg.core.notes_root),
+        "default_universe": cfg.core.default_universe,
+        "models_cache": str(cfg.core.models_cache),
+    }
+    existing["qdrant"] = {
+        "port": cfg.qdrant.port,
+        "container_name": cfg.qdrant.container_name,
+    }
+    existing["harness"] = {
+        "active": cfg.harness.active,
+    }
+
+    with path.open("wb") as fh:
+        tomli_w.dump(existing, fh)
+    return path
