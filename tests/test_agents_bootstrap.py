@@ -12,7 +12,12 @@ from unittest.mock import patch
 
 import pytest
 
-from oh_my_kb.agents.bootstrap import NoActiveUniverseError, bootstrap
+from oh_my_kb.agents.bootstrap import (
+    BootstrapReport,
+    NoActiveUniverseError,
+    bootstrap,
+    do_bootstrap,
+)
 from oh_my_kb.agents.harness import UnknownHarnessError
 from oh_my_kb.agents.injector import END_MARKER, START_MARKER, InjectAction
 
@@ -309,3 +314,62 @@ class TestBootstrapErrors:
                 active_universe="test-universe",
             )
         assert report.target_file == _global_target(home)
+
+
+# ---------------------------------------------------------------------------
+# do_bootstrap — public single-entry-point function
+# ---------------------------------------------------------------------------
+
+
+class TestDoBootstrap:
+    """Tests for :func:`oh_my_kb.agents.bootstrap.do_bootstrap`."""
+
+    def test_returns_bootstrap_report(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            report = do_bootstrap("claude-code", "my-universe")
+        assert isinstance(report, BootstrapReport)
+
+    def test_target_is_global_claude_md(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            report = do_bootstrap("claude-code", "my-universe")
+        assert report.target_file == _global_target(home)
+
+    def test_action_is_created_on_first_run(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            report = do_bootstrap("claude-code", "my-universe")
+        assert report.action in (InjectAction.CREATED, InjectAction.INSERTED)
+
+    def test_bytes_written_positive(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            report = do_bootstrap("claude-code", "my-universe")
+        assert report.bytes_written > 0
+
+    def test_universe_in_report(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            report = do_bootstrap("claude-code", "work-universe")
+        assert report.universe == "work-universe"
+
+    def test_home_override_parameter(self, tmp_path: Path) -> None:
+        """``home`` param overrides the project_path used internally."""
+        home = _fake_home(tmp_path)
+        report = do_bootstrap("claude-code", "test-universe", home=home)
+        assert report.target_file == _global_target(home)
+
+    def test_second_call_returns_unchanged(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            do_bootstrap("claude-code", "my-universe")
+            report2 = do_bootstrap("claude-code", "my-universe")
+        assert report2.action == InjectAction.UNCHANGED
+
+    def test_file_contains_universe_name(self, tmp_path: Path) -> None:
+        home = _fake_home(tmp_path)
+        with patch.object(Path, "home", return_value=home):
+            do_bootstrap("claude-code", "cool-universe")
+        content = _global_target(home).read_text(encoding="utf-8")
+        assert "cool-universe" in content

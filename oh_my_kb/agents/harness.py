@@ -13,6 +13,8 @@ class Harness:
     target_filename: str
     detection_signal: str | None
     scope: Literal["global", "project"] = "project"
+    display_label: str = ""
+    display_path: str = ""
 
 
 HARNESS_REGISTRY: dict[str, Harness] = {
@@ -21,12 +23,42 @@ HARNESS_REGISTRY: dict[str, Harness] = {
         "CLAUDE.md",
         ".claude",
         scope="global",
+        display_label="Claude Code CLI",
+        display_path="~/.claude/CLAUDE.md",
     ),
     "claude-desktop": Harness(
         "claude-desktop",
         "CLAUDE.md",
         None,
         scope="project",
+        display_label="Claude Desktop",
+        display_path="(project-local CLAUDE.md)",
+    ),
+}
+
+# Selectable harnesses in install order — only "claude-code" is implemented;
+# the rest are "coming soon" placeholders for the UI.
+HARNESS_COMING_SOON: list[str] = ["claude-desktop", "cursor", "copilot"]
+
+# Natural-language trigger phrases for each tool name.
+# These appear in the generated ~/.claude/CLAUDE.md block so the harness can
+# understand when to invoke each tool.  If a tool is not listed here, the
+# block renderer falls back to the tool's own description field.
+TOOL_TRIGGERS: dict[str, str] = {
+    "kb_write": (
+        "Use quando o usuário pedir para salvar, registrar ou documentar algo"
+    ),
+    "kb_search": (
+        "Use quando o usuário pedir para buscar, encontrar ou lembrar algo"
+    ),
+    "kb_tree": (
+        "Use quando o usuário pedir uma visão geral, mapa ou estrutura do conhecimento"
+    ),
+    "kb_expand": (
+        "Use quando o usuário quiser aprofundar, ler na íntegra ou seguir links de uma nota"
+    ),
+    "kb_recent": (
+        "Use quando o usuário pedir as últimas notas, histórico recente ou novidades de um projeto"
     ),
 }
 

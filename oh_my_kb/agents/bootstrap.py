@@ -12,7 +12,7 @@ from oh_my_kb.agents.injector import (
     InjectAction,
     inject_block,
 )
-from oh_my_kb.agents.template import render_rules
+from oh_my_kb.agents.template import render_dynamic_block
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +26,37 @@ class BootstrapReport:
 
 class NoActiveUniverseError(ValueError):
     """Raised when no active universe is configured."""
+
+
+def do_bootstrap(
+    harness: str,
+    universe: str,
+    *,
+    home: Path | None = None,
+) -> BootstrapReport:
+    """Single entry point for the wizard (step 6) and ``omk resource update``.
+
+    Orchestrates: ``resolve_harness`` → ``render_dynamic_block`` →
+    ``inject_block`` → write.
+
+    Args:
+        harness: Harness name (e.g. ``"claude-code"``).
+        universe: Active universe name.
+        home: Override for :func:`Path.home` — used in tests to avoid
+            touching the real ``~/.claude/CLAUDE.md``.  When provided the
+            override is applied for the duration of the call only.
+
+    Returns:
+        :class:`BootstrapReport` with ``target``, ``action``, and
+        ``bytes_written``.
+    """
+    from unittest.mock import patch
+
+    project_path = Path.cwd()
+    if home is not None:
+        with patch.object(Path, "home", return_value=home):
+            return bootstrap(harness=harness, project_path=project_path, active_universe=universe)
+    return bootstrap(harness=harness, project_path=project_path, active_universe=universe)
 
 
 def bootstrap(
@@ -62,7 +93,7 @@ def bootstrap(
     if h.scope == "global":
         target.parent.mkdir(parents=True, exist_ok=True)
 
-    new_block = render_rules(active_universe)
+    new_block = render_dynamic_block(active_universe)
     wrapped_block = f"{START_MARKER}\n{new_block.rstrip()}\n{END_MARKER}\n"
 
     current = target.read_text(encoding="utf-8") if target.exists() else None

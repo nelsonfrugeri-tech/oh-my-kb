@@ -14,10 +14,6 @@ from oh_my_kb.cli.config import (
     save_config,
     set_active,
 )
-from oh_my_kb.cli.installer import (
-    Installer,
-    QdrantUnreachableError,
-)
 from oh_my_kb.cli.paths import default_notes_root_for
 from oh_my_kb.services import collection_name_for
 from oh_my_kb.storage import QdrantStore, get_qdrant_url
@@ -43,29 +39,181 @@ def help_cmd(ctx: typer.Context) -> None:
     typer.echo(ctx.parent.get_help() if ctx.parent else ctx.get_help())
 
 
-@app.command("install")
-def install_cmd() -> None:
-    """Bring up Qdrant, ensure the bge-m3 model, create the default universe."""
-    try:
-        report = Installer().run()
-    except QdrantUnreachableError as exc:
-        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from exc
+# ---------------------------------------------------------------------------
+# omk install — interactive wizard
+# ---------------------------------------------------------------------------
 
-    typer.secho("✓ oh-my-kb is ready.", fg=typer.colors.GREEN, bold=True)
+
+@app.command("install")
+def install_cmd(
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Accept all defaults and run non-interactively (for CI/scripts).",
+    ),
+) -> None:
+    """Interactive wizard: configure, start Qdrant, create universe, bootstrap harness."""
+    import sys
+
+    from oh_my_kb.cli.config import (
+        OmkConfig,
+        OmkCoreConfig,
+        OmkHarnessConfig,
+        OmkQdrantConfig,
+        save_omk_config,
+    )
+    from oh_my_kb.cli.install.wizard import Wizard
+
+    # ── Wizard ──
+    wizard = Wizard(non_interactive=yes)
+    choices = wizard.run()
+
+    typer.echo(choices.summary())
+
+    # Confirmation — skipped when --yes
+    if not yes:
+        if not sys.stdin.isatty():
+            typer.secho(
+                "error: non-TTY stdin detected and --yes not given; "
+                "re-run with --yes to proceed non-interactively.",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(code=1)
+        if not choices.confirm():
+            typer.echo("Instalacao cancelada.")
+            raise typer.Exit(code=0)
+
     typer.echo("")
-    typer.echo("Provisioned:")
-    typer.echo(f"  qdrant     : {report.qdrant_url}")
-    typer.echo(f"  universe   : {report.universe} (active)")
-    typer.echo(f"  notes dir  : {report.notes_root}")
-    typer.echo(f"  collection : {report.collection}")
-    typer.echo(f"  config     : {report.config_file}")
+    typer.echo("  Instalando Oh My KB...")
     typer.echo("")
-    typer.echo("Steps:")
-    for action in report.actions:
-        typer.echo(f"  - {action}")
+
+    # ── [1/6] Docker check ──
+    typer.echo("  [1/6] Verificando Docker...")
+    from oh_my_kb.infra.docker_qdrant import DockerNotRunningError, QdrantContainer
+    try:
+        qc = QdrantContainer(
+            name="oh-my-kb-qdrant",
+            image="qdrant/qdrant:latest",
+            port=choices.qdrant_port,
+        )
+        qc.status()
+    except DockerNotRunningError as exc:
+        typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    typer.secho("  [1/6] Docker OK", fg=typer.colors.GREEN)
+
+    # ── [2/6] Ensure Qdrant container ──
+    typer.echo("  [2/6] Iniciando Qdrant (qdrant/qdrant:latest) ...")
+    try:
+        qc.ensure_image()
+        action = qc.ensure_running()
+    except DockerNotRunningError as exc:
+        typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    except RuntimeError as exc:
+        typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    typer.secho(
+        f"  [2/6] Qdrant {action} na porta {choices.qdrant_port}",
+        fg=typer.colors.GREEN,
+    )
+
+    # ── [3/6] Create universe directory ──
+    typer.echo(f"  [3/6] Criando universe '{choices.universe}' ...")
+    universe_dir = choices.notes_root / choices.universe
+    universe_dir.mkdir(parents=True, exist_ok=True)
+    typer.secho(f"  [3/6] {universe_dir}/", fg=typer.colors.GREEN)
+
+    # ── [4/6] Persist configuration ──
+    typer.echo("  [4/6] Salvando configuracao ...")
+    from oh_my_kb.cli.config import config_path
+
+    omk_cfg = OmkConfig(
+        core=OmkCoreConfig(
+            notes_root=choices.notes_root,
+            default_universe=choices.universe,
+            models_cache=choices.models_cache,
+        ),
+        qdrant=OmkQdrantConfig(
+            port=choices.qdrant_port,
+            container_name="oh-my-kb-qdrant",
+        ),
+        harness=OmkHarnessConfig(active=choices.harness),
+    )
+    save_omk_config(omk_cfg)
+
+    qdrant_url = f"http://localhost:{choices.qdrant_port}"
+    cli_cfg = load_config()
+    if not cli_cfg.has(choices.universe):
+        cli_cfg = add_universe(cli_cfg, name=choices.universe, notes_root=universe_dir)
+    cli_cfg = set_active(cli_cfg, choices.universe)
+    save_config(cli_cfg)
+
+    store = QdrantStore(qdrant_url)
+    coll_name = collection_name_for(choices.universe)
+    if not store.collection_exists(coll_name):
+        store.ensure_collection(coll_name)
+
+    typer.secho(f"  [4/6] {config_path()}", fg=typer.colors.GREEN)
+
+    # ── [5/6] Generate dynamic block ──
+    typer.echo("  [5/6] Gerando bloco de regras ...")
+    from oh_my_kb.agents.template import render_dynamic_block
+    render_dynamic_block(choices.universe)
+    typer.secho("  [5/6] Bloco gerado com sucesso", fg=typer.colors.GREEN)
+
+    # ── [6/6] Bootstrap harness ──
+    typer.echo("  [6/6] Injetando bloco em ~/.claude/CLAUDE.md ...")
+    from oh_my_kb.agents.bootstrap import do_bootstrap
+    report = do_bootstrap(choices.harness, choices.universe)
+    typer.secho(
+        f"  [6/6] Bloco omk {report.action} em {report.target_file}",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+
     typer.echo("")
-    typer.echo("Next: write notes via the MCP tool (kb_write) into the active universe.")
+    typer.secho("  Oh My KB instalado com sucesso!", fg=typer.colors.GREEN, bold=True)
+    typer.echo("")
+    typer.echo("  Proximos passos:")
+    typer.echo("    * Abra o Claude Code em qualquer projeto — o kb-mcp ja esta ativo.")
+    typer.echo("    * omk status          — verificar o estado do sistema")
+    typer.echo("    * omk resource diff   — ver atualizacoes disponiveis nos resources")
+    typer.echo("    * omk resource update — aplicar atualizacoes (regenera o CLAUDE.md)")
+    typer.echo("")
+
+
+# ---------------------------------------------------------------------------
+# omk start / stop / status — lifecycle commands
+# ---------------------------------------------------------------------------
+
+
+@app.command("start")
+def start_cmd() -> None:
+    """Start the Qdrant Docker container (idempotent)."""
+    from oh_my_kb.cli.lifecycle import start_cmd as _start
+    _start()
+
+
+@app.command("stop")
+def stop_cmd() -> None:
+    """Stop the Qdrant Docker container."""
+    from oh_my_kb.cli.lifecycle import stop_cmd as _stop
+    _stop()
+
+
+@app.command("status")
+def status_cmd() -> None:
+    """Show the current state of the oh-my-kb system."""
+    from oh_my_kb.cli.lifecycle import status_cmd as _status
+    _status()
+
+
+# ---------------------------------------------------------------------------
+# omk universe — sub-commands
+# ---------------------------------------------------------------------------
 
 
 @universe_app.command("create")
@@ -94,7 +242,7 @@ def universe_create_cmd(
     store.ensure_collection(collection_name_for(name))
     save_config(cfg)
 
-    typer.secho(f"✓ universe '{name}' created.", fg=typer.colors.GREEN, bold=True)
+    typer.secho(f"universe '{name}' created.", fg=typer.colors.GREEN, bold=True)
     typer.echo(f"  notes dir  : {target}")
     typer.echo(f"  collection : {collection_name_for(name)}")
 
@@ -122,70 +270,7 @@ def universe_use_cmd(
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
     save_config(cfg)
-    typer.secho(f"✓ active universe is now '{name}'.", fg=typer.colors.GREEN, bold=True)
-
-
-@app.command("bootstrap")
-def bootstrap_cmd(
-    harness: str = typer.Option(
-        ...,
-        "--harness",
-        "-H",
-        help="Target harness: claude-code | claude-desktop.",
-    ),
-    project_path: Path = typer.Option(  # noqa: B008
-        None,
-        "--project-path",
-        "-p",
-        help=(
-            "Project root where the rules file lives. Defaults to current directory. "
-            "Has no effect for global harnesses (e.g. claude-code) — those always "
-            "write to their fixed global config path (e.g. ~/.claude/CLAUDE.md)."
-        ),
-        file_okay=False,
-        dir_okay=True,
-        resolve_path=True,
-    ),
-) -> None:
-    """Inject the kb-mcp rules block into the harness's rules file (idempotent)."""
-    from oh_my_kb.agents import NoActiveUniverseError, bootstrap
-    from oh_my_kb.agents.harness import UnknownHarnessError
-    from oh_my_kb.agents.injector import MalformedBlockError
-
-    resolved_path = project_path if project_path is not None else Path.cwd()
-
-    cfg = load_config()
-    try:
-        report = bootstrap(
-            harness=harness.lower(),
-            project_path=resolved_path,
-            active_universe=cfg.active,
-        )
-    except (
-        UnknownHarnessError,
-        NoActiveUniverseError,
-        MalformedBlockError,
-        FileNotFoundError,
-    ) as exc:
-        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from exc
-
-    action_label = {
-        "created": "created",
-        "inserted": "inserted",
-        "replaced": "updated",
-        "unchanged": "already up to date",
-    }.get(report.action, report.action)
-
-    typer.secho(
-        f"✓ kb-mcp rules {action_label} for '{report.harness}'.",
-        fg=typer.colors.GREEN,
-        bold=True,
-    )
-    typer.echo(f"  universe   : {report.universe}")
-    typer.echo(f"  target     : {report.target_file}")
-    typer.echo(f"  action     : {report.action}")
-    typer.echo(f"  bytes      : {report.bytes_written}")
+    typer.secho(f"active universe is now '{name}'.", fg=typer.colors.GREEN, bold=True)
 
 
 @app.command("reindex")
@@ -197,12 +282,7 @@ def reindex_cmd(
         help="Universe to reindex. Defaults to the active universe.",
     ),
 ) -> None:
-    """Reconcile the Qdrant collection with markdown files on disk.
-
-    Scans the universe's notes directory, upserts every .md found (refreshing
-    embeddings and correcting paths), and removes Qdrant points whose file no
-    longer exists on disk.  Safe to run multiple times — fully idempotent.
-    """
+    """Reconcile the Qdrant collection with markdown files on disk."""
     from oh_my_kb.cli.reindex import NoActiveUniverseError, ReindexRunner
 
     try:
