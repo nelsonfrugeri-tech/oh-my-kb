@@ -272,21 +272,23 @@ def diff_cmd(
         )
         raise typer.Exit(code=1) from exc
 
-    server_resources = _all_server_resources()
+    all_server_resources = _all_server_resources()
+    all_server_ids = {r["resource_id"] for r in all_server_resources}
 
     if resource:
-        server_resources = [r for r in server_resources if r["resource_id"] == resource]
+        server_resources = [r for r in all_server_resources if r["resource_id"] == resource]
         if not server_resources:
             typer.secho(
                 f"  Erro: resource '{resource}' não encontrado no servidor MCP.",
                 err=True,
             )
             raise typer.Exit(code=3)
+    else:
+        server_resources = all_server_resources
 
     # Warn about resources removed from server but still in manifest
-    server_ids = {r["resource_id"] for r in server_resources}
     for rid in list(manifest.resources.keys()):
-        if rid not in server_ids:
+        if rid not in all_server_ids:
             typer.secho(
                 f"  Aviso: '{rid}' está no manifest local mas não existe mais no servidor. "
                 "Execute omk resource pull --all para sincronizar o manifest.",
@@ -401,21 +403,23 @@ def update_cmd(
         )
         raise typer.Exit(code=1) from exc
 
-    server_resources = _all_server_resources()
+    all_server_resources = _all_server_resources()
+    all_server_ids = {r["resource_id"] for r in all_server_resources}
 
     if resource:
-        server_resources = [r for r in server_resources if r["resource_id"] == resource]
+        server_resources = [r for r in all_server_resources if r["resource_id"] == resource]
         if not server_resources:
             typer.secho(
                 f"  Erro: resource '{resource}' não encontrado no servidor MCP.",
                 err=True,
             )
             raise typer.Exit(code=3)
+    else:
+        server_resources = all_server_resources
 
     # Warn about resources removed from server but still in manifest
-    server_ids = {r["resource_id"] for r in server_resources}
     for rid in list(manifest.resources.keys()):
-        if rid not in server_ids:
+        if rid not in all_server_ids:
             typer.secho(
                 f"  Aviso: '{rid}' está no manifest local mas não existe mais no servidor. "
                 "Execute omk resource pull --all para sincronizar o manifest.",

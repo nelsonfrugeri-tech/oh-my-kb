@@ -364,3 +364,48 @@ def test_update_invalid_resource_exits_3(
     _make_manifest_with_current_versions(tmp_path)
     result = runner.invoke(app, ["update", "nonexistent/resource"])
     assert result.exit_code == 3
+
+
+# ---------------------------------------------------------------------------
+# Regression: orphan-warning must NOT fire for resources filtered by argument
+# ---------------------------------------------------------------------------
+
+
+def test_diff_single_resource_does_not_warn_about_other_manifest_entries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Diffing a single resource must not warn that other manifest entries are
+    missing from the server.
+
+    Scenario: manifest has both skills/scribe AND skills/scribe-template; the
+    server exposes both.  Running ``omk resource diff skills/scribe-template``
+    previously emitted a false-positive warning about skills/scribe because
+    server_ids was derived from the *filtered* list (only scribe-template),
+    making scribe appear absent.
+    """
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_manifest_with_current_versions(tmp_path)
+
+    result = runner.invoke(app, ["diff", "skills/scribe-template"])
+
+    assert result.exit_code == 0, result.output
+    assert "está no manifest local mas não existe mais no servidor" not in result.output
+
+
+def test_update_single_resource_does_not_warn_about_other_manifest_entries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Updating a single resource must not warn that other manifest entries are
+    missing from the server.
+
+    Same false-positive as in diff: when update is called with an explicit
+    resource argument the filtered server_resources list was used to build
+    server_ids, causing every other manifest entry to appear orphaned.
+    """
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_manifest_with_current_versions(tmp_path)
+
+    result = runner.invoke(app, ["update", "skills/scribe-template"])
+
+    assert result.exit_code == 0, result.output
+    assert "está no manifest local mas não existe mais no servidor" not in result.output
