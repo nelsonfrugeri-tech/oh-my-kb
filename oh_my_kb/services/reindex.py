@@ -103,7 +103,7 @@ def reindex_universe(
     for note_id_str, abs_path in disk_notes.items():
         try:
             note = from_markdown(abs_path.read_text(encoding="utf-8"))
-            indexer.upsert_from_disk(note, abs_path)
+            indexer.upsert_from_disk(note, abs_path.relative_to(notes_root))
             upserted += 1
         except Exception as exc:
             logger.warning(

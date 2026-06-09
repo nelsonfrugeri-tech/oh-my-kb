@@ -123,7 +123,8 @@ def test_reindex_corrects_path_after_file_moved(
     note = make_note(title="Moveable", universe=universe)
 
     # Index via write_note — original path is recorded in Qdrant.
-    original_path = indexer.write_note(note)
+    write_result = indexer.write_note(note)
+    original_path = write_result.absolute_path
 
     # Simulate user moving the file to a sub-directory.
     moved_dir = tmp_path / "archive"
@@ -161,11 +162,11 @@ def test_reindex_removes_orphan_qdrant_points(
     collection = collection_name_for(universe)
     note = make_note(title="Ephemeral", universe=universe)
 
-    md_path = indexer.write_note(note)
+    write_result = indexer.write_note(note)
     assert _count_points(store, collection) == 1
 
     # Delete the .md from disk — the Qdrant point becomes an orphan.
-    md_path.unlink()
+    write_result.absolute_path.unlink()
 
     report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
 

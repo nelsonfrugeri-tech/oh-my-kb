@@ -124,10 +124,10 @@ def test_mvp_full_flow(
         body="React 19 traz melhorias de performance e a Actions API.",
     )
 
-    path_a = indexer.write_note(note_a)
-    path_b = indexer.write_note(note_b)
-    path_c = indexer.write_note(note_c)
-    path_d = indexer.write_note(note_d)
+    path_a = indexer.write_note(note_a).absolute_path
+    path_b = indexer.write_note(note_b).absolute_path
+    path_c = indexer.write_note(note_c).absolute_path
+    path_d = indexer.write_note(note_d).absolute_path
 
     assert path_a.exists()
     assert path_b.exists()
