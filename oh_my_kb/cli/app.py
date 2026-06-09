@@ -15,6 +15,7 @@ from oh_my_kb.cli.config import (
     set_active,
 )
 from oh_my_kb.cli.paths import default_notes_root_for
+from oh_my_kb.cli.resource import resource_app
 from oh_my_kb.services import collection_name_for
 from oh_my_kb.storage import QdrantStore, get_qdrant_url
 
@@ -31,6 +32,7 @@ universe_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(universe_app, name="universe")
+app.add_typer(resource_app, name="resource")
 
 
 @app.command("help")

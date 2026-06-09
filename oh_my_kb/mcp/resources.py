@@ -27,6 +27,11 @@ _URI_TO_FILENAME: dict[str, str] = {
     SCRIBE_TEMPLATE_URI: "template.md",
 }
 
+SHORT_ID_TO_URI: dict[str, str] = {
+    "skills/scribe": SCRIBE_SKILL_URI,
+    "template": SCRIBE_TEMPLATE_URI,
+}
+
 
 def list_scribe_resources() -> list[Resource]:
     """Return the static catalog of scribe resources."""
