@@ -1,4 +1,4 @@
-"""Tests for the :class:`oh_my_kb.cli.install.wizard.Wizard` and related classes.
+"""Tests for the :class:`oh_my_harness.kb.cli.install.wizard.Wizard` and related classes.
 
 Tests cover:
 - Non-interactive (``--yes``) mode: defaults accepted, summary printed, no prompts.
@@ -16,9 +16,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.config import CLIConfig, Universe
-from oh_my_kb.cli.install.wizard import (
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.config import CLIConfig, Universe
+from oh_my_harness.kb.cli.install.wizard import (
     InstallChoices,
     Wizard,
     _validate_harness,
@@ -37,7 +37,7 @@ def _config(active: str = "default") -> CLIConfig:
         universes=[
             Universe(
                 name=active,
-                notes_root=Path("/tmp/oh-my-kb") / active,
+                notes_root=Path("/tmp/oh-my-harness") / active,
                 collection=f"kb_{active}",
             )
         ],
@@ -194,12 +194,12 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             result = runner.invoke(app, ["install", "--yes"])
 
@@ -215,12 +215,12 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             result = runner.invoke(app, ["install", "--yes"])
 
@@ -235,24 +235,24 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             runner.invoke(app, ["install", "--yes"])
 
         claude_md = home / ".claude" / "CLAUDE.md"
         assert claude_md.exists(), "~/.claude/CLAUDE.md was not created"
         content = claude_md.read_text(encoding="utf-8")
-        assert "oh-my-kb" in content
+        assert "oh-my-harness" in content
 
     def test_claude_md_contains_all_tools(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
-        from oh_my_kb.mcp.tools import (
+        from oh_my_harness.kb.mcp.tools import (
             KB_EXPAND_TOOL,
             KB_RECENT_TOOL,
             KB_RESOURCE_DIFF_TOOL,
@@ -270,12 +270,12 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             runner.invoke(app, ["install", "--yes"])
 
@@ -300,17 +300,17 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             result = runner.invoke(
                 app,
                 ["install", "--yes"],
-                env={"OMK_CONFIG_DIR": str(tmp_path / "config")},
+                env={"OMH_CONFIG_DIR": str(tmp_path / "config")},
             )
 
         assert result.exit_code == 0, result.output
@@ -318,7 +318,7 @@ class TestInstallCLIYes:
     def test_docker_not_running_exits_nonzero(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
-        from oh_my_kb.infra.docker_qdrant import DockerNotRunningError
+        from oh_my_harness.kb.infra.docker_qdrant import DockerNotRunningError
 
         home = tmp_path / "home"
         home.mkdir()
@@ -326,7 +326,7 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
                 side_effect=DockerNotRunningError("Docker not running"),
             ),
         ):
@@ -344,12 +344,12 @@ class TestInstallCLIYes:
         with (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         ):
             result = runner.invoke(app, ["install", "--yes"])
 
@@ -366,19 +366,19 @@ class TestInstallCLIYes:
         patches = (
             patch.object(Path, "home", return_value=home),
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer._docker",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
                 return_value=fake_client,
             ),
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.collection_exists", return_value=True),
-            patch("oh_my_kb.storage.QdrantStore.ensure_collection"),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
         )
         config_dir = str(tmp_path / "config")
 
         with patches[0], patches[1], patches[2], patches[3], patches[4]:
-            runner.invoke(app, ["install", "--yes"], env={"OMK_CONFIG_DIR": config_dir})
+            runner.invoke(app, ["install", "--yes"], env={"OMH_CONFIG_DIR": config_dir})
             result = runner.invoke(
-                app, ["install", "--yes"], env={"OMK_CONFIG_DIR": config_dir}
+                app, ["install", "--yes"], env={"OMH_CONFIG_DIR": config_dir}
             )
 
         assert result.exit_code == 0, result.output

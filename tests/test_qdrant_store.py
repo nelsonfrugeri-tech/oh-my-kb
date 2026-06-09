@@ -1,7 +1,7 @@
 import pytest
 from qdrant_client.models import Distance
 
-from oh_my_kb.storage import (
+from oh_my_harness.kb.storage import (
     DENSE_DIM,
     DENSE_VECTOR_NAME,
     IN_MEMORY,
@@ -97,7 +97,7 @@ def test_ensure_collection_creates_payload_indexes_on_existing_collection_withou
     from qdrant_client import QdrantClient
     from qdrant_client.models import Distance, SparseVectorParams, VectorParams
 
-    from oh_my_kb.storage import DENSE_DIM, DENSE_VECTOR_NAME, IN_MEMORY, SPARSE_VECTOR_NAME
+    from oh_my_harness.kb.storage import DENSE_DIM, DENSE_VECTOR_NAME, IN_MEMORY, SPARSE_VECTOR_NAME
 
     # Simulate a "pre-index" universe: create the collection directly, skipping indexes.
     raw_client = QdrantClient(location=IN_MEMORY)

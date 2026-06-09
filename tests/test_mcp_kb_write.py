@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from oh_my_kb.mcp.tools.kb_write import handle_kb_write
-from oh_my_kb.services import Indexer
+from oh_my_harness.kb.mcp.tools.kb_write import handle_kb_write
+from oh_my_harness.kb.services import Indexer
 
 # ``indexer`` fixture is provided by tests/conftest.py.
 
@@ -21,7 +21,7 @@ async def test_kb_write_persists_minimal_note(indexer: Indexer, tmp_path: Path) 
     args = {
         "title": "Test decision",
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": (
             "Decisão de validar o caminho mínimo de kb_write: aceita os "
             "campos obrigatórios (title, type, project, summary), persiste o "
@@ -51,7 +51,7 @@ async def test_kb_write_persists_full_note(indexer: Indexer) -> None:
     args = {
         "title": "Full note",
         "type": "reference",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": (
             "Cobertura de todos os campos opcionais de kb_write num único "
             "caso: body markdown, entities como lista de strings, links_out "
@@ -74,7 +74,7 @@ async def test_kb_write_invalid_type_returns_error_text(indexer: Indexer) -> Non
     args = {
         "title": "Bad type",
         "type": "not-a-real-type",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": _LONG_VALID_SUMMARY,
     }
     result = await handle_kb_write(indexer, "engineering", args)
@@ -86,7 +86,7 @@ async def test_kb_write_empty_title_returns_error_text(indexer: Indexer) -> None
     args = {
         "title": "   ",
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": _LONG_VALID_SUMMARY,
     }
     result = await handle_kb_write(indexer, "engineering", args)
@@ -97,7 +97,7 @@ async def test_kb_write_universe_is_server_bound_not_input(indexer: Indexer) -> 
     args = {
         "title": "Server universe wins",
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": _LONG_VALID_SUMMARY,
         # Note: inputSchema additionalProperties=False would block this in MCP,
         # but the handler also doesn't *consume* a universe from args.
@@ -113,7 +113,7 @@ async def test_kb_write_summary_too_short_returns_error(indexer: Indexer) -> Non
     args = {
         "title": "Short summary",
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": "Decisão curta demais.",
     }
     result = await handle_kb_write(indexer, "engineering", args)
@@ -126,7 +126,7 @@ async def test_kb_write_summary_too_long_returns_error(indexer: Indexer) -> None
     args = {
         "title": "Long summary",
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": "a" * 801,
     }
     result = await handle_kb_write(indexer, "engineering", args)
@@ -139,7 +139,7 @@ async def test_kb_write_summary_equal_to_title_returns_error(
     indexer: Indexer,
 ) -> None:
     repeated = (
-        "Decisão sobre a arquitetura do oh-my-kb com bge-m3 e Qdrant para "
+        "Decisão sobre a arquitetura do oh-my-harness com bge-m3 e Qdrant para "
         "implementar busca híbrida (dense + sparse) com fusão RRF nativa "
         "e indexação per-universe; a escolha desvia do uso de FastEmbed "
         "porque a versão atual não suporta o modelo bge-m3."
@@ -147,7 +147,7 @@ async def test_kb_write_summary_equal_to_title_returns_error(
     args = {
         "title": repeated,
         "type": "decision",
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "summary": repeated,
     }
     result = await handle_kb_write(indexer, "engineering", args)

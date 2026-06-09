@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from oh_my_kb.core import generate_slug
+from oh_my_harness.kb.core import generate_slug
 
 
 @pytest.fixture

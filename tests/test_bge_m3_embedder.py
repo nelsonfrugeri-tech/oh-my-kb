@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from oh_my_kb.embedding import BGEM3Embedder
-from oh_my_kb.storage import DENSE_DIM
+from oh_my_harness.kb.embedding import BGEM3Embedder
+from oh_my_harness.kb.storage import DENSE_DIM
 
 pytestmark = pytest.mark.slow
 
@@ -26,7 +26,7 @@ def test_dense_dim_matches_storage(embedder: BGEM3Embedder) -> None:
 
 
 def test_embed_text_produces_correctly_shaped_result(embedder: BGEM3Embedder) -> None:
-    result = embedder.embed_text("Desenho das tools do oh-my-kb.")
+    result = embedder.embed_text("Desenho das tools do oh-my-harness.")
 
     assert len(result.dense) == 1024
     assert all(isinstance(x, float) for x in result.dense[:5])

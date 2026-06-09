@@ -1,6 +1,6 @@
 import pytest
 
-from oh_my_kb.i18n import BASE_LOCALE, DEFAULT_LOCALE, resolve_locale_path
+from oh_my_harness.kb.i18n import BASE_LOCALE, DEFAULT_LOCALE, resolve_locale_path
 
 
 def test_constants():

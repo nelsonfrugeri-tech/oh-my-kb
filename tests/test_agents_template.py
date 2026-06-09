@@ -1,4 +1,4 @@
-from oh_my_kb.agents.template import load_template, render_rules
+from oh_my_harness.kb.agents.template import load_template, render_rules
 
 
 def test_load_template_returns_pt_br():
@@ -15,7 +15,7 @@ def test_render_rules_substitutes_universe():
 
 def test_load_template_fallback(tmp_path, monkeypatch):
     """Unknown locale falls back to pt-BR without raising."""
-    import oh_my_kb.agents.template as template_mod
+    import oh_my_harness.kb.agents.template as template_mod
     monkeypatch.setattr(template_mod, "_AGENTS_DIR", tmp_path)
     (tmp_path / "pt-BR").mkdir()
     (tmp_path / "pt-BR" / "rules_template.md").write_text("rules for {universe}")

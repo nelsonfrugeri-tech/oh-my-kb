@@ -15,13 +15,13 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.resource.manifest import (
+from oh_my_harness.kb.cli.resource.manifest import (
     Manifest,
     ResourceRecord,
     save_manifest,
 )
-from oh_my_kb.cli.resource.registry import RESOURCE_REGISTRY
-from oh_my_kb.mcp.tools.kb_resource_diff import handle_kb_resource_diff
+from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY
+from oh_my_harness.kb.mcp.tools.kb_resource_diff import handle_kb_resource_diff
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -106,7 +106,7 @@ async def test_diff_with_drift(
             return _CONTENT_V2
         return _CONTENT_V2
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _mock_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _mock_read)
 
     result = await handle_kb_resource_diff({})
 
@@ -125,7 +125,7 @@ async def test_diff_all_up_to_date(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -176,7 +176,7 @@ async def test_diff_single_resource(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 

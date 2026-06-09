@@ -6,14 +6,14 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.services import (
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.services import (
     Indexer,
     NavigationService,
     NoteNotFoundError,
     TreeNode,
 )
-from oh_my_kb.storage import QdrantStore
+from oh_my_harness.kb.storage import QdrantStore
 
 # ``store``, ``embedder``, ``indexer`` fixtures are provided by
 # tests/conftest.py.
@@ -27,7 +27,7 @@ def navigation(store: QdrantStore, indexer: Indexer) -> NavigationService:
 def _note(
     *,
     title: str = "alguma nota",
-    project: str = "oh-my-kb",
+    project: str = "oh-my-harness",
     universe: str = "engineering",
     archived: bool = False,
     summary: str | None = None,

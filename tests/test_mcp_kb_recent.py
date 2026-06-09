@@ -12,10 +12,10 @@ from pathlib import Path
 import pytest
 from _helpers import StubEmbedder
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.mcp.tools.kb_recent import handle_kb_recent
-from oh_my_kb.services import Indexer, RecentService
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.mcp.tools.kb_recent import handle_kb_recent
+from oh_my_harness.kb.services import Indexer, RecentService
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Fixtures

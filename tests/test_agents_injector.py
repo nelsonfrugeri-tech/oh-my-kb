@@ -1,10 +1,10 @@
-"""Unit tests for :func:`oh_my_kb.agents.injector.inject_block`."""
+"""Unit tests for :func:`oh_my_harness.kb.agents.injector.inject_block`."""
 
 from __future__ import annotations
 
 import pytest
 
-from oh_my_kb.agents.injector import (
+from oh_my_harness.kb.agents.injector import (
     END_MARKER,
     START_MARKER,
     InjectAction,

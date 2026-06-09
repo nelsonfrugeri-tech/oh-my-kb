@@ -6,15 +6,15 @@ from uuid import UUID, uuid4
 import pytest
 from _helpers import StubEmbedder, make_note
 
-from oh_my_kb.core import from_markdown
-from oh_my_kb.embedding import Embedder, EmbeddingResult
-from oh_my_kb.services import (
+from oh_my_harness.kb.core import from_markdown
+from oh_my_harness.kb.embedding import Embedder, EmbeddingResult
+from oh_my_harness.kb.services import (
     Indexer,
     NoteNotFoundError,
     collection_name_for,
 )
-from oh_my_kb.services.indexer import COLLECTION_PREFIX, WriteResult
-from oh_my_kb.storage import (
+from oh_my_harness.kb.services.indexer import COLLECTION_PREFIX, WriteResult
+from oh_my_harness.kb.storage import (
     DENSE_DIM,
     DENSE_VECTOR_NAME,
     SPARSE_VECTOR_NAME,
@@ -45,12 +45,12 @@ def test_write_note_writes_file_at_expected_path(
     # notes_root is universe-rooted: the CLI/MCP resolves
     # <data_root>/<slug(universe)>/ before constructing the Indexer, so the
     # path under the root is just <slug(project)>/<slug>.md.
-    expected = tmp_path / "oh-my-kb" / f"{note.slug}.md"
+    expected = tmp_path / "oh-my-harness" / f"{note.slug}.md"
     assert result.absolute_path == expected
     assert result.absolute_path.is_file()
     assert result.id == note.id
     assert result.slug == note.slug
-    assert result.relative_path == Path("oh-my-kb") / f"{note.slug}.md"
+    assert result.relative_path == Path("oh-my-harness") / f"{note.slug}.md"
 
 
 def test_write_note_returns_write_result_with_all_fields(
@@ -62,8 +62,8 @@ def test_write_note_returns_write_result_with_all_fields(
     assert isinstance(result, WriteResult)
     assert result.id == note.id
     assert result.slug == note.slug
-    assert result.absolute_path == tmp_path / "oh-my-kb" / f"{note.slug}.md"
-    assert result.relative_path == Path("oh-my-kb") / f"{note.slug}.md"
+    assert result.absolute_path == tmp_path / "oh-my-harness" / f"{note.slug}.md"
+    assert result.relative_path == Path("oh-my-harness") / f"{note.slug}.md"
     assert result.absolute_path == indexer.notes_root / result.relative_path
 
 

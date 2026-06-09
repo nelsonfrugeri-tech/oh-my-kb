@@ -1,6 +1,6 @@
 import pytest
 
-from oh_my_kb.storage import DEFAULT_QDRANT_URL, QDRANT_URL_ENV, get_qdrant_url
+from oh_my_harness.kb.storage import DEFAULT_QDRANT_URL, QDRANT_URL_ENV, get_qdrant_url
 
 
 def test_default_url_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for the oh-my-kb test suite.
+"""Shared pytest fixtures for the oh-my-harness test suite.
 
 Shared helper classes and functions (``StubEmbedder``, ``make_note``) live in
 ``tests/_helpers.py`` so that test modules can import them directly by name.
@@ -13,8 +13,8 @@ from pathlib import Path
 import pytest
 from _helpers import StubEmbedder
 
-from oh_my_kb.services import Indexer, NavigationService, SearchService
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.services import Indexer, NavigationService, SearchService
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Common pytest fixtures
@@ -80,5 +80,5 @@ def mock_read_resource(monkeypatch: pytest.MonkeyPatch) -> Callable[[str, str], 
     def _read(uri: str, locale: str = "pt-BR") -> str:
         return _MOCK_CONTENT_TEMPLATE.format(locale=locale)
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _read)
     return _read

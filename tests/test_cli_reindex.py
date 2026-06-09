@@ -15,12 +15,12 @@ import pytest
 from _helpers import StubEmbedder, make_note
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.config import CONFIG_DIR_ENV, load_config
-from oh_my_kb.cli.paths import DATA_ROOT_ENV
-from oh_my_kb.cli.reindex import NoActiveUniverseError, ReindexRunner
-from oh_my_kb.core import to_markdown
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.config import CONFIG_DIR_ENV, load_config
+from oh_my_harness.kb.cli.paths import DATA_ROOT_ENV
+from oh_my_harness.kb.cli.reindex import NoActiveUniverseError, ReindexRunner
+from oh_my_harness.kb.core import to_markdown
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -44,7 +44,7 @@ def isolated_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
 @pytest.fixture
 def populated_universe(isolated_env: Path) -> tuple[str, Path]:
     """Create a universe named 'testrun' with one note on disk, return (name, notes_root)."""
-    from oh_my_kb.cli.config import add_universe, save_config, set_active
+    from oh_my_harness.kb.cli.config import add_universe, save_config, set_active
 
     universe_name = "testrun"
     notes_root = isolated_env / "data" / "testrun"
@@ -85,7 +85,7 @@ def test_runner_raises_universe_not_found_when_name_unknown(
     isolated_env: Path,
 ) -> None:
     """ReindexRunner.run('ghost') raises UniverseNotFoundError."""
-    from oh_my_kb.cli.config import UniverseNotFoundError
+    from oh_my_harness.kb.cli.config import UniverseNotFoundError
 
     stub = StubEmbedder()
     runner = ReindexRunner(
@@ -121,7 +121,7 @@ def test_runner_uses_explicit_universe_arg(
     isolated_env: Path,
 ) -> None:
     """ReindexRunner.run('alt') uses the specified universe, not the active one."""
-    from oh_my_kb.cli.config import add_universe, save_config, set_active
+    from oh_my_harness.kb.cli.config import add_universe, save_config, set_active
 
     # Create 'default' as active and 'alt' as an alternative.
     alt_root = isolated_env / "data" / "alt"
@@ -182,7 +182,7 @@ def test_cli_reindex_uses_active_universe(
         embedder_factory=lambda: stub,
         qdrant_url_resolver=lambda: IN_MEMORY,
     )
-    monkeypatch.setattr("oh_my_kb.cli.reindex.ReindexRunner", lambda **_kw: fake_runner)
+    monkeypatch.setattr("oh_my_harness.kb.cli.reindex.ReindexRunner", lambda **_kw: fake_runner)
 
     result = runner.invoke(app, ["reindex"])
 
@@ -207,7 +207,7 @@ def test_cli_reindex_with_explicit_universe_flag(
         embedder_factory=lambda: stub,
         qdrant_url_resolver=lambda: IN_MEMORY,
     )
-    monkeypatch.setattr("oh_my_kb.cli.reindex.ReindexRunner", lambda **_kw: fake_runner)
+    monkeypatch.setattr("oh_my_harness.kb.cli.reindex.ReindexRunner", lambda **_kw: fake_runner)
 
     result = runner.invoke(app, ["reindex", "--universe", universe_name_val])
 

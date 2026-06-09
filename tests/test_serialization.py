@@ -3,7 +3,7 @@ from uuid import UUID
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType, from_markdown, to_markdown
+from oh_my_harness.kb.core import Note, NoteType, from_markdown, to_markdown
 
 
 def _fully_populated_note() -> Note:
@@ -12,7 +12,7 @@ def _fully_populated_note() -> Note:
         slug="2026-05-31-arquitetura-do-kb",
         title="Arquitetura do KB",
         type=NoteType.DECISION,
-        project="oh-my-kb",
+        project="oh-my-harness",
         universe="engineering",
         created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         entities=["nelson", "qdrant"],
@@ -31,7 +31,7 @@ def _minimal_note() -> Note:
     return Note(
         title="Minimal note",
         type=NoteType.REFERENCE,
-        project="oh-my-kb",
+        project="oh-my-harness",
         universe="engineering",
         summary="Apenas o necessário.",
     )
@@ -70,7 +70,7 @@ def test_from_markdown_missing_required_field_raises() -> None:
 id: 11111111-1111-4111-8111-111111111111
 slug: 2026-05-31-no-title
 type: decision
-project: oh-my-kb
+project: oh-my-harness
 universe: engineering
 created_at: '2026-05-31T14:30:00+00:00'
 summary: faltando o title
@@ -100,7 +100,7 @@ id: 11111111-1111-4111-8111-111111111111
 slug: 2026-05-31-bad-type
 title: Bad type
 type: not-a-real-type
-project: oh-my-kb
+project: oh-my-harness
 universe: engineering
 created_at: '2026-05-31T14:30:00+00:00'
 summary: tipo inválido

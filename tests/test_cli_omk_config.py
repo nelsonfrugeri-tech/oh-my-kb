@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.config import (
+from oh_my_harness.kb.cli.config import (
     CONFIG_DIR_ENV,
     CLIConfig,
     OmkConfig,
@@ -40,11 +40,11 @@ class TestOmkConfigDefaults:
         cfg = load_omk_config()
         assert cfg.qdrant.port == 6333
         assert cfg.harness.active == "claude-code"
-        assert cfg.qdrant.container_name == "oh-my-kb-qdrant"
+        assert cfg.qdrant.container_name == "oh-my-harness-qdrant"
 
     def test_core_notes_root_default_contains_oh_my_kb(self) -> None:
         cfg = load_omk_config()
-        assert "oh-my-kb" in str(cfg.core.notes_root)
+        assert "oh-my-harness" in str(cfg.core.notes_root)
 
     def test_core_default_universe_is_default(self) -> None:
         cfg = load_omk_config()
@@ -168,6 +168,6 @@ class TestOmkAndCliConfigCoexistence:
         assert loaded_omk.harness.active == "claude-code"
 
     def test_omk_config_path_same_as_config_path(self) -> None:
-        from oh_my_kb.cli.config import config_path
+        from oh_my_harness.kb.cli.config import config_path
 
         assert omk_config_path() == config_path()

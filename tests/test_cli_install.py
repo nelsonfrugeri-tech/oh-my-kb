@@ -11,20 +11,20 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.config import (
+from oh_my_harness.kb.cli.config import (
     CONFIG_DIR_ENV,
     collection_name_for,
     config_path,
     load_config,
 )
-from oh_my_kb.cli.installer import (
+from oh_my_harness.kb.cli.installer import (
     DEFAULT_UNIVERSE,
     Installer,
     QdrantUnreachableError,
 )
-from oh_my_kb.cli.paths import DATA_ROOT_ENV
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
-from oh_my_kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
+from oh_my_harness.kb.cli.paths import DATA_ROOT_ENV
+from oh_my_harness.kb.embedding import Embedder, EmbeddingResult, SparseVector
+from oh_my_harness.kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
 
 
 class _FakeEmbedder(Embedder):

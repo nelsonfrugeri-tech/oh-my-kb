@@ -1,4 +1,4 @@
-"""Unit tests for :func:`~oh_my_kb.services.temporal.parse_since`.
+"""Unit tests for :func:`~oh_my_harness.kb.services.temporal.parse_since`.
 
 All tests inject a fixed ``now`` so results are deterministic regardless of
 when the suite runs.
@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
-from oh_my_kb.services.temporal import is_before_since, parse_since
+from oh_my_harness.kb.services.temporal import is_before_since, parse_since
 
 # Fixed reference point used across all tests.
 NOW = datetime(2026, 6, 6, 12, 0, 0, tzinfo=UTC)

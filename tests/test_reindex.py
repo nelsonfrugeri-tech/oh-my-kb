@@ -11,9 +11,9 @@ from pathlib import Path
 import pytest
 from _helpers import StubEmbedder, make_note
 
-from oh_my_kb.core import NoteType, to_markdown
-from oh_my_kb.services import Indexer, ReindexReport, ReindexService, reindex_universe
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import NoteType, to_markdown
+from oh_my_harness.kb.services import Indexer, ReindexReport, ReindexService, reindex_universe
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Local fixtures (extend the shared conftest ones)
@@ -89,7 +89,7 @@ def test_reindex_indexes_existing_md_files(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """Notes pre-written to disk (no prior Qdrant entry) are upserted on reindex."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note_a = make_note(title="Alpha", universe=universe, type=NoteType.DECISION)
@@ -117,7 +117,7 @@ def test_reindex_corrects_path_after_file_moved(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """After moving a .md file, reindex updates the Qdrant payload path."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note = make_note(title="Moveable", universe=universe)
@@ -157,7 +157,7 @@ def test_reindex_removes_orphan_qdrant_points(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """Qdrant points whose .md no longer exists are deleted during reindex."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note = make_note(title="Ephemeral", universe=universe)
@@ -185,7 +185,7 @@ def test_reindex_is_idempotent(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """Running reindex twice produces the same Qdrant state."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note_a = make_note(title="One", universe=universe)
@@ -216,7 +216,7 @@ def test_reindex_handles_subdirectories(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """reindex discovers .md files nested in project sub-directories."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note = make_note(title="Nested Note", universe=universe)
@@ -256,7 +256,7 @@ def test_reindex_skips_invalid_md(
     bad_md = tmp_path / "broken.md"
     bad_md.write_text("no frontmatter here, just plain text", encoding="utf-8")
 
-    with caplog.at_level(logging.WARNING, logger="oh_my_kb.services.reindex"):
+    with caplog.at_level(logging.WARNING, logger="oh_my_harness.kb.services.reindex"):
         report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
 
     # 2 files scanned: 1 valid + 1 broken.
@@ -289,7 +289,7 @@ def test_reindex_skips_md_with_mismatched_universe(
     collection is sweep-scanned for orphans. As a result, a foreign note present
     in notes_root does not pollute the target universe's collection.
     """
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     target_collection = collection_name_for(universe)
     other_universe = "completely_different_universe"
@@ -328,7 +328,7 @@ def test_reindex_service_delegates_to_reindex_universe(
     universe: str,
 ) -> None:
     """ReindexService.reindex() produces the same result as reindex_universe()."""
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
     note = make_note(title="Service Test", universe=universe)

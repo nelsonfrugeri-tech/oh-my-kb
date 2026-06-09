@@ -16,13 +16,13 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.resource.manifest import (
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.resource.manifest import (
     Manifest,
     ResourceRecord,
     save_manifest,
 )
-from oh_my_kb.cli.resource.registry import RESOURCE_REGISTRY
+from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY
 
 runner = CliRunner()
 
@@ -101,7 +101,7 @@ def test_diff_all_no_changes(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -131,7 +131,7 @@ def test_diff_all_with_drift(
             return _CONTENT_V2
         return _CONTENT_V2
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _mock_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _mock_read)
 
     result = runner.invoke(app, ["resource", "diff"], catch_exceptions=False)
     assert result.exit_code == 0
@@ -152,7 +152,7 @@ def test_diff_single_resource(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -185,7 +185,7 @@ def test_diff_single_resource_with_drift(
     save_manifest(m, home=fake_claude_home)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V2,
     )
 

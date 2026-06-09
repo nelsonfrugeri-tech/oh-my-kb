@@ -1733,7 +1733,7 @@ wheels = [
 ]
 
 [[package]]
-name = "oh-my-kb"
+name = "oh-my-harness"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
