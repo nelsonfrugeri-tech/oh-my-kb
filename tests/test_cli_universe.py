@@ -67,6 +67,23 @@ def test_universe_create_writes_config_and_creates_dir(
     assert universe.notes_root.is_dir()
 
 
+def test_universe_create_handles_qdrant_offline(
+    runner: CliRunner, isolated_env: Path
+) -> None:
+    """When QdrantStore.ensure_collection raises, exit 1 with a friendly message."""
+    from unittest.mock import patch
+
+    with patch(
+        "oh_my_kb.cli.app.QdrantStore.ensure_collection",
+        side_effect=RuntimeError("connection refused"),
+    ):
+        result = runner.invoke(app, ["universe", "create", "test-qa"])
+
+    assert result.exit_code == 1
+    # Default CliRunner mixes stderr into output; check for the user-friendly hint.
+    assert "omk start" in result.output or "Docker" in result.output
+
+
 def test_universe_create_duplicate_returns_error(
     runner: CliRunner, isolated_env: Path
 ) -> None:

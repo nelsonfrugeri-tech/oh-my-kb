@@ -241,7 +241,16 @@ def universe_create_cmd(
 
     target.mkdir(parents=True, exist_ok=True)
     store = QdrantStore(get_qdrant_url())
-    store.ensure_collection(collection_name_for(name))
+    try:
+        store.ensure_collection(collection_name_for(name))
+    except Exception as exc:
+        typer.secho(
+            f"error: could not reach Qdrant ({exc.__class__.__name__}). "
+            f"Make sure Docker is running and `omk start` has been executed.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1) from exc
     save_config(cfg)
 
     typer.secho(f"universe '{name}' created.", fg=typer.colors.GREEN, bold=True)
