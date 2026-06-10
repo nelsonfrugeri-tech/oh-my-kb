@@ -220,7 +220,7 @@ def status_cmd() -> None:
 
 @universe_app.command("create")
 def universe_create_cmd(
-    name: str = typer.Argument(..., help="Name of the new universe."),
+    name: str = typer.Argument(..., help="Name of the new knowledge base."),
     notes_root: str | None = typer.Option(
         None,
         "--notes-root",
@@ -272,7 +272,7 @@ def universe_list_cmd() -> None:
 
 @universe_app.command("use")
 def universe_use_cmd(
-    name: str = typer.Argument(..., help="Name of the universe to activate."),
+    name: str = typer.Argument(..., help="Name of the knowledge base to activate."),
 ) -> None:
     """Set ``name`` as the active knowledge base."""
     try:
