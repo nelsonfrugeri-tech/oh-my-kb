@@ -22,13 +22,13 @@ from oh_my_kb.storage import QdrantStore, get_qdrant_url
 app = typer.Typer(
     name="omk",
     help=(
-        "o-kb-client — install, manage universes, expose help. "
+        "o-kb-client — install, manage knowledge bases, expose help. "
         "Knowledge interaction stays in MCP."
     ),
     no_args_is_help=True,
 )
 universe_app = typer.Typer(
-    help="Create, list and switch between universes.",
+    help="Create, list and switch between knowledge bases.",
     no_args_is_help=True,
 )
 app.add_typer(universe_app, name="kb")
@@ -55,7 +55,7 @@ def install_cmd(
         help="Accept all defaults and run non-interactively (for CI/scripts).",
     ),
 ) -> None:
-    """Interactive wizard: configure, start Qdrant, create universe, bootstrap harness."""
+    """Interactive wizard: configure, start Qdrant, create knowledge base, bootstrap harness."""
     import sys
 
     from oh_my_kb.cli.config import (
@@ -227,7 +227,7 @@ def universe_create_cmd(
         help="Override the default notes directory (defaults to ~/oh-my-kb/<name>/).",
     ),
 ) -> None:
-    """Create a universe: directory + Qdrant collection + entry in the config."""
+    """Create a knowledge base: directory + Qdrant collection + entry in the config."""
     target = (
         default_notes_root_for(name)
         if notes_root is None
@@ -253,17 +253,17 @@ def universe_create_cmd(
         raise typer.Exit(code=1) from exc
     save_config(cfg)
 
-    typer.secho(f"universe '{name}' created.", fg=typer.colors.GREEN, bold=True)
+    typer.secho(f"knowledge base '{name}' created.", fg=typer.colors.GREEN, bold=True)
     typer.echo(f"  notes dir  : {target}")
     typer.echo(f"  collection : {collection_name_for(name)}")
 
 
 @universe_app.command("list")
 def universe_list_cmd() -> None:
-    """List configured universes; the active one is marked with ``*``."""
+    """List configured knowledge bases; the active one is marked with ``*``."""
     cfg = load_config()
     if not cfg.universes:
-        typer.echo("no universes configured yet. Run `omk install` first.")
+        typer.echo("no knowledge bases configured yet. Run `omk install` first.")
         raise typer.Exit(code=0)
     for u in cfg.universes:
         marker = "*" if u.name == cfg.active else " "
@@ -274,14 +274,14 @@ def universe_list_cmd() -> None:
 def universe_use_cmd(
     name: str = typer.Argument(..., help="Name of the universe to activate."),
 ) -> None:
-    """Set ``name`` as the active universe."""
+    """Set ``name`` as the active knowledge base."""
     try:
         cfg = set_active(load_config(), name)
     except UniverseNotFoundError as exc:
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
     save_config(cfg)
-    typer.secho(f"active universe is now '{name}'.", fg=typer.colors.GREEN, bold=True)
+    typer.secho(f"active knowledge base is now '{name}'.", fg=typer.colors.GREEN, bold=True)
 
 
 @app.command("reindex")

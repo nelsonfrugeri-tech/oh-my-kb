@@ -47,6 +47,7 @@ def test_help_lists_top_level_commands(runner: CliRunner) -> None:
     assert result.exit_code == 0
     for cmd in ("install", "kb", "help"):
         assert cmd in result.output
+    assert "universe" not in result.output.lower()
 
 
 def test_dash_dash_help_also_works(runner: CliRunner) -> None:
@@ -54,6 +55,7 @@ def test_dash_dash_help_also_works(runner: CliRunner) -> None:
     assert result.exit_code == 0
     assert "install" in result.output
     assert "kb" in result.output
+    assert "universe" not in result.output.lower()
 
 
 # --- kb create ---------------------------------------------------
@@ -122,7 +124,7 @@ def test_kb_create_with_explicit_notes_root(
 def test_kb_list_empty_state(runner: CliRunner, isolated_env: Path) -> None:
     result = runner.invoke(app, ["kb", "list"])
     assert result.exit_code == 0
-    assert "no universes" in result.output.lower()
+    assert "no knowledge bases" in result.output.lower()
 
 
 def test_kb_list_marks_active_with_star(
