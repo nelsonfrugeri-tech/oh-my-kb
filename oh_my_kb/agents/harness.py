@@ -60,6 +60,19 @@ TOOL_TRIGGERS: dict[str, str] = {
     "kb_recent": (
         "Use quando o usuário pedir as últimas notas, histórico recente ou novidades de um projeto"
     ),
+    "kb_resource_list": (
+        "Use quando o usuário perguntar quais skills tem instaladas,"
+        " se os resources estão atualizados ou quiser listar o que o oh-my-kb tem disponível"
+    ),
+    "kb_resource_diff": (
+        "Use quando o usuário quiser saber o que mudou nas skills,"
+        " se tem algo novo no oh-my-kb ou pedir para mostrar o diff dos resources"
+    ),
+    "kb_resource_update": (
+        "Use quando o usuário pedir para atualizar as skills do oh-my-kb,"
+        " quiser a versão mais recente dos resources, atualizar o template de nota"
+        " ou sincronizar os resources"
+    ),
 }
 
 

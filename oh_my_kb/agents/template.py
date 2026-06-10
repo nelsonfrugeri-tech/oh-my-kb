@@ -39,12 +39,24 @@ def render_dynamic_block(universe: str) -> str:
     from oh_my_kb.mcp.tools import (
         KB_EXPAND_TOOL,
         KB_RECENT_TOOL,
+        KB_RESOURCE_DIFF_TOOL,
+        KB_RESOURCE_LIST_TOOL,
+        KB_RESOURCE_UPDATE_TOOL,
         KB_SEARCH_TOOL,
         KB_TREE_TOOL,
         KB_WRITE_TOOL,
     )
 
-    tools = [KB_WRITE_TOOL, KB_SEARCH_TOOL, KB_TREE_TOOL, KB_EXPAND_TOOL, KB_RECENT_TOOL]
+    tools = [
+        KB_WRITE_TOOL,
+        KB_SEARCH_TOOL,
+        KB_TREE_TOOL,
+        KB_EXPAND_TOOL,
+        KB_RECENT_TOOL,
+        KB_RESOURCE_LIST_TOOL,
+        KB_RESOURCE_DIFF_TOOL,
+        KB_RESOURCE_UPDATE_TOOL,
+    ]
     resources = list_scribe_resources()
 
     lines: list[str] = [

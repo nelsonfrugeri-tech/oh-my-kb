@@ -60,7 +60,7 @@ def test_build_context_overrides_all_dependencies(tmp_path: Path) -> None:
     assert ctx.navigation_service is not None
 
 
-async def test_build_server_registers_five_tools(tmp_path: Path) -> None:
+async def test_build_server_registers_all_tools(tmp_path: Path) -> None:
     """``_list_tools`` must return the five core tools plus the three resource tools."""
     from mcp.types import ListToolsRequest, Tool
 
