@@ -137,7 +137,7 @@ def add_universe(cfg: CLIConfig, *, name: str, notes_root: Path) -> CLIConfig:
     :func:`oh_my_kb.services.collection_name_for`.
     """
     if cfg.has(name):
-        raise UniverseAlreadyExistsError(f"universe '{name}' already exists")
+        raise UniverseAlreadyExistsError(f"knowledge base '{name}' already exists")
     new_universe = Universe(
         name=name,
         notes_root=notes_root,
@@ -152,7 +152,7 @@ def set_active(cfg: CLIConfig, name: str) -> CLIConfig:
     Raises :class:`UniverseNotFoundError` if ``name`` is not in the config.
     """
     if not cfg.has(name):
-        raise UniverseNotFoundError(f"universe '{name}' is not configured")
+        raise UniverseNotFoundError(f"knowledge base '{name}' is not configured")
     return replace(cfg, active=name)
 
 

@@ -112,7 +112,7 @@ Every call must specify the universe. The server holds no implicit state.
 ### Option D — Read the active universe from `omk`'s TOML config
 
 The server reads `~/.config/oh-my-kb/config.toml` at boot to find the
-currently active universe (whatever `omk universe use <name>` last set).
+currently active universe (whatever `omk kb use <name>` last set).
 The input still carries no `universe` field.
 
 - **Pros**

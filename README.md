@@ -144,9 +144,9 @@ Notes are stored as markdown files with YAML frontmatter. The frontmatter carrie
 A universe is an isolated knowledge domain: one Qdrant collection (`kb_<slug(name)>`) plus one directory of markdown files (`~/oh-my-kb/<name>/`). Search never crosses universe boundaries — isolation is at the collection level.
 
 ```bash
-omk universe create work              # create a new universe
-omk universe list                     # list all universes (* = active)
-omk universe use work                 # switch active universe
+omk kb create work              # create a new universe
+omk kb list                     # list all universes (* = active)
+omk kb use work                 # switch active universe
 ```
 
 Config lives at `~/.config/oh-my-kb/config.toml`. Note data lives under `~/oh-my-kb/<universe>/` — visible, not a dotfile, easy to open in an editor or commit to git.
@@ -171,9 +171,9 @@ omk [COMMAND]
 |---------|-------------|
 | `omk install` | Provision Qdrant, cache bge-m3, create `default` universe. Idempotent. |
 | `omk help` | Show available commands with a one-line description each. |
-| `omk universe create <name> [--notes-root PATH]` | Create a universe: directory + Qdrant collection + config entry. |
-| `omk universe list` | List configured universes. Active universe is marked with `*`. |
-| `omk universe use <name>` | Set the named universe as active. |
+| `omk kb create <name> [--notes-root PATH]` | Create a universe: directory + Qdrant collection + config entry. |
+| `omk kb list` | List configured universes. Active universe is marked with `*`. |
+| `omk kb use <name>` | Set the named universe as active. |
 | `omk bootstrap --harness <harness>` | Inject kb-mcp rules into the harness's rules file. Idempotent. |
 | `omk reindex [--universe NAME]` | Reconcile Qdrant with markdown files on disk. See path discipline section. |
 
@@ -329,7 +329,7 @@ docker compose ps         # check Qdrant is healthy
 
 **`kb_write` or search returns an error about no active universe**
 
-Run `omk install` (first time) or `omk universe use <name>` to set an active universe.
+Run `omk install` (first time) or `omk kb use <name>` to set an active universe.
 
 **Notes are missing from search after moving `.md` files manually**
 
