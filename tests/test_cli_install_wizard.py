@@ -255,6 +255,9 @@ class TestInstallCLIYes:
         from oh_my_kb.mcp.tools import (
             KB_EXPAND_TOOL,
             KB_RECENT_TOOL,
+            KB_RESOURCE_DIFF_TOOL,
+            KB_RESOURCE_LIST_TOOL,
+            KB_RESOURCE_UPDATE_TOOL,
             KB_SEARCH_TOOL,
             KB_TREE_TOOL,
             KB_WRITE_TOOL,
@@ -277,7 +280,16 @@ class TestInstallCLIYes:
             runner.invoke(app, ["install", "--yes"])
 
         content = (home / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
-        for tool in [KB_WRITE_TOOL, KB_SEARCH_TOOL, KB_TREE_TOOL, KB_EXPAND_TOOL, KB_RECENT_TOOL]:
+        for tool in [
+            KB_WRITE_TOOL,
+            KB_SEARCH_TOOL,
+            KB_TREE_TOOL,
+            KB_EXPAND_TOOL,
+            KB_RECENT_TOOL,
+            KB_RESOURCE_LIST_TOOL,
+            KB_RESOURCE_DIFF_TOOL,
+            KB_RESOURCE_UPDATE_TOOL,
+        ]:
             assert tool.name in content, f"tool {tool.name} missing from CLAUDE.md"
 
     def test_creates_universe_dir(self, runner: CliRunner, tmp_path: Path) -> None:
