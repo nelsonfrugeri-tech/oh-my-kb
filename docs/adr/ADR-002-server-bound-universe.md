@@ -49,7 +49,7 @@ ADR.
 ### Option A — Server-bound universe via `KB_UNIVERSE` (chosen)
 
 The server reads `KB_UNIVERSE` (default `"default"`) at boot in
-`oh_my_kb.mcp.config.get_active_universe()`. `build_context()` captures it
+`oh_my_harness.kb.mcp.config.get_active_universe()`. `build_context()` captures it
 into an immutable `KBServerContext`, and every handler receives that
 context. The tool input schema for `kb_write` and `kb_search` has
 `additionalProperties: false` and no `universe` field.

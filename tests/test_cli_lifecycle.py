@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.infra.docker_qdrant import (
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.infra.docker_qdrant import (
     ContainerAction,
     ContainerStatus,
     DockerNotRunningError,
@@ -43,7 +43,7 @@ def _stopped_status() -> ContainerStatus:
 class TestStartCmd:
     def test_start_already_running_exits_zero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             return_value=ContainerAction.ALREADY_RUNNING,
         ):
             result = runner.invoke(app, ["start"])
@@ -51,7 +51,7 @@ class TestStartCmd:
 
     def test_start_already_running_prints_message(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             return_value=ContainerAction.ALREADY_RUNNING,
         ):
             result = runner.invoke(app, ["start"])
@@ -59,7 +59,7 @@ class TestStartCmd:
 
     def test_start_created_exits_zero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             return_value=ContainerAction.CREATED,
         ):
             result = runner.invoke(app, ["start"])
@@ -67,15 +67,15 @@ class TestStartCmd:
 
     def test_start_created_prints_started_message(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             return_value=ContainerAction.CREATED,
         ):
             result = runner.invoke(app, ["start"])
-        assert "started" in result.output.lower() or "oh-my-kb-qdrant" in result.output.lower()
+        assert "started" in result.output.lower() or "oh-my-harness-qdrant" in result.output.lower()
 
     def test_start_docker_not_running_exits_nonzero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             side_effect=DockerNotRunningError("Docker not running"),
         ):
             result = runner.invoke(app, ["start"])
@@ -83,7 +83,7 @@ class TestStartCmd:
 
     def test_start_docker_not_running_prints_error(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.ensure_running",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.ensure_running",
             side_effect=DockerNotRunningError("Docker not running"),
         ):
             result = runner.invoke(app, ["start"])
@@ -98,7 +98,7 @@ class TestStartCmd:
 class TestStopCmd:
     def test_stop_running_container_exits_zero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.stop",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.stop",
             return_value=True,
         ):
             result = runner.invoke(app, ["stop"])
@@ -106,15 +106,15 @@ class TestStopCmd:
 
     def test_stop_running_container_prints_stopped(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.stop",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.stop",
             return_value=True,
         ):
             result = runner.invoke(app, ["stop"])
-        assert "stopped" in result.output.lower() or "oh-my-kb-qdrant" in result.output
+        assert "stopped" in result.output.lower() or "oh-my-harness-qdrant" in result.output
 
     def test_stop_not_running_exits_zero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.stop",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.stop",
             return_value=False,
         ):
             result = runner.invoke(app, ["stop"])
@@ -122,7 +122,7 @@ class TestStopCmd:
 
     def test_stop_not_running_prints_not_running(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.stop",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.stop",
             return_value=False,
         ):
             result = runner.invoke(app, ["stop"])
@@ -130,7 +130,7 @@ class TestStopCmd:
 
     def test_stop_docker_not_running_exits_nonzero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.stop",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.stop",
             side_effect=DockerNotRunningError("Docker not running"),
         ):
             result = runner.invoke(app, ["stop"])
@@ -145,7 +145,7 @@ class TestStopCmd:
 class TestStatusCmd:
     def test_status_exits_zero(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
             return_value=_running_status(),
         ):
             result = runner.invoke(app, ["status"])
@@ -153,15 +153,15 @@ class TestStatusCmd:
 
     def test_status_shows_container_name(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
             return_value=_running_status(),
         ):
             result = runner.invoke(app, ["status"])
-        assert "oh-my-kb-qdrant" in result.output
+        assert "oh-my-harness-qdrant" in result.output
 
     def test_status_shows_port(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
             return_value=_running_status(),
         ):
             result = runner.invoke(app, ["status"])
@@ -169,7 +169,7 @@ class TestStatusCmd:
 
     def test_status_shows_running_state(self, runner: CliRunner) -> None:
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
             return_value=_running_status(),
         ):
             result = runner.invoke(app, ["status"])
@@ -180,7 +180,7 @@ class TestStatusCmd:
     ) -> None:
         """status command is informational — should not fail hard if Docker is down."""
         with patch(
-            "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+            "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
             side_effect=DockerNotRunningError("Docker not running"),
         ):
             result = runner.invoke(app, ["status"])
@@ -191,11 +191,11 @@ class TestStatusCmd:
     def test_status_shows_version(self, runner: CliRunner) -> None:
         with (
             patch(
-                "oh_my_kb.infra.docker_qdrant.QdrantContainer.status",
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer.status",
                 return_value=_running_status(),
             ),
             patch(
-                "oh_my_kb.cli.lifecycle.importlib.metadata.version",
+                "oh_my_harness.kb.cli.lifecycle.importlib.metadata.version",
                 return_value="1.2.3",
             ),
         ):

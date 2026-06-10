@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 
 UV ?= uv
-PKG := oh_my_kb
+PKG := oh_my_harness
 
 .PHONY: help install venv sync test lint format typecheck check clean
 

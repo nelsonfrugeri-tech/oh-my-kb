@@ -20,15 +20,15 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-import oh_my_kb.cli.resource.update_cmd  # noqa: F401 — ensures module is registered
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.resource.manifest import (
+import oh_my_harness.kb.cli.resource.update_cmd  # noqa: F401 — ensures module is registered
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.resource.manifest import (
     Manifest,
     ResourceRecord,
     load_manifest,
     save_manifest,
 )
-from oh_my_kb.cli.resource.registry import RESOURCE_REGISTRY
+from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY
 
 runner = CliRunner()
 
@@ -106,7 +106,7 @@ def test_update_all_no_changes(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -132,10 +132,10 @@ def test_update_all_with_drift_yes_flag(
             return _CONTENT_V2
         return _CONTENT_V2
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _mock_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _mock_read)
 
     # Mock bootstrap so we don't need real config
-    _mod = sys.modules["oh_my_kb.cli.resource.update_cmd"]
+    _mod = sys.modules["oh_my_harness.kb.cli.resource.update_cmd"]
     monkeypatch.setattr(_mod, "_regenerate_claude_md", lambda home=None: None)
 
     result = runner.invoke(app, ["resource", "update", "--yes"], catch_exceptions=False)
@@ -162,7 +162,7 @@ def test_update_single_resource_already_up_to_date(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -187,7 +187,7 @@ def test_update_regenerates_claude_md_on_success(
     _make_drifted_manifest(fake_claude_home)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V2,
     )
 
@@ -200,7 +200,7 @@ def test_update_regenerates_claude_md_on_success(
         typer.echo("  Regenerando ~/.claude/CLAUDE.md...")
         typer.echo("  ✓ ~/.claude/CLAUDE.md atualizado.")
 
-    _mod = sys.modules["oh_my_kb.cli.resource.update_cmd"]
+    _mod = sys.modules["oh_my_harness.kb.cli.resource.update_cmd"]
     monkeypatch.setattr(_mod, "_regenerate_claude_md", _fake_regenerate)
 
     result = runner.invoke(app, ["resource", "update", "--yes"], catch_exceptions=False)
@@ -222,7 +222,7 @@ def test_update_bootstrap_failure_warns_but_exits_0(
     _make_drifted_manifest(fake_claude_home)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V2,
     )
 
@@ -233,7 +233,7 @@ def test_update_bootstrap_failure_warns_but_exits_0(
             "Execute omk install para corrigir."
         )
 
-    _mod = sys.modules["oh_my_kb.cli.resource.update_cmd"]
+    _mod = sys.modules["oh_my_harness.kb.cli.resource.update_cmd"]
     monkeypatch.setattr(_mod, "_regenerate_claude_md", _failing_regenerate)
 
     result = runner.invoke(app, ["resource", "update", "--yes"], catch_exceptions=False)
@@ -254,7 +254,7 @@ def test_update_confirmation_n_skips(
     _make_drifted_manifest(fake_claude_home)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V2,
     )
 

@@ -1,4 +1,4 @@
-"""Tests for :class:`oh_my_kb.infra.docker_qdrant.QdrantContainer`.
+"""Tests for :class:`oh_my_harness.kb.infra.docker_qdrant.QdrantContainer`.
 
 All tests use a :class:`unittest.mock.MagicMock` Docker client injected via
 the constructor — no real Docker daemon or container is needed.
@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oh_my_kb.infra.docker_qdrant import (
+from oh_my_harness.kb.infra.docker_qdrant import (
     ContainerAction,
     ContainerStatus,
     DockerNotRunningError,
@@ -68,7 +68,7 @@ def _make_client(
 
 def _make_qc(client: MagicMock, port: int = 6333) -> QdrantContainer:
     return QdrantContainer(
-        name="oh-my-kb-qdrant",
+        name="oh-my-harness-qdrant",
         image="qdrant/qdrant:latest",
         port=port,
         client=client,
@@ -264,7 +264,7 @@ class TestWaitHealthy:
         client = _make_client()
         qc = _make_qc(client)
 
-        with patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=True):
+        with patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True):
             qc._wait_healthy()  # must not raise
 
     def test_raises_after_timeout(self) -> None:
@@ -272,8 +272,8 @@ class TestWaitHealthy:
         qc = _make_qc(client)
 
         with (
-            patch("oh_my_kb.storage.QdrantStore.healthcheck", return_value=False),
-            patch("oh_my_kb.infra.docker_qdrant.HEALTHCHECK_TIMEOUT", 0),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=False),
+            patch("oh_my_harness.kb.infra.docker_qdrant.HEALTHCHECK_TIMEOUT", 0),
             pytest.raises(RuntimeError, match="did not become healthy"),
         ):
             qc._wait_healthy()

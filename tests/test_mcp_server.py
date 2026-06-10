@@ -15,8 +15,8 @@ from pathlib import Path
 import pytest
 from _helpers import StubEmbedder
 
-from oh_my_kb.mcp.server import KBServerContext, build_context, build_server
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.mcp.server import KBServerContext, build_context, build_server
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 
 class _CountingStubEmbedder(StubEmbedder):
@@ -111,8 +111,8 @@ async def test_dependencies_are_built_once_and_reused(tmp_path: Path) -> None:
     assert _CountingStubEmbedder.instances == 1
 
     # Drive both handlers a few times.
-    from oh_my_kb.mcp.tools.kb_search import handle_kb_search
-    from oh_my_kb.mcp.tools.kb_write import handle_kb_write
+    from oh_my_harness.kb.mcp.tools.kb_search import handle_kb_search
+    from oh_my_harness.kb.mcp.tools.kb_write import handle_kb_write
 
     for i in range(3):
         await handle_kb_write(
@@ -121,7 +121,7 @@ async def test_dependencies_are_built_once_and_reused(tmp_path: Path) -> None:
             {
                 "title": f"Decision {i}",
                 "type": "decision",
-                "project": "oh-my-kb",
+                "project": "oh-my-harness",
                 "summary": f"Summary number {i} of the wiring test.",
             },
         )

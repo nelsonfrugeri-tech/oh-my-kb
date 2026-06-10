@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.config import (
+from oh_my_harness.kb.cli.config import (
     CONFIG_DIR_ENV,
     CONFIG_FILE_NAME,
     CLIConfig,
@@ -18,7 +18,7 @@ from oh_my_kb.cli.config import (
 
 @pytest.fixture
 def config_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
-    """Redirect ~/.config/oh-my-kb to a tmp dir for the test."""
+    """Redirect ~/.config/oh-my-harness to a tmp dir for the test."""
     monkeypatch.setenv(CONFIG_DIR_ENV, str(tmp_path))
     return tmp_path
 
@@ -35,7 +35,7 @@ def test_load_config_returns_empty_when_missing(config_dir: Path) -> None:
 
 
 def test_save_then_load_round_trip(config_dir: Path, tmp_path: Path) -> None:
-    notes_root = tmp_path / "oh-my-kb" / "default"
+    notes_root = tmp_path / "oh-my-harness" / "default"
     base = CLIConfig()
     base = add_universe(base, name="default", notes_root=notes_root)
     base = set_active(base, "default")

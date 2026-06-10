@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.mcp import resources as resources_module
-from oh_my_kb.mcp.resources import (
+from oh_my_harness.kb.mcp import resources as resources_module
+from oh_my_harness.kb.mcp.resources import (
     SCRIBE_DIR,
     SCRIBE_SKILL_URI,
     SCRIBE_TEMPLATE_URI,
@@ -80,7 +80,7 @@ def test_edits_to_disk_reflect_on_re_read(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_skill_and_template_files_exist_in_package() -> None:
-    from oh_my_kb.i18n import DEFAULT_LOCALE
+    from oh_my_harness.kb.i18n import DEFAULT_LOCALE
 
     assert (SCRIBE_DIR / DEFAULT_LOCALE / "SKILL.md").is_file()
     assert (SCRIBE_DIR / DEFAULT_LOCALE / "template.md").is_file()

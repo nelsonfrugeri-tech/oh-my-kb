@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.paths import (
+from oh_my_harness.kb.cli.paths import (
     DATA_ROOT_ENV,
     DEFAULT_DATA_ROOT,
     default_notes_root_for,
@@ -11,7 +11,7 @@ from oh_my_kb.cli.paths import (
 
 
 def test_default_data_root_is_visible_oh_my_kb_dir() -> None:
-    assert Path.home() / "oh-my-kb" == DEFAULT_DATA_ROOT
+    assert Path.home() / "oh-my-harness" == DEFAULT_DATA_ROOT
     assert not DEFAULT_DATA_ROOT.name.startswith(".")
 
 

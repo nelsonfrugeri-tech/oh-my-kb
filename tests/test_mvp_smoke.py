@@ -29,11 +29,11 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.core import NoteType
-from oh_my_kb.core.note import Note
-from oh_my_kb.embedding import BGEM3Embedder
-from oh_my_kb.services import Indexer, NavigationService, SearchService, reindex_universe
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import NoteType
+from oh_my_harness.kb.core.note import Note
+from oh_my_harness.kb.embedding import BGEM3Embedder
+from oh_my_harness.kb.services import Indexer, NavigationService, SearchService, reindex_universe
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Shared fixtures (session-scoped so bge-m3 loads once per pytest session)
@@ -247,7 +247,7 @@ def test_mvp_full_flow(
     assert report.removed == 0  # no orphans — moved file still exists
 
     # Confirm the Qdrant payload now points to the moved path.
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(SMOKE_UNIVERSE)
     records = smoke_store.client.retrieve(

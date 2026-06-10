@@ -1,6 +1,6 @@
 import pytest
 
-from oh_my_kb.mcp.resources import (
+from oh_my_harness.kb.mcp.resources import (
     SCRIBE_SKILL_URI,
     SCRIBE_TEMPLATE_URI,
     read_scribe_resource,
@@ -24,7 +24,7 @@ def test_read_scribe_resource_unknown_uri():
 
 def test_read_scribe_resource_fallback_on_missing_locale(tmp_path, monkeypatch):
     """Requesting a locale with no file falls back to pt-BR."""
-    import oh_my_kb.mcp.resources as resources_mod
+    import oh_my_harness.kb.mcp.resources as resources_mod
     monkeypatch.setattr(resources_mod, "SCRIBE_DIR", tmp_path / "scribe")
     (tmp_path / "scribe" / "pt-BR").mkdir(parents=True)
     (tmp_path / "scribe" / "pt-BR" / "SKILL.md").write_text("pt-BR fallback")

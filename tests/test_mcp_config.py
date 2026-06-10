@@ -2,13 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.mcp.config import (
+from oh_my_harness.kb.mcp.config import (
     DEFAULT_UNIVERSE,
     UNIVERSE_ENV,
     get_active_notes_root,
     get_active_universe,
 )
-from oh_my_kb.services.paths import DATA_ROOT_ENV
+from oh_my_harness.kb.services.paths import DATA_ROOT_ENV
 
 
 def test_default_universe_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -35,7 +35,7 @@ def test_notes_root_defaults_to_data_root_plus_slug(
 def test_notes_root_uses_default_layout_when_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(DATA_ROOT_ENV, raising=False)
     monkeypatch.delenv(UNIVERSE_ENV, raising=False)
-    expected = Path.home() / "oh-my-kb" / DEFAULT_UNIVERSE
+    expected = Path.home() / "oh-my-harness" / DEFAULT_UNIVERSE
     assert get_active_notes_root() == expected
 
 
@@ -44,5 +44,5 @@ def test_explicit_universe_argument_overrides_env(
 ) -> None:
     monkeypatch.setenv(UNIVERSE_ENV, "research")
     monkeypatch.delenv(DATA_ROOT_ENV, raising=False)
-    expected = Path.home() / "oh-my-kb" / "personal"
+    expected = Path.home() / "oh-my-harness" / "personal"
     assert get_active_notes_root(universe="personal") == expected

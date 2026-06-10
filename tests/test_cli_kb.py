@@ -19,11 +19,11 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.config import CONFIG_DIR_ENV, load_config
-from oh_my_kb.cli.paths import DATA_ROOT_ENV
-from oh_my_kb.services import collection_name_for
-from oh_my_kb.storage import IN_MEMORY
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.config import CONFIG_DIR_ENV, load_config
+from oh_my_harness.kb.cli.paths import DATA_ROOT_ENV
+from oh_my_harness.kb.services import collection_name_for
+from oh_my_harness.kb.storage import IN_MEMORY
 
 
 @pytest.fixture
@@ -82,7 +82,7 @@ def test_kb_create_handles_qdrant_offline(
     from unittest.mock import patch
 
     with patch(
-        "oh_my_kb.cli.app.QdrantStore.ensure_collection",
+        "oh_my_harness.kb.cli.app.QdrantStore.ensure_collection",
         side_effect=RuntimeError("connection refused"),
     ):
         result = runner.invoke(app, ["kb", "create", "test-qa"])

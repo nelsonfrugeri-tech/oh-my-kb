@@ -24,15 +24,15 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from oh_my_kb.cli.app import app
-from oh_my_kb.cli.resource.manifest import (
+from oh_my_harness.kb.cli.app import app
+from oh_my_harness.kb.cli.resource.manifest import (
     Manifest,
     ResourceRecord,
     load_manifest,
     save_manifest,
 )
-from oh_my_kb.cli.resource.registry import RESOURCE_REGISTRY, ResourceMeta
-from oh_my_kb.mcp.resources import list_scribe_resources
+from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY, ResourceMeta
+from oh_my_harness.kb.mcp.resources import list_scribe_resources
 
 runner = CliRunner()
 
@@ -319,7 +319,7 @@ def test_pull_placeholder_locale_no_file_written(
             return _PLACEHOLDER
         return _MOCK_CONTENT
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _placeholder_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _placeholder_read)
 
     result = runner.invoke(
         app,
@@ -341,7 +341,7 @@ def test_pull_placeholder_locale_stderr_warning(
     def _placeholder_read(uri: str, locale: str = "pt-BR") -> str:
         return _PLACEHOLDER
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _placeholder_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _placeholder_read)
 
     result = runner.invoke(
         app,
@@ -360,7 +360,7 @@ def test_pull_placeholder_manifest_not_updated(
     def _placeholder_read(uri: str, locale: str = "pt-BR") -> str:
         return _PLACEHOLDER
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _placeholder_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _placeholder_read)
 
     runner.invoke(
         app,
@@ -391,7 +391,7 @@ def test_pull_all_continues_on_failure_exits_1(
         succeeded_uris.append(uri)
         return _MOCK_CONTENT
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _failing_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _failing_read)
 
     result = runner.invoke(app, ["resource", "pull", "--all"], catch_exceptions=False)
     # One failed, at least one succeeded — all resources attempted
@@ -414,7 +414,7 @@ def test_pull_all_reports_per_resource_on_partial_failure(
             raise FileNotFoundError("intentional failure")
         return _MOCK_CONTENT
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _failing_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _failing_read)
 
     result = runner.invoke(app, ["resource", "pull", "--all"], catch_exceptions=False)
     assert "FAILED" in result.stderr
@@ -434,10 +434,10 @@ def test_pull_stdout_binary_resource_exits_1(
     import sys
 
     # Ensure the module is imported so sys.modules has it
-    import oh_my_kb.cli.resource  # noqa: F401
+    import oh_my_harness.kb.cli.resource  # noqa: F401
 
-    _pull_mod = sys.modules["oh_my_kb.cli.resource.pull_cmd"]
-    _registry_mod = sys.modules["oh_my_kb.cli.resource.registry"]
+    _pull_mod = sys.modules["oh_my_harness.kb.cli.resource.pull_cmd"]
+    _registry_mod = sys.modules["oh_my_harness.kb.cli.resource.registry"]
 
     fake_binary = ResourceMeta(
         short_id="skills/scribe",
@@ -473,7 +473,7 @@ def test_pull_locale_flag_passes_through(
         received_locales.append(locale)
         return _MOCK_CONTENT
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _tracking_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _tracking_read)
 
     runner.invoke(
         app,

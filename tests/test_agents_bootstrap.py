@@ -1,4 +1,4 @@
-"""Integration tests for :func:`oh_my_kb.agents.bootstrap.bootstrap`.
+"""Integration tests for :func:`oh_my_harness.kb.agents.bootstrap.bootstrap`.
 
 All tests that touch the filesystem use ``monkeypatch`` to redirect
 ``Path.home()`` to a ``tmp_path`` so that the developer's real
@@ -12,14 +12,14 @@ from unittest.mock import patch
 
 import pytest
 
-from oh_my_kb.agents.bootstrap import (
+from oh_my_harness.kb.agents.bootstrap import (
     BootstrapReport,
     NoActiveUniverseError,
     bootstrap,
     do_bootstrap,
 )
-from oh_my_kb.agents.harness import UnknownHarnessError
-from oh_my_kb.agents.injector import END_MARKER, START_MARKER, InjectAction
+from oh_my_harness.kb.agents.harness import UnknownHarnessError
+from oh_my_harness.kb.agents.injector import END_MARKER, START_MARKER, InjectAction
 
 
 def _fake_home(tmp_path: Path) -> Path:
@@ -322,7 +322,7 @@ class TestBootstrapErrors:
 
 
 class TestDoBootstrap:
-    """Tests for :func:`oh_my_kb.agents.bootstrap.do_bootstrap`."""
+    """Tests for :func:`oh_my_harness.kb.agents.bootstrap.do_bootstrap`."""
 
     def test_returns_bootstrap_report(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)

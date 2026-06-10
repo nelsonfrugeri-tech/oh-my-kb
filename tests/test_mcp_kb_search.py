@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.mcp.tools.kb_search import handle_kb_search
-from oh_my_kb.services import Indexer, SearchService
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.mcp.tools.kb_search import handle_kb_search
+from oh_my_harness.kb.services import Indexer, SearchService
 
 # ``store``, ``embedder``, ``indexer``, ``search_service`` fixtures are
 # provided by tests/conftest.py.
 
 
-def _note(summary: str, project: str = "oh-my-kb") -> Note:
+def _note(summary: str, project: str = "oh-my-harness") -> Note:
     return Note(
         title=summary[:40] or "note",
         type=NoteType.DECISION,

@@ -8,9 +8,9 @@ from __future__ import annotations
 import hashlib
 from datetime import UTC, datetime
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
-from oh_my_kb.storage import DENSE_DIM
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.embedding import Embedder, EmbeddingResult, SparseVector
+from oh_my_harness.kb.storage import DENSE_DIM
 
 # ---------------------------------------------------------------------------
 # Shared stub embedder
@@ -54,7 +54,7 @@ class StubEmbedder(Embedder):
 
 
 def make_note(**overrides: object) -> Note:
-    """Build a :class:`~oh_my_kb.core.Note` with project-wide defaults.
+    """Build a :class:`~oh_my_harness.kb.core.Note` with project-wide defaults.
 
     The defaults are chosen so that every test file can call ``make_note()``
     without specifying any arguments and still get a fully valid note that
@@ -67,7 +67,7 @@ def make_note(**overrides: object) -> Note:
     payload: dict[str, object] = {
         "title": "Arquitetura do KB",
         "type": NoteType.DECISION,
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "universe": "engineering",
         "created_at": datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         "summary": "Decisão sobre como as camadas se conversam.",

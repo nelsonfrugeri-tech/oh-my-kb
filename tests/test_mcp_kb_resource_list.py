@@ -14,13 +14,13 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.cli.resource.manifest import (
+from oh_my_harness.kb.cli.resource.manifest import (
     Manifest,
     ResourceRecord,
     save_manifest,
 )
-from oh_my_kb.cli.resource.registry import RESOURCE_REGISTRY
-from oh_my_kb.mcp.tools.kb_resource_list import handle_kb_resource_list
+from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY
+from oh_my_harness.kb.mcp.tools.kb_resource_list import handle_kb_resource_list
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -99,7 +99,7 @@ async def test_list_with_drift(
     def _mock_read(uri: str, locale: str = "pt-BR") -> str:
         return _CONTENT_V2  # server is at V2 for all resources
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _mock_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _mock_read)
 
     result = await handle_kb_resource_list({})
 
@@ -120,7 +120,7 @@ async def test_list_all_up_to_date(
     _make_synced_manifest(fake_claude_home, _CONTENT_V1)
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V1,
     )
 
@@ -141,7 +141,7 @@ async def test_list_missing_manifest(
     # No manifest created — fake_claude_home only has empty .claude dir
 
     monkeypatch.setattr(
-        "oh_my_kb.mcp.resources.read_scribe_resource",
+        "oh_my_harness.kb.mcp.resources.read_scribe_resource",
         lambda uri, locale="pt-BR": _CONTENT_V2,
     )
 
@@ -168,7 +168,7 @@ async def test_list_server_read_error(
     def _failing_read(uri: str, locale: str = "pt-BR") -> str:
         raise RuntimeError("connection refused")
 
-    monkeypatch.setattr("oh_my_kb.mcp.resources.read_scribe_resource", _failing_read)
+    monkeypatch.setattr("oh_my_harness.kb.mcp.resources.read_scribe_resource", _failing_read)
 
     result = await handle_kb_resource_list({})
 

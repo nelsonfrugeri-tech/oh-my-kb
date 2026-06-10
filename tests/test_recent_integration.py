@@ -22,10 +22,10 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import BGEM3Embedder
-from oh_my_kb.services import Indexer, RecentService
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.embedding import BGEM3Embedder
+from oh_my_harness.kb.services import Indexer, RecentService
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 pytestmark = pytest.mark.slow
 
@@ -41,7 +41,7 @@ def _make_note(title: str, summary: str, days_ago: int) -> Note:
     return Note(
         title=title,
         type=NoteType.DECISION,
-        project="oh-my-kb",
+        project="oh-my-harness",
         universe="engineering",
         created_at=NOW - timedelta(days=days_ago),
         summary=summary,

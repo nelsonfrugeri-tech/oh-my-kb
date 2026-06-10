@@ -1,4 +1,4 @@
-"""Fast unit tests for :class:`~oh_my_kb.services.recent.RecentService`.
+"""Fast unit tests for :class:`~oh_my_harness.kb.services.recent.RecentService`.
 
 Uses ``QdrantStore(':memory:')`` and a deterministic stub embedder.  Real bge-m3
 integration lives in ``test_recent_integration.py`` (``@pytest.mark.slow``).
@@ -12,10 +12,10 @@ from pathlib import Path
 import pytest
 from _helpers import StubEmbedder
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import EmbeddingResult
-from oh_my_kb.services import Indexer, RecentService
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.embedding import EmbeddingResult
+from oh_my_harness.kb.services import Indexer, RecentService
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Local counting subclass — mirrors _CountingStubEmbedder in test_mcp_server.py

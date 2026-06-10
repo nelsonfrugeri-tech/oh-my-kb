@@ -12,10 +12,10 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.mcp.tools.kb_expand import _MAX_BODY_CHARS, handle_kb_expand
-from oh_my_kb.services import Indexer, NavigationService
-from oh_my_kb.storage import QdrantStore
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.mcp.tools.kb_expand import _MAX_BODY_CHARS, handle_kb_expand
+from oh_my_harness.kb.services import Indexer, NavigationService
+from oh_my_harness.kb.storage import QdrantStore
 
 # ``store``, ``embedder``, ``indexer`` fixtures are provided by
 # tests/conftest.py.

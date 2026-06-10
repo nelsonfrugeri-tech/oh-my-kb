@@ -21,16 +21,16 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import BGEM3Embedder
-from oh_my_kb.services import (
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.embedding import BGEM3Embedder
+from oh_my_harness.kb.services import (
     Indexer,
     NavigationService,
     SearchService,
     collection_name_for,
     reindex_universe,
 )
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 # ---------------------------------------------------------------------------
 # Module-scoped embedder — loaded once for the whole file.

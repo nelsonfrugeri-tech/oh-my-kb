@@ -3,13 +3,13 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.services import (
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.services import (
     Indexer,
     SearchResult,
     SearchService,
 )
-from oh_my_kb.storage import QdrantStore
+from oh_my_harness.kb.storage import QdrantStore
 
 # ``store``, ``embedder``, ``indexer``, ``search_service`` fixtures are
 # provided by tests/conftest.py.
@@ -18,7 +18,7 @@ from oh_my_kb.storage import QdrantStore
 def _note(
     *,
     summary: str,
-    project: str = "oh-my-kb",
+    project: str = "oh-my-harness",
     universe: str = "engineering",
     archived: bool = False,
     title: str | None = None,
@@ -44,7 +44,7 @@ def test_missing_collection_returns_empty_list(search_service: SearchService) ->
 def test_existing_but_empty_collection_returns_empty_list(
     search_service: SearchService, store: QdrantStore, indexer: Indexer
 ) -> None:
-    from oh_my_kb.services.indexer import collection_name_for
+    from oh_my_harness.kb.services.indexer import collection_name_for
 
     store.ensure_collection(collection_name_for("engineering"))
     assert search_service.search("anything", universe="engineering") == []

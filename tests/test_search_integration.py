@@ -13,10 +13,10 @@ from pathlib import Path
 
 import pytest
 
-from oh_my_kb.core import Note, NoteType
-from oh_my_kb.embedding import BGEM3Embedder
-from oh_my_kb.services import Indexer, SearchService
-from oh_my_kb.storage import IN_MEMORY, QdrantStore
+from oh_my_harness.kb.core import Note, NoteType
+from oh_my_harness.kb.embedding import BGEM3Embedder
+from oh_my_harness.kb.services import Indexer, SearchService
+from oh_my_harness.kb.storage import IN_MEMORY, QdrantStore
 
 pytestmark = pytest.mark.slow
 
@@ -48,7 +48,7 @@ def test_semantically_close_query_ranks_target_note_first(
             Note(
                 title=f"nota {idx}",
                 type=NoteType.DECISION,
-                project="oh-my-kb",
+                project="oh-my-harness",
                 universe="engineering",
                 created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
                 summary=summary,

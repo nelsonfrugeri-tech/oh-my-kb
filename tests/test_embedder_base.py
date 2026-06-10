@@ -2,7 +2,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from oh_my_kb.embedding import Embedder, EmbeddingResult, SparseVector
+from oh_my_harness.kb.embedding import Embedder, EmbeddingResult, SparseVector
 
 
 class _RecordingEmbedder(Embedder):

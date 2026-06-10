@@ -4,14 +4,14 @@ from uuid import UUID, uuid4
 import pytest
 from pydantic import ValidationError
 
-from oh_my_kb.core import Note, NoteType
+from oh_my_harness.kb.core import Note, NoteType
 
 
 def _minimal_payload(**overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
         "title": "Desenho das tools",
         "type": NoteType.DECISION,
-        "project": "oh-my-kb",
+        "project": "oh-my-harness",
         "universe": "engineering",
         "summary": "Decisão arquitetural sobre as tools do MCP.",
     }
