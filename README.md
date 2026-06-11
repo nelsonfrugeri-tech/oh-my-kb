@@ -1,223 +1,141 @@
 # oh-my-harness
 
-> Plataforma de tuning e personalização de harness para agentes de IA. Expõe um knowledge base via MCP (`o-kb-mcp`) e um servidor de agentes em construção (`o-agents-mcp`).
+Personal AI harness: a long-term knowledge base (MCP) + skill and agent management CLI
+for Claude Code and other AI assistants.
 
----
+## Prerequisites
 
-## O que é oh-my-harness?
-
-oh-my-harness é uma plataforma com dois MCPs:
-
-- **`o-kb-mcp`** — knowledge base pessoal exposta via MCP. Notas ficam em markdown no disco e são indexadas no Qdrant com busca híbrida (densa + esparsa via bge-m3), navegação por grafo (`links_out`) e recall temporal (`created_at`).
-- **`o-agents-mcp`** — servidor de agentes (em construção, issue #58). Stub funcional instalável; implementação completa vira em breve.
-
-Funciona com qualquer harness compatível com MCP: Claude Code, Claude Desktop, Cursor, ou qualquer cliente MCP.
-
----
-
-## Arquitetura
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   AI Harness (ex: Claude Code)       │
-│              ~/.claude/CLAUDE.md  (regras injetadas) │
-└──────────────┬──────────────────────────┬───────────┘
-               │ MCP                       │ MCP
-       ┌───────▼────────┐        ┌────────▼────────┐
-       │   o-kb-mcp     │        │  o-agents-mcp   │
-       │  (knowledge    │        │  (em construção │
-       │   base tools)  │        │   issue #58)    │
-       └───────┬────────┘        └─────────────────┘
-               │
-       ┌───────▼────────┐
-       │    Qdrant       │  hybrid search (BGE-M3)
-       │  (local Docker) │  dense + sparse vectors
-       └───────┬────────┘
-               │
-       ┌───────▼────────┐
-       │  ~/oh-my-      │  plain markdown files
-       │  harness/      │  git-versionável
-       └────────────────┘
-```
-
----
-
-## Pré-requisitos
-
-| Ferramenta | Para quê |
-|------------|----------|
-| Python 3.12+ | Requerido pelo pacote |
-| [uv](https://docs.astral.sh/uv/) | Gerenciamento de dependências |
-| Docker | Roda o Qdrant local |
-| `make` | Encapsula os workflows comuns |
-
----
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) — package manager
+- Docker Desktop (running)
+- make
 
 ## Quick start
 
 ```bash
-uv tool install oh-my-harness   # instala omh, o-kb-mcp, o-agents-mcp
-omh install                      # wizard: configura Qdrant, bge-m3, universo default
-```
-
-Após o `omh install`, abra o Claude Code em qualquer projeto — o bloco de regras já está em `~/.claude/CLAUDE.md`.
-
-Escreva a primeira nota:
-
-```
-Use kb_write to record: we chose Qdrant as our vector store.
-```
-
----
-
-## Desenvolvimento local (clone)
-
-```bash
 git clone https://github.com/nelsonfrugeri-tech/oh-my-kb.git
 cd oh-my-kb
-make install           # uv sync — cria .venv
-docker compose up -d   # inicia Qdrant em localhost:6333
-omh install            # provisiona o universo default
+make install
+uv run omh install
 ```
 
----
+The install wizard walks through 5 questions and then sets everything up automatically.
 
-## Ferramentas MCP — o-kb-mcp
+## Install wizard
 
-| Ferramenta | O que faz |
-|------------|-----------|
-| `kb_write` | Cria ou supersede uma nota markdown com embedding automático |
-| `kb_search` | Busca híbrida (densa + esparsa) com RRF fusion |
-| `kb_tree` | Visão em árvore do grafo de conhecimento |
-| `kb_expand` | Lê uma nota completa com links resolvidos |
-| `kb_recent` | Notas mais recentes por universo ou projeto |
+| Step | Question | Default |
+|------|----------|---------|
+| 1 | Notes directory | ~/oh-my-harness |
+| 2 | Universe name | default |
+| 3 | Qdrant port | 6333 |
+| 4 | Models cache directory | ~/.cache/oh-my-harness/models |
+| 5 | AI harness | claude-code |
 
----
+Non-interactive mode: `uv run omh install --yes`
 
-## Busca híbrida
+## What install does
 
-Cada nota gera dois vetores via bge-m3 em uma única passagem:
-- **Vetor denso** (1024 dims) — semântica
-- **Vetor esparso** (SPLADE) — léxico / BM25-like
+After confirming your choices, install runs 8 steps:
 
-O Qdrant combina os dois rankings com **Reciprocal Rank Fusion (RRF)** antes de retornar os resultados. O score RRF retornado por `kb_search` não é uma similaridade de cosseno normalizada; consulte a skill `scribe` para calibração de thresholds.
+1. Verifies Docker is running
+2. Starts Qdrant vector database container
+3. Creates the universe notes directory
+4. Saves configuration to `~/.config/oh-my-harness/`
+5. Generates the kb-mcp rules block
+6. Injects the rules block into `~/.claude/CLAUDE.md`
+7. Writes the User Preferences section
+8. Downloads all skills and agents from the official manifest
 
----
+After install you get:
+- Qdrant running on `localhost:6333`
+- `~/.claude/CLAUDE.md` configured with kb-mcp tools and harness rules
+- Skills installed in `~/.claude/skills/<name>/`
+- Agents installed in `~/.claude/agents/<name>.md`
 
-## Universos
-
-Universos são namespaces isolados de conhecimento (ex: `work`, `personal`, `oss`):
+## Verify
 
 ```bash
-omh kb create work              # cria um novo universo
-omh kb list                     # lista todos (* = ativo)
-omh kb use work                 # troca o universo ativo
+omh status            # Qdrant health and active universe
+omh kb list           # configured knowledge bases
+omh skills list       # installed skills vs remote versions
+omh agents list       # installed agents vs remote versions
 ```
 
-Cada universo tem um diretório próprio (`~/oh-my-harness/<universo>/`) e uma coleção Qdrant independente.
+## CLI reference
 
-A variável `KB_UNIVERSE` sobrescreve o universo ativo no servidor MCP; `KB_NOTES_ROOT` sobrescreve o diretório de notas.
-
----
-
-## Reindexação
-
-Se notas forem editadas diretamente no disco, reconcilie com o Qdrant:
-
-```bash
-omh reindex                    # reindexar o universo ativo
-omh reindex --universe work    # reindexar um universo específico
-```
-
-`omh reindex` é **totalmente idempotente**.
-
----
-
-## CLI — omh
-
-```bash
-omh [COMMAND]
-```
-
-| Comando | O que faz |
-|---------|-----------|
-| `omh install` | Wizard interativo: Qdrant, bge-m3, universo default. Idempotente. |
-| `omh start` | Inicia o container Qdrant. |
-| `omh stop` | Para o container Qdrant. |
-| `omh status` | Exibe o estado atual do sistema. |
-| `omh reindex [--universe NAME]` | Reconcilia Qdrant com os arquivos em disco. |
-| `omh universe create <name>` | Cria universo: diretório + coleção Qdrant + entrada no config. |
-| `omh universe list` | Lista universos configurados. |
-| `omh universe use <name>` | Ativa um universo. |
-| `omh resource list` | Lista os resources MCP disponíveis. |
-| `omh resource pull [--all]` | Baixa resources MCP (ex: skill scribe). |
-
----
-
-## Estrutura do projeto
+### Lifecycle
 
 ```
-oh_my_harness/
-  __init__.py
-  kb/                    # o-kb-mcp (knowledge base)
-    agents/              # bootstrap, injeção de harness
-    cli/                 # omh CLI (install, universe, resource, reindex)
-    core/                # Note, slug, serialização
-    embedding/           # BGE-M3 embedder
-    infra/               # QdrantContainer (Docker SDK)
-    mcp/                 # MCP server, tools, resources, skills
-    services/            # Indexer, SearchService, NavigationService
-    storage/             # QdrantStore
-  agents/                # o-agents-mcp (em construção — issue #58)
-    mcp/
-      server.py          # placeholder main()
-tests/
-docs/
-  adr/
+omh install [--yes]   interactive setup wizard
+omh start             start Qdrant container
+omh stop              stop Qdrant container
+omh status            show system state
+omh reindex           sync Qdrant with notes on disk
 ```
 
----
+### Knowledge bases
 
-## Variáveis de ambiente
-
-| Variável | Padrão | Descrição |
-|----------|--------|-----------|
-| `OMH_CONFIG_DIR` | `~/.config/oh-my-harness` | Diretório do `config.toml` |
-| `KB_NOTES_ROOT` | `~/oh-my-harness/<universo>` | Diretório de notas (override por universo) |
-| `KB_QDRANT_URL` | `http://localhost:6333` | URL do servidor Qdrant |
-| `KB_UNIVERSE` | (universo ativo no config) | Universo ativo no servidor MCP |
-
----
-
-## Migração — oh-my-kb → oh-my-harness
-
-Se você usava a versão anterior (`oh-my-kb`):
-
-**Manifest:** o arquivo de manifest era `~/.claude/.omk-manifest.json`. Após instalar `oh-my-harness`, execute `omh resource pull --all` para gerar o novo manifest em `~/.claude/.omh-manifest.json`. O arquivo antigo pode ser removido manualmente.
-
-**Container Docker:** o container se chamava `oh-my-kb-qdrant`. O novo nome é `oh-my-harness-qdrant`. Na próxima vez que rodar `omh install`, um novo container será criado. O antigo pode ser removido com:
-```bash
-docker stop oh-my-kb-qdrant && docker rm oh-my-kb-qdrant
+```
+omh kb create <name>  create a new knowledge base
+omh kb list           list configured knowledge bases
+omh kb use <name>     switch active knowledge base
 ```
 
-**Variável de ambiente:** `OMK_CONFIG_DIR` foi renomeada para `OMH_CONFIG_DIR`.
+### Skills
 
-**Comando CLI:** `omk` foi renomeado para `omh`. Usuários com `omk` instalado receberão um erro no próximo reinstall — isso é esperado em um rename major.
-
----
-
-## Desenvolvimento
-
-```bash
-make check     # lint + typecheck + tests (CI gate)
-make lint      # ruff check
-make typecheck # mypy oh_my_harness
-make test      # pytest
-make format    # ruff format
+```
+omh skills list               list skills with versions and status
+omh skills pull <name>        download a single skill
+omh skills pull --all         download all skills
+omh skills diff [<name>]      compare local vs remote sha256
+omh skills update [<name>]    apply updates (prompts on BREAKING)
+omh skills update --yes       update without confirmation
 ```
 
----
+### Agents
 
-## Licença
+```
+omh agents list               list agents with versions and status
+omh agents pull <name>        download a single agent
+omh agents pull --all         download all agents
+omh agents diff [<name>]      compare local vs remote sha256
+omh agents update [<name>]    apply updates (prompts on BREAKING)
+omh agents update --yes       update without confirmation
+```
 
-Consulte o arquivo [LICENSE](LICENSE).
+## Versioning
+
+Skills and agents use SemVer (`major.minor.patch`).
+
+- `MAJOR` bump — breaking change: existing workflows may need updating.
+  `omh skills update` and `omh agents update` prompt for confirmation.
+- `MINOR` bump — new content, backward compatible.
+- `PATCH` bump — corrections and clarifications.
+
+The manifest at `assets/manifest.json` contains the sha256 of every file.
+`omh skills diff` compares local sha256 against the manifest to detect drift.
+
+## MCP server tools
+
+The `o-kb-mcp` server exposes five tools to Claude:
+
+| Tool | Trigger |
+|------|---------|
+| `kb_write` | user asks to save, record or document something |
+| `kb_search` | user asks to find or remember something |
+| `kb_tree` | user asks for an overview or map of knowledge |
+| `kb_expand` | user wants to read a note in full or follow links |
+| `kb_recent` | user asks for recent notes or history |
+
+## Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KB_UNIVERSE` | (active from config) | Universe bound to the MCP server |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint |
+| `OMH_CONFIG_DIR` | `~/.config/oh-my-harness` | Config directory override |
+
+## Coming soon
+
+- PyPI package (`pip install oh-my-harness`)
+- `omh` tools exposed as MCP tools for agent-to-agent calls

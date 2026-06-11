@@ -6,6 +6,7 @@ from pathlib import Path
 
 import typer
 
+from oh_my_harness.kb.cli.agents import agents_app
 from oh_my_harness.kb.cli.config import (
     UniverseAlreadyExistsError,
     UniverseNotFoundError,
@@ -15,7 +16,7 @@ from oh_my_harness.kb.cli.config import (
     set_active,
 )
 from oh_my_harness.kb.cli.paths import default_notes_root_for
-from oh_my_harness.kb.cli.resource import resource_app
+from oh_my_harness.kb.cli.skills import skills_app
 from oh_my_harness.kb.services import collection_name_for
 from oh_my_harness.kb.storage import QdrantStore, get_qdrant_url
 
@@ -32,7 +33,8 @@ universe_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(universe_app, name="kb")
-app.add_typer(resource_app, name="resource")
+app.add_typer(skills_app, name="skills")
+app.add_typer(agents_app, name="agents")
 
 
 @app.command("help")
@@ -91,8 +93,8 @@ def install_cmd(
     typer.echo("  Instalando Oh My Harness...")
     typer.echo("")
 
-    # ── [1/7] Docker check ──
-    typer.echo("  [1/7] Verificando Docker...")
+    # ── [1/8] Docker check ──
+    typer.echo("  [1/8] Verificando Docker...")
     from oh_my_harness.kb.infra.docker_qdrant import DockerNotRunningError, QdrantContainer
     try:
         qc = QdrantContainer(
@@ -104,10 +106,10 @@ def install_cmd(
     except DockerNotRunningError as exc:
         typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
-    typer.secho("  [1/7] Docker OK", fg=typer.colors.GREEN)
+    typer.secho("  [1/8] Docker OK", fg=typer.colors.GREEN)
 
-    # ── [2/7] Ensure Qdrant container ──
-    typer.echo("  [2/7] Iniciando Qdrant (qdrant/qdrant:latest) ...")
+    # ── [2/8] Ensure Qdrant container ──
+    typer.echo("  [2/8] Iniciando Qdrant (qdrant/qdrant:latest) ...")
     try:
         qc.ensure_image()
         action = qc.ensure_running()
@@ -118,18 +120,18 @@ def install_cmd(
         typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
     typer.secho(
-        f"  [2/7] Qdrant {action} na porta {choices.qdrant_port}",
+        f"  [2/8] Qdrant {action} na porta {choices.qdrant_port}",
         fg=typer.colors.GREEN,
     )
 
-    # ── [3/7] Create universe directory ──
-    typer.echo(f"  [3/7] Criando universe '{choices.universe}' ...")
+    # ── [3/8] Create universe directory ──
+    typer.echo(f"  [3/8] Criando universe '{choices.universe}' ...")
     universe_dir = choices.notes_root / choices.universe
     universe_dir.mkdir(parents=True, exist_ok=True)
-    typer.secho(f"  [3/7] {universe_dir}/", fg=typer.colors.GREEN)
+    typer.secho(f"  [3/8] {universe_dir}/", fg=typer.colors.GREEN)
 
-    # ── [4/7] Persist configuration ──
-    typer.echo("  [4/7] Salvando configuracao ...")
+    # ── [4/8] Persist configuration ──
+    typer.echo("  [4/8] Salvando configuracao ...")
     from oh_my_harness.kb.cli.config import config_path
 
     omk_cfg = OmkConfig(
@@ -158,33 +160,61 @@ def install_cmd(
     if not store.collection_exists(coll_name):
         store.ensure_collection(coll_name)
 
-    typer.secho(f"  [4/7] {config_path()}", fg=typer.colors.GREEN)
+    typer.secho(f"  [4/8] {config_path()}", fg=typer.colors.GREEN)
 
-    # ── [5/7] Generate dynamic block ──
-    typer.echo("  [5/7] Gerando bloco de regras ...")
+    # ── [5/8] Generate dynamic block ──
+    typer.echo("  [5/8] Gerando bloco de regras ...")
     from oh_my_harness.kb.agents.template import render_dynamic_block
     render_dynamic_block(choices.universe)
-    typer.secho("  [5/7] Bloco gerado com sucesso", fg=typer.colors.GREEN)
+    typer.secho("  [5/8] Bloco gerado com sucesso", fg=typer.colors.GREEN)
 
-    # ── [6/7] Bootstrap harness ──
-    typer.echo("  [6/7] Injetando bloco em ~/.claude/CLAUDE.md ...")
+    # ── [6/8] Bootstrap harness ──
+    typer.echo("  [6/8] Injetando bloco em ~/.claude/CLAUDE.md ...")
     from oh_my_harness.kb.agents.bootstrap import do_bootstrap
     report = do_bootstrap(choices.harness, choices.universe)
     typer.secho(
-        f"  [6/7] Bloco omh {report.action} em {report.target_file}",
+        f"  [6/8] Bloco omh {report.action} em {report.target_file}",
         fg=typer.colors.GREEN,
         bold=True,
     )
 
-    # ── [7/7] Write initial user preferences block ──
-    typer.echo("  [7/7] Escrevendo seção 'Preferências do Usuário' ...")
+    # ── [7/8] Write initial user preferences block ──
+    typer.echo("  [7/8] Escrevendo seção 'Preferências do Usuário' ...")
     from oh_my_harness.agents.preferences.install import write_initial_preferences
     prefs_action = write_initial_preferences()
     typer.secho(
-        f"  [7/7] Seção 'Preferências do Usuário' {prefs_action} em ~/.claude/CLAUDE.md",
+        f"  [7/8] Seção 'Preferências do Usuário' {prefs_action} em ~/.claude/CLAUDE.md",
         fg=typer.colors.GREEN,
         bold=True,
     )
+
+    # ── [8/8] Download skills and agents ──
+    typer.echo("  [8/8] Baixando skills e agents...")
+    from oh_my_harness.kb.cli.agents._ops import pull_all_agents
+    from oh_my_harness.kb.cli.skills._ops import pull_all_skills
+
+    skills_count, skills_errors = pull_all_skills()
+    if skills_errors:
+        for err in skills_errors:
+            typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
+
+    agents_count, agents_errors = pull_all_agents()
+    if agents_errors:
+        for err in agents_errors:
+            typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
+
+    if skills_errors or agents_errors:
+        typer.secho(
+            f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados"
+            " (alguns falharam — rode `omh skills pull --all` depois)",
+            fg=typer.colors.YELLOW,
+        )
+    else:
+        typer.secho(
+            f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados",
+            fg=typer.colors.GREEN,
+            bold=True,
+        )
 
     typer.echo("")
     typer.secho("  Oh My Harness instalado com sucesso!", fg=typer.colors.GREEN, bold=True)
@@ -192,8 +222,10 @@ def install_cmd(
     typer.echo("  Proximos passos:")
     typer.echo("    * Abra o Claude Code em qualquer projeto — o kb-mcp ja esta ativo.")
     typer.echo("    * omh status          — verificar o estado do sistema")
-    typer.echo("    * omh resource diff   — ver atualizacoes disponiveis nos resources")
-    typer.echo("    * omh resource update — aplicar atualizacoes (regenera o CLAUDE.md)")
+    typer.echo("    * omh skills list     — ver skills disponíveis")
+    typer.echo("    * omh agents list     — ver agents disponíveis")
+    typer.echo("    * omh skills diff     — ver atualizações disponíveis nos skills")
+    typer.echo("    * omh skills update   — aplicar atualizações")
     typer.echo("")
 
 

@@ -58,14 +58,8 @@ not relevance. Use it when recency is the primary criterion.
 Write **only** when the user explicitly asks to register, record, annotate, or
 save something. Do not write as a side-effect of answering a question.
 
-Before every `kb_write` call, read both resources in order:
-
-1. `skill://scribe/SKILL.md` — reasoning process: when to write, how to pick
-   the note type, how to write a dense self-contained summary (200–800 chars of
-   specific prose, not a label), how to extract entities, how to propose links.
-2. `skill://scribe/template.md` — the exact Markdown structure the `body` field
-   must follow, section by section, per note type (`decision`, `event`,
-   `procedure`, `reference`, `conversation`).
+Before every `kb_write` call, read the scribe skill installed at
+`~/.claude/skills/scribe/SKILL.md` (and `template.md` in the same directory).
 
 To **update** an existing note: find it with `kb_search`, then call `kb_write`
 with `supersedes` set to the old note's UUID. The old note is preserved as
@@ -90,7 +84,6 @@ User asks about recent events, latest decisions, or what changed?
   └─ kb_recent (add since="7d" / "30d" to narrow the window)
 
 User explicitly asks to record / register / save something?
-  └─ READ skill://scribe/SKILL.md AND skill://scribe/template.md FIRST
   └─ kb_write (set supersedes if updating an existing note)
 
 None of the above → answer from session context; no kb call needed
@@ -98,9 +91,14 @@ None of the above → answer from session context; no kb call needed
 
 ---
 
-## Resources
+## Skills & agents disponíveis localmente
 
-- `skill://scribe/SKILL.md` — reasoning: type choice, summary quality, entity
-  extraction, link proposals, new vs. supersede decision.
-- `skill://scribe/template.md` — note body format: required and optional
-  sections per note type.
+Skills instalados em `~/.claude/skills/<nome>/SKILL.md` e agents em
+`~/.claude/agents/<nome>.md`. Para consultar versões disponíveis no repositório
+oficial, use o manifest:
+
+- Repositório: {repo_url}
+- Manifest: {manifest_url}
+
+Se o usuário pedir "verifica se tem versão nova de X", consulte o manifest acima
+e compare a `version` do skill/agent com a versão local (no frontmatter YAML do `.md`).
