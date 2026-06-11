@@ -11,14 +11,14 @@ from typing import Any
 
 from mcp.types import TextContent, Tool
 
-from oh_my_harness.kb.cli.resource.manifest import (
-    ResourceRecord,
-    load_manifest,
-    save_manifest,
-)
+from oh_my_harness.kb.cli.resource.manifest import ResourceRecord, load_manifest, save_manifest
 from oh_my_harness.kb.cli.resource.pull_cmd import _now_utc, _sha256_of
 from oh_my_harness.kb.cli.resource.registry import RESOURCE_REGISTRY
-from oh_my_harness.kb.cli.resource.update_cmd import _has_drift, _regenerate_claude_md, _write_resource
+from oh_my_harness.kb.cli.resource.update_cmd import (
+    _has_drift,
+    _regenerate_claude_md,
+    _write_resource,
+)
 
 KB_RESOURCE_UPDATE_TOOL = Tool(
     name="kb_resource_update",

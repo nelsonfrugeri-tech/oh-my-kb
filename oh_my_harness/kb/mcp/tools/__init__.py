@@ -1,7 +1,13 @@
 from oh_my_harness.kb.mcp.tools.kb_expand import KB_EXPAND_TOOL, handle_kb_expand
 from oh_my_harness.kb.mcp.tools.kb_recent import KB_RECENT_TOOL, handle_kb_recent
-from oh_my_harness.kb.mcp.tools.kb_resource_diff import KB_RESOURCE_DIFF_TOOL, handle_kb_resource_diff
-from oh_my_harness.kb.mcp.tools.kb_resource_list import KB_RESOURCE_LIST_TOOL, handle_kb_resource_list
+from oh_my_harness.kb.mcp.tools.kb_resource_diff import (
+    KB_RESOURCE_DIFF_TOOL,
+    handle_kb_resource_diff,
+)
+from oh_my_harness.kb.mcp.tools.kb_resource_list import (
+    KB_RESOURCE_LIST_TOOL,
+    handle_kb_resource_list,
+)
 from oh_my_harness.kb.mcp.tools.kb_resource_update import (
     KB_RESOURCE_UPDATE_TOOL,
     handle_kb_resource_update,
