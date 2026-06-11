@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: architect
 description: >
   Use for system design, architecture decisions, trade-off analysis,

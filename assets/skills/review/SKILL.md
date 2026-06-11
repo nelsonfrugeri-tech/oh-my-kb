@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: review
 description: |
   Language-agnostic code review methodology. Covers severity taxonomy (BLOCKER/MAJOR/MINOR/NIT),

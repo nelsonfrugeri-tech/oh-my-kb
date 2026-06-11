@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: developer
 description: >
   Use for implementing features, fixing bugs, refactoring code, setting up

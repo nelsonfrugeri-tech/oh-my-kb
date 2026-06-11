@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: frontend-ui
 description: |
   Frontend UI/UX design knowledge base (2026). Covers OKLCH color theory (perceptual uniformity,

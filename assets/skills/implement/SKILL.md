@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: implement
 description: |
   Complete software development methodology. Covers the full workflow

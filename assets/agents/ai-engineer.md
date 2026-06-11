@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: ai-engineer
 description: >
   Use for AI/ML engineering: LLM integration, RAG systems, embeddings,

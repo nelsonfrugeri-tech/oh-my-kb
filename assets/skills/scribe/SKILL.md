@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 <!-- content_version: 1.0.0 | locale: pt-BR | updated: 2026-06-06 -->
 # Scribe — playbook para escrever notas no oh-my-kb
 

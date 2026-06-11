@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: design
 description: |
   Software architecture knowledge base (2026). Covers SOLID principles with real trade-offs,

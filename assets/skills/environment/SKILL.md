@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: environment
 description: |
   Local development environment knowledge base (2026). Covers environment lifecycle,

@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: ci-cd
 description: |
   CI/CD pipeline knowledge base (2026). Covers pipeline design principles (fail fast, trunk-based

@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: research
 description: |
   Structured technical research methodology for engineering decisions. Covers platform-specific

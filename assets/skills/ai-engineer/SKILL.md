@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: ai-engineer
 description: |
   AI/ML engineering knowledge base (2026). Covers LLM integration patterns (Anthropic, OpenAI,

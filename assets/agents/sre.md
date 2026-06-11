@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: sre
 description: >
   Use for observability, monitoring, alerting, SLO/SLI definition, incident response,

@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: manage
 description: |
   Technical Product/Platform Management knowledge base. Covers INVEST user stories,

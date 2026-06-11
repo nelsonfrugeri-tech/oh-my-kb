@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: typescript
 description: |
   TypeScript/Frontend knowledge base (2026). Covers the advanced type system (discriminated unions,

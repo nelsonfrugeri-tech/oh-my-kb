@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: observability
 description: |
   Observability tooling knowledge base (2026). Covers OpenTelemetry SDK configuration (Python and

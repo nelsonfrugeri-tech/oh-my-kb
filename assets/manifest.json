@@ -1,292 +1,798 @@
 {
-  "version": 1,
+  "schema_version": 1,
   "skills": [
     {
       "name": "ai-engineer",
+      "version": "1.0.0",
       "path": "assets/skills/ai-engineer",
       "files": [
-        "SKILL.md",
-        "references/agent-frameworks-custom-agents.md",
-        "references/agent-frameworks-langchain.md",
-        "references/agent-frameworks-langgraph.md",
-        "references/agent-frameworks-multi-agent.md",
-        "references/agent-frameworks-tool-integration.md",
-        "references/llm-integration-anthropic-sdk.md",
-        "references/rag-architecture.md",
-        "references/rag-chunking-strategies.md",
-        "references/rag-embeddings.md",
-        "references/rag-evaluation.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "b81048e7e4158728344daf937e1227a816fe90b8a89d34ebd7552b1e0e7f9ed5"
+        },
+        {
+          "path": "references/agent-frameworks-custom-agents.md",
+          "sha256": "ce3c5091cf5ab648f2391c6458349e9f48bdd38b652ce9ccb4231264898cdb61"
+        },
+        {
+          "path": "references/agent-frameworks-langchain.md",
+          "sha256": "ce97b8686722ebe1bbde496fbb9b8bf969b0186575ee21de7b6c3217f11c0954"
+        },
+        {
+          "path": "references/agent-frameworks-langgraph.md",
+          "sha256": "3c3f0fb77de45a8640f1b40db5b0c42c1f8f5476fb28117738ef6670323a3e2c"
+        },
+        {
+          "path": "references/agent-frameworks-multi-agent.md",
+          "sha256": "c3f6fb8f115897d3894fcdb4d642ab4ede7e3a26a4d3c73ac3ea869b0bb558e8"
+        },
+        {
+          "path": "references/agent-frameworks-tool-integration.md",
+          "sha256": "3950d96d301a85f59aef5b3a64c91f7ad30d307dfc8643bee8e15f988b91363e"
+        },
+        {
+          "path": "references/llm-integration-anthropic-sdk.md",
+          "sha256": "edcb87fdd95f731fd76e8656ef491d9b49f8c84838b16ec80721efba19a5d120"
+        },
+        {
+          "path": "references/rag-architecture.md",
+          "sha256": "c157985bf732af130af3d1d2dedbd171533a282df7ca9706de45c31d9c1d599e"
+        },
+        {
+          "path": "references/rag-chunking-strategies.md",
+          "sha256": "114e7ceaedb2693e2fad29e9f114aeb65933c078d58591aa9500c206e05a20d0"
+        },
+        {
+          "path": "references/rag-embeddings.md",
+          "sha256": "ade89c3dad0e20735e44c6ec8758a8ac2d58b16e41c1e505f301b01624e8bd20"
+        },
+        {
+          "path": "references/rag-evaluation.md",
+          "sha256": "99b1b7b7502ab15baf7c9ddb34dc2bd35ca5d2dfd05539e64e2238805e04c44d"
+        }
       ]
     },
     {
       "name": "api-design",
+      "version": "1.0.0",
       "path": "assets/skills/api-design",
       "files": [
-        "SKILL.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "c7739b75d5b14e6ef287f0f82b0d2d5e6aa33b4650056e370d63e56638128dfc"
+        }
       ]
     },
     {
       "name": "ci-cd",
+      "version": "1.0.0",
       "path": "assets/skills/ci-cd",
       "files": [
-        "SKILL.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "b22ed452d60e4c36f491cb6783532b5970c38aa4e41922359406664b40708212"
+        }
       ]
     },
     {
       "name": "design",
+      "version": "1.0.0",
       "path": "assets/skills/design",
       "files": [
-        "SKILL.md",
-        "references/adr-templates.md",
-        "references/api-design-comparison.md",
-        "references/c4-model-guide.md",
-        "references/decomposition-monolith-vs-microservices.md",
-        "references/decomposition-strategies.md",
-        "references/event-driven-patterns.md",
-        "references/observability-design-patterns.md",
-        "references/security-zero-trust.md",
-        "references/testing-strategy-by-layer.md",
-        "references/trade-off-analysis-atam.md",
-        "references/trade-off-analysis-fitness-functions.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "d8317b225d5da57459ce49321e325f2e460e8729e104ba3cdb7af457c9e64126"
+        },
+        {
+          "path": "references/adr-templates.md",
+          "sha256": "4ad6a5a8e24acffd403fcd9ad5a709eb33fa17c5d3fdef8605d09c5b13d7485c"
+        },
+        {
+          "path": "references/api-design-comparison.md",
+          "sha256": "2b9ada898e4d5c00b0587b12568da972e86ee4b9ba40586990f500843f182448"
+        },
+        {
+          "path": "references/c4-model-guide.md",
+          "sha256": "2d92ef7ba0cd2cfaeef63777e21140ccf1c9d827affa9fb6241139db0826e0c7"
+        },
+        {
+          "path": "references/decomposition-monolith-vs-microservices.md",
+          "sha256": "f996aababd0987a8c8b8115d019a7984f25d55ea63b4ae98426f39fa9968db26"
+        },
+        {
+          "path": "references/decomposition-strategies.md",
+          "sha256": "ead371f2f93ed4d137c208a188bd0c3164fe90f79a6cbbc530630519d4adfc3f"
+        },
+        {
+          "path": "references/event-driven-patterns.md",
+          "sha256": "5e6a7118daef030c82371ec16f80e138fc39288c5a6cc5ed71a4e8009d07fca4"
+        },
+        {
+          "path": "references/observability-design-patterns.md",
+          "sha256": "31489c24d56d299b258bdb86f9260accb935bbf883dd615e43a59cc2c7c7f72d"
+        },
+        {
+          "path": "references/security-zero-trust.md",
+          "sha256": "127d8fdc9b91b3f40f9c6b130d60f16f708c2173528380a4c17592d4df0d4f15"
+        },
+        {
+          "path": "references/testing-strategy-by-layer.md",
+          "sha256": "51ccc50fbed579a664ef53bf458f1d30be9e0747a0381a1c18760b61401e7bba"
+        },
+        {
+          "path": "references/trade-off-analysis-atam.md",
+          "sha256": "847ae97d0713932c3e58b948cf38a8f0a8ce53e09a8c1327a5a6ac2ed5b461ff"
+        },
+        {
+          "path": "references/trade-off-analysis-fitness-functions.md",
+          "sha256": "05928c765361b21157b165f837e566916d8d29a48ada78044ace1ce14aa10a12"
+        }
       ]
     },
     {
       "name": "environment",
+      "version": "1.0.0",
       "path": "assets/skills/environment",
       "files": [
-        "SKILL.md",
-        "references/databases-setup-patterns.md",
-        "references/debugging-error-recovery.md",
-        "references/debugging-log-streaming.md",
-        "references/docker-compose-patterns.md",
-        "references/docker-dependency-installation.md",
-        "references/docker-dockerfile-patterns.md",
-        "references/orchestration-env-management.md",
-        "references/orchestration-startup-order.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "be06d81b6a49453b891da0cfddb1665dc9da31a4b34da57b6e3859eb2a1baeed"
+        },
+        {
+          "path": "references/databases-setup-patterns.md",
+          "sha256": "a9d70c89e040dc289ba498bf9ec8502ea32ee0c5fefd98fd4c3b353836ff7a4d"
+        },
+        {
+          "path": "references/debugging-error-recovery.md",
+          "sha256": "088f3a7f91025820bbbbf7d9efa896c6ca51fe2f43c95d62e441a86f82081d4a"
+        },
+        {
+          "path": "references/debugging-log-streaming.md",
+          "sha256": "9826094ba990a90fdf5433e098390bfa6c0d510f11ebdd11b0cd453ae2be79dc"
+        },
+        {
+          "path": "references/docker-compose-patterns.md",
+          "sha256": "bc4982c399693dcd47df7f6670e60b1fa5c283bc78060d32951e897d9b57d7bd"
+        },
+        {
+          "path": "references/docker-dependency-installation.md",
+          "sha256": "fd644c9bb3b35a33fc58256b5ca731856872648c19e0c83d4aa4d212552e402c"
+        },
+        {
+          "path": "references/docker-dockerfile-patterns.md",
+          "sha256": "7332c41cbc1c2b028b53a6189600023194a6a236c4e2d8dbee870c44d0fb2799"
+        },
+        {
+          "path": "references/orchestration-env-management.md",
+          "sha256": "14f22b44acc0b4d3696d57d892b1027c8b9898e6eb7f1e465f4beae31486de9d"
+        },
+        {
+          "path": "references/orchestration-startup-order.md",
+          "sha256": "bd2495a38fdece16d08c87a6a2af94597bfc6c5fa513cf42ed7711cf4d9fd8f5"
+        }
       ]
     },
     {
       "name": "frontend-ui",
+      "version": "1.0.0",
       "path": "assets/skills/frontend-ui",
       "files": [
-        "SKILL.md",
-        "references/accessibility-wcag-2-2.md",
-        "references/color-dark-mode.md",
-        "references/color-oklch.md",
-        "references/color-semantic-tokens.md",
-        "references/components-icons-images.md",
-        "references/components-shadcn-ecosystem.md",
-        "references/layout-modern-css-layout.md",
-        "references/layout-spacing-system.md",
-        "references/motion-animation-guide.md",
-        "references/typography-fluid-typography.md",
-        "references/typography-font-pairing.md",
-        "references/typography-variable-fonts.md",
-        "references/ux-patterns-interaction-patterns.md",
-        "references/ux-patterns-loading-states.md",
-        "references/visual-trends-2026.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "dfd7ebf0abec1e9e58c1cabf76fbb4577e8926452cf622bf4dd5ee0943912031"
+        },
+        {
+          "path": "references/accessibility-wcag-2-2.md",
+          "sha256": "073fb1d4faedea2c2dee0355f7782ac37801c50cf823d0f383f97e6599be3456"
+        },
+        {
+          "path": "references/color-dark-mode.md",
+          "sha256": "b25ceb6e1b0db23d81d8c015baffb2ae1b34fb6c62d9d8eddb1e9c06329b1a6f"
+        },
+        {
+          "path": "references/color-oklch.md",
+          "sha256": "834c5c91477bea3e46b9463380dd279e43dac4ba2283530e667cb76299290e6a"
+        },
+        {
+          "path": "references/color-semantic-tokens.md",
+          "sha256": "2ecbb566ffc6d4c74176ea48548dfc44fb4dd2b7ae9e8448b3eaf901d6fb5d6a"
+        },
+        {
+          "path": "references/components-icons-images.md",
+          "sha256": "9720018b38e688986e8b26d9bc7f5447bf8be2c3d23d55b8c1814a96bf01a1c7"
+        },
+        {
+          "path": "references/components-shadcn-ecosystem.md",
+          "sha256": "d1f4f0d36f35ba16dfe3a653b99272a22d2bb39c1a3daafac5ad99090dba731d"
+        },
+        {
+          "path": "references/layout-modern-css-layout.md",
+          "sha256": "94be423285c9e3a4d7ae6001dea171dee5b5aa51894d69208dbb1e1e3b8dabdb"
+        },
+        {
+          "path": "references/layout-spacing-system.md",
+          "sha256": "095047f02e901e4579585598292f7c0cf0e8ec3097be7461f48fa03961c45c81"
+        },
+        {
+          "path": "references/motion-animation-guide.md",
+          "sha256": "399ddf2def29f3626bfc56f78939d02e9bdf021b34f0edaa1d6252efc7db9e2e"
+        },
+        {
+          "path": "references/typography-fluid-typography.md",
+          "sha256": "07d05adf42a1ae4abfc1c9e162abe9d92210a2eaeb6d48d54cf03d8e57026feb"
+        },
+        {
+          "path": "references/typography-font-pairing.md",
+          "sha256": "ee8d107258222fde2771f44aaa9e45eb080f1c4d7cd6c72d01c7f04407d0bb3c"
+        },
+        {
+          "path": "references/typography-variable-fonts.md",
+          "sha256": "226f6f4c0c104a43aac902d456b13267eb16b6d4422b412d35bc9e61f019ff27"
+        },
+        {
+          "path": "references/ux-patterns-interaction-patterns.md",
+          "sha256": "5cc08355403a322c1d53539b1da99d2553a41c9f3bb79fad88c03f6030ace826"
+        },
+        {
+          "path": "references/ux-patterns-loading-states.md",
+          "sha256": "f9a525488862cca6683013d3d38a460f14c33115cd4955835b436171a92864d8"
+        },
+        {
+          "path": "references/visual-trends-2026.md",
+          "sha256": "eac00366e114d82da59ab69c6723f9f5f6f7f56c90d6927761b4da7d23189731"
+        }
       ]
     },
     {
       "name": "implement",
+      "version": "1.0.0",
       "path": "assets/skills/implement",
       "files": [
-        "SKILL.md",
-        "references/ci-discipline.md",
-        "references/code-review-self-check.md",
-        "references/feature-breakdown-vertical-slicing.md",
-        "references/pipeline-stages.md",
-        "references/pipeline-transitions.md",
-        "references/qa-execution-protocol.md",
-        "references/refactoring-patterns.md",
-        "references/review-handoff-protocol.md",
-        "references/self-judge-checklist.md",
-        "references/technical-debt-quadrant.md",
-        "references/templates-qa-report.md",
-        "references/templates-review-summary.md",
-        "references/testing-atdd.md",
-        "references/testing-bdd.md",
-        "references/testing-tdd.md",
-        "references/testing-test-first.md",
-        "references/workflow-bug-fix.md",
-        "references/workflow-design.md",
-        "references/workflow-implementation.md",
-        "references/workflow-pairing.md",
-        "references/workflow-questioning.md",
-        "references/workflow-research.md",
-        "references/workflow-validation.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "bcb350381109ed09641971bed17cb740324082509622cc05a293fb4129a40b56"
+        },
+        {
+          "path": "references/ci-discipline.md",
+          "sha256": "e01bb5ead68c4c9d1854437eb17e796b9a129146bbf474c3ed3ace398528661c"
+        },
+        {
+          "path": "references/code-review-self-check.md",
+          "sha256": "f7450d573057c88574058128f1ce9ad36611c352234452469c1279ed850b1160"
+        },
+        {
+          "path": "references/feature-breakdown-vertical-slicing.md",
+          "sha256": "4ad06fa93103ef75dc7e8436322c80bac52398163abe65b41d923f57c3fd8365"
+        },
+        {
+          "path": "references/pipeline-stages.md",
+          "sha256": "6c571cb740f72e24e2ed1b1b537eb9ca10352211889a3288ff6404c26810bf28"
+        },
+        {
+          "path": "references/pipeline-transitions.md",
+          "sha256": "5a0750fb84be101ce93105a1714d384002ae2621576b7a398beecc37d207331d"
+        },
+        {
+          "path": "references/qa-execution-protocol.md",
+          "sha256": "7f5fdf094a5b570c984c7c9243f52f6c6770d29ec2f4ec92d6e0c18119514b27"
+        },
+        {
+          "path": "references/refactoring-patterns.md",
+          "sha256": "27d8f8a60ede1396323e79544a6c512d73fa221b77ed775c8960513afb6901a5"
+        },
+        {
+          "path": "references/review-handoff-protocol.md",
+          "sha256": "be517408e3203e3dbd8fc3feba164923bfd1e39ddd0abd8378b21d5d430268b1"
+        },
+        {
+          "path": "references/self-judge-checklist.md",
+          "sha256": "db6e6b47af09ba51a85bd7434e081fe7940f4410a010b6ec8c9646685e580177"
+        },
+        {
+          "path": "references/technical-debt-quadrant.md",
+          "sha256": "59dbd0f2e60e227170ac56ff8ff7996ef4865c416a0cd15a7c0fa833fde82307"
+        },
+        {
+          "path": "references/templates-qa-report.md",
+          "sha256": "50eb470da341e3946bf3359415cf62d240aad3404c832d325b1a35f2626bc5ef"
+        },
+        {
+          "path": "references/templates-review-summary.md",
+          "sha256": "a549069bb0132c7bab7f141db5ea44cb374080b512831ef43d4453b564a369a9"
+        },
+        {
+          "path": "references/testing-atdd.md",
+          "sha256": "1ae057886b800e3c9761361bfd66f70064cce1532ea2836729eaf68e55247c0d"
+        },
+        {
+          "path": "references/testing-bdd.md",
+          "sha256": "b3d51e8cbd0b3f00e1d0ce7a4c903e220d21653321ff053008332fa647788c6e"
+        },
+        {
+          "path": "references/testing-tdd.md",
+          "sha256": "6e531a3ca50378a22f775c9f26c26adbe2a7f1197225f85019d05080087c5956"
+        },
+        {
+          "path": "references/testing-test-first.md",
+          "sha256": "66f6dc78f0c8a9700b32801e65c15b1d40d04732952b0c6805b15d4c14db647e"
+        },
+        {
+          "path": "references/workflow-bug-fix.md",
+          "sha256": "2065f253251fb6ca05596fb5893fbf3de7f616911e650cb2d6353b78dfe2d3e3"
+        },
+        {
+          "path": "references/workflow-design.md",
+          "sha256": "4b6e8f1a95719039e152f18ffd7554369fdd7761b679313aeaf4be313c4ffafc"
+        },
+        {
+          "path": "references/workflow-implementation.md",
+          "sha256": "343b9d5705ddc64f76c54d6ad3c9db795233d8c2ef33801ff604a89059f99eb1"
+        },
+        {
+          "path": "references/workflow-pairing.md",
+          "sha256": "ce4d5262b62248bd344112d4bb9d8814a2b8cffcdf68988225bfd9c47c879136"
+        },
+        {
+          "path": "references/workflow-questioning.md",
+          "sha256": "967781f16a5794803c2a3a53f1492352d466c31f1339b9bd57552f77fe7d35fd"
+        },
+        {
+          "path": "references/workflow-research.md",
+          "sha256": "36caf805dacefec72616077302b8865050e2606bdf5092261d570d12fbbabc53"
+        },
+        {
+          "path": "references/workflow-validation.md",
+          "sha256": "df4a05f904bf2c158c2a5237ec43e75568e11dc71d1dfefde8eb8890c2d77ee5"
+        }
       ]
     },
     {
       "name": "manage",
+      "version": "1.0.0",
       "path": "assets/skills/manage",
       "files": [
-        "SKILL.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "2e60fe682309bd4dba630a9235bf56b8d2de13c1411c7616243e2a0f388cee61"
+        }
       ]
     },
     {
       "name": "observability",
+      "version": "1.0.0",
       "path": "assets/skills/observability",
       "files": [
-        "SKILL.md",
-        "references/grafana.md",
-        "references/jaeger.md",
-        "references/langfuse.md",
-        "references/opentelemetry-instrumentation.md",
-        "references/opentelemetry-setup.md",
-        "references/prometheus.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "b30d8c9b86ea9c97b0a42faddf8a3e7fa11d45871ff3ee0b991b111a726a4c09"
+        },
+        {
+          "path": "references/grafana.md",
+          "sha256": "202ed91cd6c7ff0f7907a5af5c43a79ffae7a500cdb50aea089dfdcf9ae90aa3"
+        },
+        {
+          "path": "references/jaeger.md",
+          "sha256": "847337686eff3910f68c6f5e5a5c3f3aaf286315c4d960618a370b18298de16f"
+        },
+        {
+          "path": "references/langfuse.md",
+          "sha256": "31bbf5cb402cbf537b423f54c681f65a75734ddf4be319d5454a34a812ea40d1"
+        },
+        {
+          "path": "references/opentelemetry-instrumentation.md",
+          "sha256": "3fbe323b18284ff80a754ac35af7d8ed843d455f1957bf887b8c4b89f7f54270"
+        },
+        {
+          "path": "references/opentelemetry-setup.md",
+          "sha256": "569c8f1d59eb93c4bcb9852adfa823e828216733fe92af34f7db3a432ec9388a"
+        },
+        {
+          "path": "references/prometheus.md",
+          "sha256": "3bbd8e0defc9ce286fb3b1ecdd8072e12fc742fccbb3f098ab90c6fdb7b4d559"
+        }
       ]
     },
     {
       "name": "operate",
+      "version": "1.0.0",
       "path": "assets/skills/operate",
       "files": [
-        "SKILL.md",
-        "references/alerting-burn-rate.md",
-        "references/alerting-symptom-based.md",
-        "references/dashboards-patterns.md",
-        "references/incident-response-on-call.md",
-        "references/incident-response-postmortem-template.md",
-        "references/incident-response-root-cause-analysis.md",
-        "references/incident-response-runbook-template.md",
-        "references/incident-response-workflow.md",
-        "references/opentelemetry-instrumentation.md",
-        "references/opentelemetry-setup.md",
-        "references/slo-management-defining-slos.md",
-        "references/slo-management-error-budgets.md",
-        "references/tools-cost-optimization.md",
-        "references/tools-grafana.md",
-        "references/tools-jaeger.md",
-        "references/tools-langfuse.md",
-        "references/tools-prometheus.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "4848ee67727d5b3f40da20274d1f8222b4b7d6f3bddabbb82be7045efeeb7749"
+        },
+        {
+          "path": "references/alerting-burn-rate.md",
+          "sha256": "22ce88f208458a5f7cd2fc4b4d8cb81d4f299278c8a05ea5f96547e6a3bcfe82"
+        },
+        {
+          "path": "references/alerting-symptom-based.md",
+          "sha256": "bc69fc8e6ca2a5d9c8d984fd2e0ce8731ab435ffa9d824aff059e87b6b3ccfed"
+        },
+        {
+          "path": "references/dashboards-patterns.md",
+          "sha256": "70cb9055b8b981412f851770734b5bb065ab5dc40a47b9b7b682d9125565a261"
+        },
+        {
+          "path": "references/incident-response-on-call.md",
+          "sha256": "f96996a2b345343d5d92a4770e812f86614bc244bb060ee2e25314e3f34b5cf1"
+        },
+        {
+          "path": "references/incident-response-postmortem-template.md",
+          "sha256": "60da8a0cc0e2d1dfefa820700f02c82d68bb249bf59c6dc5bc81c0d245f71e12"
+        },
+        {
+          "path": "references/incident-response-root-cause-analysis.md",
+          "sha256": "c43bc12839b28fad0032a73a1a2ae0762f1b7ff80bd2ff14e00cff7b948f09c6"
+        },
+        {
+          "path": "references/incident-response-runbook-template.md",
+          "sha256": "221d9708427b77967387c14731c4664817eca7bb213ef9cafef0209dd510d653"
+        },
+        {
+          "path": "references/incident-response-workflow.md",
+          "sha256": "64981a5359b565313fcd7239595a588f89852db546a9c18ffb084717a5954b6d"
+        },
+        {
+          "path": "references/opentelemetry-instrumentation.md",
+          "sha256": "3fbe323b18284ff80a754ac35af7d8ed843d455f1957bf887b8c4b89f7f54270"
+        },
+        {
+          "path": "references/opentelemetry-setup.md",
+          "sha256": "569c8f1d59eb93c4bcb9852adfa823e828216733fe92af34f7db3a432ec9388a"
+        },
+        {
+          "path": "references/slo-management-defining-slos.md",
+          "sha256": "efb59613ee1637730c0cfdb925d778f5eb0922cf1a3ba96af7e9f6aaa7890038"
+        },
+        {
+          "path": "references/slo-management-error-budgets.md",
+          "sha256": "87a3b4475289cae7a92bdf6066deb4dfcce8365bff0975c81f819ac9b5f25686"
+        },
+        {
+          "path": "references/tools-cost-optimization.md",
+          "sha256": "009c411be52b8ff4244d6123996a14fd4ad9885cca4f76ccf792142cc33fcb5f"
+        },
+        {
+          "path": "references/tools-grafana.md",
+          "sha256": "202ed91cd6c7ff0f7907a5af5c43a79ffae7a500cdb50aea089dfdcf9ae90aa3"
+        },
+        {
+          "path": "references/tools-jaeger.md",
+          "sha256": "847337686eff3910f68c6f5e5a5c3f3aaf286315c4d960618a370b18298de16f"
+        },
+        {
+          "path": "references/tools-langfuse.md",
+          "sha256": "31bbf5cb402cbf537b423f54c681f65a75734ddf4be319d5454a34a812ea40d1"
+        },
+        {
+          "path": "references/tools-prometheus.md",
+          "sha256": "3bbd8e0defc9ce286fb3b1ecdd8072e12fc742fccbb3f098ab90c6fdb7b4d559"
+        }
       ]
     },
     {
       "name": "python",
+      "version": "1.0.0",
       "path": "assets/skills/python",
       "files": [
-        "SKILL.md",
-        "references/async-patterns.md",
-        "references/concurrency.md",
-        "references/configuration.md",
-        "references/context-managers.md",
-        "references/dataclasses.md",
-        "references/decorators.md",
-        "references/error-handling.md",
-        "references/generators.md",
-        "references/logging.md",
-        "references/packaging.md",
-        "references/pydantic.md",
-        "references/type-system.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "ef6fd11d5fa113b89c9b277736840ac0eeac35f3e75eb74aae5750d0e82523ed"
+        },
+        {
+          "path": "references/async-patterns.md",
+          "sha256": "4264bccb324cbfebe14752c5baf4e568dca1cbd4745f92e275bce67378234e4d"
+        },
+        {
+          "path": "references/concurrency.md",
+          "sha256": "a82f4e0e097a51cee2be4453e9983e3ef34b413e3dcc741b16c07a108a861063"
+        },
+        {
+          "path": "references/configuration.md",
+          "sha256": "2d0c0c291f15bb82b20207aab2ec68dd254c99bda273e2c3e1f946f4d6fa053b"
+        },
+        {
+          "path": "references/context-managers.md",
+          "sha256": "2f90f3aeae7400ec80b96f5f66b798a535010b306e025a0b2545699e5f0e61c9"
+        },
+        {
+          "path": "references/dataclasses.md",
+          "sha256": "c54286972ce21f0fdf4f74dcbec143a3070c2e3180beaa900ab28839e862602e"
+        },
+        {
+          "path": "references/decorators.md",
+          "sha256": "b604073a5b16010ef20ece71fbd35d697b4a5fd6ee947fe5de9904031a91c41e"
+        },
+        {
+          "path": "references/error-handling.md",
+          "sha256": "acd58af919b315dcf821e30a3dd76793ad8fe6cf94aa1e7684eaf04522b75f1f"
+        },
+        {
+          "path": "references/generators.md",
+          "sha256": "5e2cf58f37e5a146f87be0c6cdd1ab1d60b6481da3187d10ba792bdde10f191c"
+        },
+        {
+          "path": "references/logging.md",
+          "sha256": "f63c05f3283ff57faaab0f1575df12d040f4a4f316bf9ffd167170e6bda52b12"
+        },
+        {
+          "path": "references/packaging.md",
+          "sha256": "894a720aaefb32a2421b6787da1a37201c88c23df7ddac2391c927c1002ecd82"
+        },
+        {
+          "path": "references/pydantic.md",
+          "sha256": "198e4935515b7734bf543f12c1ead2b1ae3d7419831762896ad31557f1c6ab99"
+        },
+        {
+          "path": "references/type-system.md",
+          "sha256": "ec5d6e28d3dfd2c172a2b9ba9485ad9b5e0517864d0d079cf4296d7d75cb49bf"
+        }
       ]
     },
     {
       "name": "research",
+      "version": "1.0.0",
       "path": "assets/skills/research",
       "files": [
-        "SKILL.md",
-        "references/methodology/debate-frameworks.md",
-        "references/methodology/synthesis-templates.md",
-        "references/methodology/validation-protocol.md",
-        "references/platforms/arxiv.md",
-        "references/platforms/github-search.md",
-        "references/platforms/google.md",
-        "references/platforms/huggingface.md",
-        "references/platforms/infrastructure.md",
-        "references/platforms/pypi-npm.md",
-        "references/security/vulnerability-sources.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "506a74e8d312e71cfe539c97aa45fc0c46e22429d3c95cd17eb99ca3e0e67d8e"
+        },
+        {
+          "path": "references/methodology/debate-frameworks.md",
+          "sha256": "0b0db015e3dbaffdcadbbdad149672f374bc9662e3e3d8f51e97956876846f7c"
+        },
+        {
+          "path": "references/methodology/synthesis-templates.md",
+          "sha256": "c7f1413b05146e0b225f8e5dedd655f73337c6e9f3685e94941fbf7b40354de4"
+        },
+        {
+          "path": "references/methodology/validation-protocol.md",
+          "sha256": "5ccc1c4891920d2e63c4df0aa3563bea058aa02703650c2c2b9fa3be7c275fb4"
+        },
+        {
+          "path": "references/platforms/arxiv.md",
+          "sha256": "b7cd174087dbb6923bb9a1e946c40e6899189b7362b9afbc0dfee50a2b510e4a"
+        },
+        {
+          "path": "references/platforms/github-search.md",
+          "sha256": "c5553d4353f33ef07dde8e90aafbdf5113f9799c9ce7956614d11aacf47ceab6"
+        },
+        {
+          "path": "references/platforms/google.md",
+          "sha256": "7a5059f6755d6e4ecd801fd281945810341d0e40c1e638418dfce2bf65a17b99"
+        },
+        {
+          "path": "references/platforms/huggingface.md",
+          "sha256": "f0872456d858f5b56a99c721cf3b16ce279e8f876e76e3fb1371ffe80dac4f75"
+        },
+        {
+          "path": "references/platforms/infrastructure.md",
+          "sha256": "146eb9bf139e224cb39130402e68cbd64750a8b3c59cc8778614a5d1c2f9163f"
+        },
+        {
+          "path": "references/platforms/pypi-npm.md",
+          "sha256": "ae11069083b562d8b6667d300fb4557ad779133347e6566dd16e4a4ae0e80de6"
+        },
+        {
+          "path": "references/security/vulnerability-sources.md",
+          "sha256": "2cb4613144ca63853c150f425269f79a760e10be237ae6cd2d199dc3530d72e7"
+        }
       ]
     },
     {
       "name": "review",
+      "version": "1.0.0",
       "path": "assets/skills/review",
       "files": [
-        "SKILL.md",
-        "references/checklist-python.md",
-        "references/checklist-typescript.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "c29c9d42dc30d7316e09c6bd3a6e8212fecd857866d23e4a9ba53abec0732447"
+        },
+        {
+          "path": "references/checklist-python.md",
+          "sha256": "811244ad9d63018d2d9643cbe970a10b2166a046dd19548d7a4d67562e59c8de"
+        },
+        {
+          "path": "references/checklist-typescript.md",
+          "sha256": "9c324c1bebfdf0d2d0949e504433c63d2261b28ff9e43e9cbfcad11455c614e9"
+        }
       ]
     },
     {
       "name": "scribe",
+      "version": "1.0.0",
       "path": "assets/skills/scribe",
       "files": [
-        "SKILL.md",
-        "template.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "5f36b7eb7f31f0dff85cd2a5ff3076cfe42554158f341de0af6922ccc60140d1"
+        },
+        {
+          "path": "template.md",
+          "sha256": "3ea8cc773d1d445c44e6c27212452f44f8a5f26c17797cecb032fb3c137be759"
+        }
       ]
     },
     {
       "name": "security",
+      "version": "1.0.0",
       "path": "assets/skills/security",
       "files": [
-        "SKILL.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "7ded69198239028ea647dd03641fb360a87bac02469857490f19d30638c6504c"
+        }
       ]
     },
     {
       "name": "test",
+      "version": "1.0.0",
       "path": "assets/skills/test",
       "files": [
-        "SKILL.md",
-        "references/accessibility-automated-testing.md",
-        "references/contract-testing-pact.md",
-        "references/e2e-playwright.md",
-        "references/e2e-strategy.md",
-        "references/environment-setup-teardown.md",
-        "references/integration-patterns.md",
-        "references/performance-load-testing.md",
-        "references/reporting-evidence-collection.md",
-        "references/test-data-management.md",
-        "references/visual-regression-screenshot-testing.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "ee1356bc4aec2692749343bcc2f9a7a3ea619c7de8e51f5321cdafd81b2d1eaa"
+        },
+        {
+          "path": "references/accessibility-automated-testing.md",
+          "sha256": "b24ab7d6924485f2fddf5926a550a5ea7f69d6a22d48b5efa6506108a6710273"
+        },
+        {
+          "path": "references/contract-testing-pact.md",
+          "sha256": "eeb47bfc9e05d126e62faf0ed0c33e5db07a0cf93454bd8f84c28a004532a146"
+        },
+        {
+          "path": "references/e2e-playwright.md",
+          "sha256": "eff2c997c2ef36df423ecf232d31b488aa9998f339b57d561db8a87508668cf5"
+        },
+        {
+          "path": "references/e2e-strategy.md",
+          "sha256": "90b24c132cd3b5186b7d7a1fd3d8e3cf2cff343b366d4ec2948482603703644b"
+        },
+        {
+          "path": "references/environment-setup-teardown.md",
+          "sha256": "e41c018d74370bd30264b998b149e8c056c8baf2fbfe0f4e8244dac2f0c414cb"
+        },
+        {
+          "path": "references/integration-patterns.md",
+          "sha256": "b6e88b316cada637e93ade0cdf0cb47e567c331267595cf64c49ea662732dad2"
+        },
+        {
+          "path": "references/performance-load-testing.md",
+          "sha256": "297c834e66ecd5f4a2ac5093fa25553106dcbe67857d5b86030347139ff02665"
+        },
+        {
+          "path": "references/reporting-evidence-collection.md",
+          "sha256": "d618526fe11976047285ed1e73b64406643779870d9d0e2c053796b7e938d8ee"
+        },
+        {
+          "path": "references/test-data-management.md",
+          "sha256": "e29b3120b9589c2842119e2b91a26cd39b5ca5e453dccb5c8bc518234598046f"
+        },
+        {
+          "path": "references/visual-regression-screenshot-testing.md",
+          "sha256": "29e54e21db4cfe5241b431626e9f6aa6685cceac94b0fe377a173e1090202438"
+        }
       ]
     },
     {
       "name": "typescript",
+      "version": "1.0.0",
       "path": "assets/skills/typescript",
       "files": [
-        "SKILL.md",
-        "references/architecture.md",
-        "references/biome.md",
-        "references/component-patterns.md",
-        "references/hooks.md",
-        "references/patterns.md",
-        "references/performance.md",
-        "references/playwright.md",
-        "references/pnpm.md",
-        "references/server-components.md",
-        "references/strict-config.md",
-        "references/tailwind.md",
-        "references/tanstack-query.md",
-        "references/testing-library.md",
-        "references/type-system.md",
-        "references/vite.md",
-        "references/vitest.md",
-        "references/zustand.md"
+        {
+          "path": "SKILL.md",
+          "sha256": "7691e130e7e459687a100dfc14a2a9b67f1868989439978e1c21f660b60c7d1d"
+        },
+        {
+          "path": "references/architecture.md",
+          "sha256": "0ea1e58a6f6f495de716d2c6f63a0fc103688dc28e189d8c1a4fd00004d9c8ca"
+        },
+        {
+          "path": "references/biome.md",
+          "sha256": "f15c47772c53e2d63b96b268b0ca90b4e18d0ee830d76d9dee8f70684acdb533"
+        },
+        {
+          "path": "references/component-patterns.md",
+          "sha256": "f4986b798c5c0277427dd6adc32a3751d3c82166b4f136ebf2126881c3c66155"
+        },
+        {
+          "path": "references/hooks.md",
+          "sha256": "a362d04749add510b9f5fd0e3dde976efaff2c832d5f10b78c1c74f319b9f29a"
+        },
+        {
+          "path": "references/patterns.md",
+          "sha256": "acf417f0304b3f6f4b945dae2c21d533d8b786b71d361402a2bf70c94c5d5139"
+        },
+        {
+          "path": "references/performance.md",
+          "sha256": "1505dbe6fa7870d2b2fc7699ed9d43bd2ed1eead24a3e36cdbee65a52212de9b"
+        },
+        {
+          "path": "references/playwright.md",
+          "sha256": "134f47ec526562bdb885c75935301700c6d035705a713aba60e157eeca8d9386"
+        },
+        {
+          "path": "references/pnpm.md",
+          "sha256": "90154faa979b99c26db46de639482c50105e763c888cc056870c3da66d051cb3"
+        },
+        {
+          "path": "references/server-components.md",
+          "sha256": "aa598c1cc24ffc880721f876eaa2069160c5cd8ead09b458a53da88158b1a76c"
+        },
+        {
+          "path": "references/strict-config.md",
+          "sha256": "002a8abed21826593eef88c7d39a7ecea37fa2562279d03cea989731b5dca5e7"
+        },
+        {
+          "path": "references/tailwind.md",
+          "sha256": "7948233342657db0b54db75fdc412f30054ccae018dc8b8d83325604f1f6663e"
+        },
+        {
+          "path": "references/tanstack-query.md",
+          "sha256": "d1c366889d0038c7778f5f0abcb6ec2337e8b8d262f010d91e31d59395d97784"
+        },
+        {
+          "path": "references/testing-library.md",
+          "sha256": "a1bdc211516a2e040dbf3698b2238d57707ab4b1d4d206d600886500dfedd2cc"
+        },
+        {
+          "path": "references/type-system.md",
+          "sha256": "aff7ce203c0724cb08c57a88bf0d7d755c8cce35bb2aadc91d153a2e6f905e29"
+        },
+        {
+          "path": "references/vite.md",
+          "sha256": "ca133cec477f7987b2cc6455065b80514fd9147b25a449524b5432136e11ebf6"
+        },
+        {
+          "path": "references/vitest.md",
+          "sha256": "7da7f3318e499078d168660bcc88fd9c42f20024bd7abceb59d2e9991d62040f"
+        },
+        {
+          "path": "references/zustand.md",
+          "sha256": "520fdc7739a9f8d0446e073ab16f6f4d84dd2e3452657393d60a451448d0d4ab"
+        }
       ]
     }
   ],
   "agents": [
     {
       "name": "ai-engineer",
-      "path": "assets/agents/ai-engineer.md"
+      "version": "1.0.0",
+      "path": "assets/agents/ai-engineer.md",
+      "sha256": "5c94a2c2c4045e457eb108e441fbdbc7351df80d5bdbd97455232eb396f715fa"
     },
     {
       "name": "architect",
-      "path": "assets/agents/architect.md"
+      "version": "1.0.0",
+      "path": "assets/agents/architect.md",
+      "sha256": "bb93d67cd12ca8a5ea8ce723a7a033a4e7394f4ddb996fc7a0cc5e464af7d36d"
     },
     {
       "name": "developer",
-      "path": "assets/agents/developer.md"
+      "version": "1.0.0",
+      "path": "assets/agents/developer.md",
+      "sha256": "88ceebdc3ae3bb9101dfa841d8242ce575614d1b0f0f3726deabdf243ae3d5c3"
     },
     {
       "name": "qa",
-      "path": "assets/agents/qa.md"
+      "version": "1.0.0",
+      "path": "assets/agents/qa.md",
+      "sha256": "45b54dc668d7c59865ba32f441ada343368ccfd91061b984935ffe6a74a08cb7"
     },
     {
       "name": "sre",
-      "path": "assets/agents/sre.md"
+      "version": "1.0.0",
+      "path": "assets/agents/sre.md",
+      "sha256": "0b9d127124059fae670615768e63579bf7123cea5d877f9dabae8c2669423c83"
     },
     {
       "name": "tech_pm",
-      "path": "assets/agents/tech_pm.md"
+      "version": "1.0.0",
+      "path": "assets/agents/tech_pm.md",
+      "sha256": "223ff3f908029478f9980e729155c80967e74b03c61a5763c134e204a07803bd"
     }
   ]
 }

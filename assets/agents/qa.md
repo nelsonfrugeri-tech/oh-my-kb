@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: qa
 description: >
   Use for testing strategy, E2E testing, integration testing, performance testing,

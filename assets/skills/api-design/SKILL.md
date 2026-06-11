@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: api-design
 description: |
   API design knowledge base (2026). Covers REST (resource naming, HTTP methods, status codes,

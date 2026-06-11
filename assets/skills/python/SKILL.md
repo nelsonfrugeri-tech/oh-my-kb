@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: python
 description: |
   Python knowledge base (2026). Covers the modern Python type system (Protocol, TypeVar, Generic,

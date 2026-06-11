@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: test
 description: |
   Modern Quality Assurance knowledge base (2026). Covers testing strategy (pyramid vs trophy),

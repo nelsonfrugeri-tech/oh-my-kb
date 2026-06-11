@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: tech_pm
 description: >
   Use for product management, writing user stories, defining acceptance criteria,

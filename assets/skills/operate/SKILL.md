@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: operate
 description: |
   SRE and modern observability knowledge base (2026). Covers the three observability pillars

@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: security
 description: |
   Application security knowledge base (2026). Covers OWASP Top 10 (2021) with mitigations,
