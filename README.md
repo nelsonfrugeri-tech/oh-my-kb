@@ -1,44 +1,17 @@
 # oh-my-harness
 
-> Plataforma de tuning e personalização de harness para agentes de IA. Expõe um knowledge base via MCP (`o-kb-mcp`) e um servidor de agentes em construção (`o-agents-mcp`).
+> Plataforma local de knowledge base (RAG híbrido + grafo de notas) exposta via MCP, para uso com Claude Code e outros harnesses compatíveis.
 
 ---
 
-## O que é oh-my-harness?
+## O que é
 
-oh-my-harness é uma plataforma com dois MCPs:
+`oh-my-harness` provê uma base de conhecimento pessoal indexada no Qdrant (busca densa + esparsa via BGE-M3) e exposta como servidor MCP. Notas são arquivos markdown no disco, versionáveis no git. O Claude (ou qualquer harness MCP) acessa via tools:
 
-- **`o-kb-mcp`** — knowledge base pessoal exposta via MCP. Notas ficam em markdown no disco e são indexadas no Qdrant com busca híbrida (densa + esparsa via bge-m3), navegação por grafo (`links_out`) e recall temporal (`created_at`).
-- **`o-agents-mcp`** — servidor de agentes (em construção, issue #58). Stub funcional instalável; implementação completa vira em breve.
-
-Funciona com qualquer harness compatível com MCP: Claude Code, Claude Desktop, Cursor, ou qualquer cliente MCP.
-
----
-
-## Arquitetura
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   AI Harness (ex: Claude Code)       │
-│              ~/.claude/CLAUDE.md  (regras injetadas) │
-└──────────────┬──────────────────────────┬───────────┘
-               │ MCP                       │ MCP
-       ┌───────▼────────┐        ┌────────▼────────┐
-       │   o-kb-mcp     │        │  o-agents-mcp   │
-       │  (knowledge    │        │  (em construção │
-       │   base tools)  │        │   issue #58)    │
-       └───────┬────────┘        └─────────────────┘
-               │
-       ┌───────▼────────┐
-       │    Qdrant       │  hybrid search (BGE-M3)
-       │  (local Docker) │  dense + sparse vectors
-       └───────┬────────┘
-               │
-       ┌───────▼────────┐
-       │  ~/oh-my-      │  plain markdown files
-       │  harness/      │  git-versionável
-       └────────────────┘
-```
+- `kb_write` — registrar nota com embedding automático
+- `kb_search` — busca híbrida (RRF fusion)
+- `kb_tree` / `kb_expand` — navegação por grafo
+- `kb_recent` — recall temporal
 
 ---
 
@@ -46,135 +19,82 @@ Funciona com qualquer harness compatível com MCP: Claude Code, Claude Desktop, 
 
 | Ferramenta | Para quê |
 |------------|----------|
-| Python 3.12+ | Requerido pelo pacote |
-| [uv](https://docs.astral.sh/uv/) | Gerenciamento de dependências |
-| Docker | Roda o Qdrant local |
-| `make` | Encapsula os workflows comuns |
+| Python 3.12+ | Pacote |
+| [uv](https://docs.astral.sh/uv/) | Gerenciador de dependências |
+| Docker (rodando) | Container do Qdrant |
+| `make` | Atalhos de workflow |
+
+> PyPI: ainda não. Use o clone local descrito abaixo.
 
 ---
 
-## Quick start
+## Instalação local — passo a passo
 
 ```bash
-uv tool install oh-my-harness   # instala omh, o-kb-mcp, o-agents-mcp
-omh install                      # wizard: configura Qdrant, bge-m3, universo default
-```
-
-Após o `omh install`, abra o Claude Code em qualquer projeto — o bloco de regras já está em `~/.claude/CLAUDE.md`.
-
-Escreva a primeira nota:
-
-```
-Use kb_write to record: we chose Qdrant as our vector store.
-```
-
----
-
-## Desenvolvimento local (clone)
-
-```bash
+# 1. Clone
 git clone https://github.com/nelsonfrugeri-tech/oh-my-kb.git
 cd oh-my-kb
-make install           # uv sync — cria .venv
-docker compose up -d   # inicia Qdrant em localhost:6333
-omh install            # provisiona o universo default
+
+# 2. Instala dependências (cria .venv via uv sync)
+make install
+
+# 3. Rode o wizard de setup
+uv run omh install
 ```
 
----
+O wizard `omh install` é interativo. Ele faz 5 perguntas e depois pede confirmação antes de aplicar.
 
-## Ferramentas MCP — o-kb-mcp
+### O que o wizard pergunta
 
-| Ferramenta | O que faz |
-|------------|-----------|
-| `kb_write` | Cria ou supersede uma nota markdown com embedding automático |
-| `kb_search` | Busca híbrida (densa + esparsa) com RRF fusion |
-| `kb_tree` | Visão em árvore do grafo de conhecimento |
-| `kb_expand` | Lê uma nota completa com links resolvidos |
-| `kb_recent` | Notas mais recentes por universo ou projeto |
+| # | Pergunta | Padrão |
+|---|----------|--------|
+| 1 | Diretório de notas | `~/oh-my-harness` |
+| 2 | Nome do knowledge base (universe) | `default` |
+| 3 | Porta local do Qdrant | `6333` |
+| 4 | Cache dos modelos | `~/.cache/oh-my-harness/models` |
+| 5 | Harness (`claude-code`, etc.) | `claude-code` |
 
----
+Aperte **Enter** em qualquer pergunta para aceitar o padrão. Tudo padrão funciona.
 
-## Busca híbrida
+### O que ele faz após você confirmar
 
-Cada nota gera dois vetores via bge-m3 em uma única passagem:
-- **Vetor denso** (1024 dims) — semântica
-- **Vetor esparso** (SPLADE) — léxico / BM25-like
+- Sobe container Docker `oh-my-harness-qdrant` na porta escolhida
+- Cria o diretório de notas e a primeira knowledge base (universe `default`)
+- Escreve `~/.config/oh-my-harness/config.toml`
+- Insere o bloco de regras de uso do kb no início do seu `~/.claude/CLAUDE.md` (para o Claude Code saber usar as tools)
+- Baixa o modelo BGE-M3 no primeiro uso (~2 GB, demora alguns minutos)
 
-O Qdrant combina os dois rankings com **Reciprocal Rank Fusion (RRF)** antes de retornar os resultados. O score RRF retornado por `kb_search` não é uma similaridade de cosseno normalizada; consulte a skill `scribe` para calibração de thresholds.
-
----
-
-## Universos
-
-Universos são namespaces isolados de conhecimento (ex: `work`, `personal`, `oss`):
+### Verifique que está tudo no ar
 
 ```bash
-omh kb create work              # cria um novo universo
-omh kb list                     # lista todos (* = ativo)
-omh kb use work                 # troca o universo ativo
+uv run omh status         # Qdrant + universe + config
+uv run omh kb list        # deve mostrar "default *"
 ```
 
-Cada universo tem um diretório próprio (`~/oh-my-harness/<universo>/`) e uma coleção Qdrant independente.
+Pronto. Abra o Claude Code em qualquer projeto e peça algo como:
 
-A variável `KB_UNIVERSE` sobrescreve o universo ativo no servidor MCP; `KB_NOTES_ROOT` sobrescreve o diretório de notas.
+> "Use kb_write para registrar: escolhemos Qdrant como vector store."
+
+O Claude vai chamar `kb_write` via MCP, a nota vai pro disco em `~/oh-my-harness/default/` e o embedding pro Qdrant.
 
 ---
 
-## Reindexação
+## CLI — `omh`
 
-Se notas forem editadas diretamente no disco, reconcilie com o Qdrant:
-
-```bash
-omh reindex                    # reindexar o universo ativo
-omh reindex --universe work    # reindexar um universo específico
-```
-
-`omh reindex` é **totalmente idempotente**.
-
----
-
-## CLI — omh
-
-```bash
-omh [COMMAND]
-```
+Estado atual (PR de redo da CLI em andamento):
 
 | Comando | O que faz |
 |---------|-----------|
-| `omh install` | Wizard interativo: Qdrant, bge-m3, universo default. Idempotente. |
-| `omh start` | Inicia o container Qdrant. |
-| `omh stop` | Para o container Qdrant. |
-| `omh status` | Exibe o estado atual do sistema. |
-| `omh reindex [--universe NAME]` | Reconcilia Qdrant com os arquivos em disco. |
-| `omh universe create <name>` | Cria universo: diretório + coleção Qdrant + entrada no config. |
-| `omh universe list` | Lista universos configurados. |
-| `omh universe use <name>` | Ativa um universo. |
-| `omh resource list` | Lista os resources MCP disponíveis. |
-| `omh resource pull [--all]` | Baixa resources MCP (ex: skill scribe). |
-
----
-
-## Estrutura do projeto
-
-```
-oh_my_harness/
-  __init__.py
-  kb/                    # o-kb-mcp (knowledge base)
-    agents/              # bootstrap, injeção de harness
-    cli/                 # omh CLI (install, universe, resource, reindex)
-    core/                # Note, slug, serialização
-    embedding/           # BGE-M3 embedder
-    infra/               # QdrantContainer (Docker SDK)
-    mcp/                 # MCP server, tools, resources, skills
-    services/            # Indexer, SearchService, NavigationService
-    storage/             # QdrantStore
-  agents/                # o-agents-mcp (em construção — issue #58)
-    mcp/
-      server.py          # placeholder main()
-tests/
-docs/
-  adr/
-```
+| `omh install` | Wizard interativo. Idempotente. |
+| `omh start` / `stop` / `status` | Ciclo de vida do container Qdrant |
+| `omh reindex [--universe NAME]` | Reconciliar Qdrant com arquivos em disco |
+| `omh kb create <name>` | Criar knowledge base nova (universe) |
+| `omh kb list` | Listar knowledge bases (`*` = ativo) |
+| `omh kb use <name>` | Trocar knowledge base ativa |
+| `omh resource list` | Listar resources MCP (skill scribe etc.) |
+| `omh resource pull [--all]` | Baixar resource(s) para `~/.claude/` |
+| `omh resource diff [<id>]` | Diff local vs servidor |
+| `omh resource update [<id>]` | Aplicar atualizações |
 
 ---
 
@@ -182,38 +102,49 @@ docs/
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `OMH_CONFIG_DIR` | `~/.config/oh-my-harness` | Diretório do `config.toml` |
-| `KB_NOTES_ROOT` | `~/oh-my-harness/<universo>` | Diretório de notas (override por universo) |
-| `KB_QDRANT_URL` | `http://localhost:6333` | URL do servidor Qdrant |
-| `KB_UNIVERSE` | (universo ativo no config) | Universo ativo no servidor MCP |
+| `OMH_CONFIG_DIR` | `~/.config/oh-my-harness` | Onde fica o `config.toml` |
+| `KB_NOTES_ROOT` | `~/oh-my-harness/<kb>` | Override do diretório de notas |
+| `KB_QDRANT_URL` | `http://localhost:6333` | URL do Qdrant |
+| `KB_UNIVERSE` | (kb ativa no config) | Override da kb ativa no MCP |
 
 ---
 
-## Migração — oh-my-kb → oh-my-harness
+## Roadmap próximo
 
-Se você usava a versão anterior (`oh-my-kb`):
-
-**Manifest:** o arquivo de manifest era `~/.claude/.omk-manifest.json`. Após instalar `oh-my-harness`, execute `omh resource pull --all` para gerar o novo manifest em `~/.claude/.omh-manifest.json`. O arquivo antigo pode ser removido manualmente.
-
-**Container Docker:** o container se chamava `oh-my-kb-qdrant`. O novo nome é `oh-my-harness-qdrant`. Na próxima vez que rodar `omh install`, um novo container será criado. O antigo pode ser removido com:
-```bash
-docker stop oh-my-kb-qdrant && docker rm oh-my-kb-qdrant
-```
-
-**Variável de ambiente:** `OMK_CONFIG_DIR` foi renomeada para `OMH_CONFIG_DIR`.
-
-**Comando CLI:** `omk` foi renomeado para `omh`. Usuários com `omk` instalado receberão um erro no próximo reinstall — isso é esperado em um rename major.
+- **`omh skills` / `omh agents`** (top-level) — substituem `omh resource`. Vão buscar `.md` versionados em `assets/` deste repo via `raw.githubusercontent.com`, com `pull / diff / update` e contrato SemVer por arquivo.
+- **CLAUDE.md gerado pelo `omh install`** vai injetar `repo_url` e `manifest_url` para o Claude saber checar versões novas sem perguntar.
+- **Cada comando `omh` exposto como tool MCP** — Claude Code (ou outro harness) consegue invocar `omh_skills_pull`, `omh_agents_diff`, etc. por linguagem natural. Mesmo verbo no terminal e no chat.
+- **PyPI** — distribuição via `uv tool install oh-my-harness` quando a CLI estiver estabilizada.
 
 ---
 
 ## Desenvolvimento
 
 ```bash
-make check     # lint + typecheck + tests (CI gate)
-make lint      # ruff check
-make typecheck # mypy oh_my_harness
-make test      # pytest
-make format    # ruff format
+make check      # lint + typecheck + tests (CI gate)
+make lint       # ruff check
+make typecheck  # mypy oh_my_harness
+make test       # pytest
+make format     # ruff format
+```
+
+Notas e código vivem em:
+
+```
+oh_my_harness/
+├── kb/                    # o-kb-mcp (knowledge base)
+│   ├── agents/            # bootstrap + injeção de regras no CLAUDE.md
+│   ├── cli/               # `omh` CLI (install wizard, kb, resource, reindex)
+│   ├── core/              # Note, slug, serialização
+│   ├── embedding/         # BGE-M3 embedder
+│   ├── infra/             # QdrantContainer (Docker SDK)
+│   ├── mcp/               # MCP server + tools (kb_*) + skill scribe
+│   ├── services/          # Indexer, SearchService, NavigationService
+│   └── storage/           # QdrantStore (hybrid search com RRF)
+assets/                    # skills + agents distribuídos via raw.githubusercontent
+└── manifest.json
+tests/
+docs/adr/
 ```
 
 ---
