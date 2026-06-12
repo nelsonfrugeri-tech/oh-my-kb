@@ -1,4 +1,4 @@
-<!-- content_version: 1 | locale: pt-BR | updated: 2026-06-06 -->
+<!-- content_version: 1 | locale: pt-BR | updated: 2026-06-11 -->
 # kb-mcp — regras de memória e base de conhecimento
 
 kb-mcp é a memória de longo prazo deste projeto. As notas persistem como arquivos Markdown
@@ -59,14 +59,8 @@ não por relevância. Use quando a recência for o critério principal.
 Escreva **apenas** quando o usuário pedir explicitamente para registrar, anotar ou
 salvar algo. Não escreva como efeito colateral de responder uma pergunta.
 
-Antes de cada chamada a `kb_write`, leia ambos os recursos na ordem:
-
-1. `skill://scribe/SKILL.md` — processo de raciocínio: quando escrever, como escolher
-   o tipo da nota, como escrever um summary denso e auto-contido (200–800 chars de
-   prosa específica, não um rótulo), como extrair entidades, como propor links.
-2. `skill://scribe/template.md` — a estrutura exata em Markdown que o campo `body` deve
-   seguir, seção por seção, por tipo de nota (`decision`, `event`,
-   `procedure`, `reference`, `conversation`).
+Antes de cada chamada a `kb_write`, leia o skill scribe instalado em
+`~/.claude/skills/scribe/SKILL.md` (e `template.md` no mesmo diretório).
 
 Para **atualizar** uma nota existente: encontre-a com `kb_search`, depois chame `kb_write`
 com `supersedes` definido para o UUID da nota antiga. A nota antiga é preservada como
@@ -91,7 +85,6 @@ O usuário pergunta sobre eventos recentes, últimas decisões ou o que mudou?
   └─ kb_recent (adicione since="7d" / "30d" para restringir a janela)
 
 O usuário pede explicitamente para registrar / salvar algo?
-  └─ LEIA skill://scribe/SKILL.md E skill://scribe/template.md PRIMEIRO
   └─ kb_write (defina supersedes se estiver atualizando uma nota existente)
 
 Nenhum dos casos acima → responda a partir do contexto da sessão; nenhuma chamada kb é necessária
@@ -99,9 +92,14 @@ Nenhum dos casos acima → responda a partir do contexto da sessão; nenhuma cha
 
 ---
 
-## Recursos
+## Skills & agents disponíveis localmente
 
-- `skill://scribe/SKILL.md` — raciocínio: escolha de tipo, qualidade do summary, extração
-  de entidades, propostas de links, decisão de criar vs. superseder.
-- `skill://scribe/template.md` — formato do corpo da nota: seções obrigatórias e opcionais
-  por tipo de nota.
+Skills instalados em `~/.claude/skills/<nome>/SKILL.md` e agents em
+`~/.claude/agents/<nome>.md`. Para consultar versões disponíveis no repositório
+oficial, use o manifest:
+
+- Repositório: {repo_url}
+- Manifest: {manifest_url}
+
+Se o usuário pedir "verifica se tem versão nova de X", consulte o manifest acima
+e compare a `version` do skill/agent com a versão local (no frontmatter YAML do `.md`).

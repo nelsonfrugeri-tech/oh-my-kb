@@ -205,7 +205,7 @@ class TestInstallCLIYes:
 
         assert result.exit_code == 0, result.output
 
-    def test_output_contains_all_7_steps(
+    def test_output_contains_all_8_steps(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
         home = tmp_path / "home"
@@ -224,8 +224,8 @@ class TestInstallCLIYes:
         ):
             result = runner.invoke(app, ["install", "--yes"])
 
-        for step in range(1, 8):
-            assert f"[{step}/7]" in result.output, f"step {step}/7 missing from output"
+        for step in range(1, 9):
+            assert f"[{step}/8]" in result.output, f"step {step}/8 missing from output"
 
     def test_generates_claude_md(self, runner: CliRunner, tmp_path: Path) -> None:
         home = tmp_path / "home"
@@ -256,9 +256,6 @@ class TestInstallCLIYes:
         from oh_my_harness.kb.mcp.tools import (
             KB_EXPAND_TOOL,
             KB_RECENT_TOOL,
-            KB_RESOURCE_DIFF_TOOL,
-            KB_RESOURCE_LIST_TOOL,
-            KB_RESOURCE_UPDATE_TOOL,
             KB_SEARCH_TOOL,
             KB_TREE_TOOL,
             KB_WRITE_TOOL,
@@ -287,9 +284,6 @@ class TestInstallCLIYes:
             KB_TREE_TOOL,
             KB_EXPAND_TOOL,
             KB_RECENT_TOOL,
-            KB_RESOURCE_LIST_TOOL,
-            KB_RESOURCE_DIFF_TOOL,
-            KB_RESOURCE_UPDATE_TOOL,
             DEVELOP_LEAP_UPDATE_TOOL,
         ]:
             assert tool.name in content, f"tool {tool.name} missing from CLAUDE.md"
@@ -384,3 +378,28 @@ class TestInstallCLIYes:
             )
 
         assert result.exit_code == 0, result.output
+
+    def test_claude_md_contains_repo_and_manifest_url(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        from oh_my_harness.kb.cli._remote import MANIFEST_URL, REPO_URL
+
+        home = tmp_path / "home"
+        home.mkdir()
+        fake_client = _fake_client()
+
+        with (
+            patch.object(Path, "home", return_value=home),
+            patch(
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
+                return_value=fake_client,
+            ),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
+        ):
+            runner.invoke(app, ["install", "--yes"])
+
+        content = (home / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        assert REPO_URL in content, "repo_url missing from CLAUDE.md"
+        assert MANIFEST_URL in content, "manifest_url missing from CLAUDE.md"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from oh_my_harness.kb.cli._remote import MANIFEST_URL, REPO_URL
 from oh_my_harness.kb.i18n import DEFAULT_LOCALE, resolve_locale_path
 
 _AGENTS_DIR: Path = Path(__file__).parent
@@ -17,31 +18,26 @@ def load_template(locale: str = DEFAULT_LOCALE) -> str:
 
 
 def render_rules(universe: str, locale: str = DEFAULT_LOCALE) -> str:
-    """Return the bootstrap rules with ``{universe}`` substituted."""
-    return load_template(locale=locale).replace("{universe}", universe)
+    """Return bootstrap rules with ``{universe}``, ``{repo_url}``, ``{manifest_url}``."""
+    return (
+        load_template(locale=locale)
+        .replace("{universe}", universe)
+        .replace("{repo_url}", REPO_URL)
+        .replace("{manifest_url}", MANIFEST_URL)
+    )
 
 
 def render_dynamic_block(universe: str) -> str:
     """Generate the full rules block dynamically from the MCP registry.
 
-    Instead of a static template, this function:
-    1. Imports the tool objects directly from ``oh_my_harness.kb.mcp.tools`` (no server
-       spin-up needed — they are statically importable Python objects).
-    2. Calls ``list_scribe_resources()`` to get the current resource list.
-    3. Renders one bullet per tool (using ``TOOL_TRIGGERS`` for the human-readable
-       trigger phrase, falling back to the tool description if no trigger exists).
-    4. Renders one bullet per resource.
-
-    The result is injected between the sentinel markers by :func:`inject_block`.
+    1. Imports the 5 core kb tool objects directly.
+    2. Renders one bullet per tool.
+    3. Adds skills/agents management hint with manifest URL.
     """
     from oh_my_harness.kb.agents.harness import TOOL_TRIGGERS
-    from oh_my_harness.kb.mcp.resources import list_scribe_resources
     from oh_my_harness.kb.mcp.tools import (
         KB_EXPAND_TOOL,
         KB_RECENT_TOOL,
-        KB_RESOURCE_DIFF_TOOL,
-        KB_RESOURCE_LIST_TOOL,
-        KB_RESOURCE_UPDATE_TOOL,
         KB_SEARCH_TOOL,
         KB_TREE_TOOL,
         KB_WRITE_TOOL,
@@ -53,11 +49,7 @@ def render_dynamic_block(universe: str) -> str:
         KB_TREE_TOOL,
         KB_EXPAND_TOOL,
         KB_RECENT_TOOL,
-        KB_RESOURCE_LIST_TOOL,
-        KB_RESOURCE_DIFF_TOOL,
-        KB_RESOURCE_UPDATE_TOOL,
     ]
-    resources = list_scribe_resources()
 
     lines: list[str] = [
         f"## oh-my-harness — Base de Conhecimento (universe: {universe})",
@@ -69,7 +61,6 @@ def render_dynamic_block(universe: str) -> str:
     for tool in tools:
         trigger = TOOL_TRIGGERS.get(tool.name)
         if trigger is None:
-            # Fallback: use the tool description (trimmed to 120 chars to avoid verbosity)
             raw_desc: str = tool.description or ""
             trigger = raw_desc[:120].rstrip() + ("..." if len(raw_desc) > 120 else "")
             trigger += "  # (no trigger configured — using tool description)"
@@ -77,19 +68,17 @@ def render_dynamic_block(universe: str) -> str:
 
     lines += [
         "",
-        "### Resources disponíveis",
+        "### Skills e agents",
         "",
-    ]
-
-    for resource in resources:
-        lines.append(f"- `{resource.uri}` — {resource.description or resource.name}")
-
-    lines += [
+        "Skills instalados em `~/.claude/skills/<nome>/SKILL.md`,"
+        " agents em `~/.claude/agents/<nome>.md`.",
+        "Para gerenciar: `omh skills pull|diff|update` e `omh agents pull|diff|update`.",
+        f"Manifest oficial: {MANIFEST_URL}",
+        f"Repositório: {REPO_URL}",
         "",
         "### Regras gerais",
         "",
         "- Sempre use o universe ativo configurado em KB_UNIVERSE.",
-        "- Leia skill://scribe/SKILL.md antes de qualquer kb_write.",
         "- Prefira kb_search para recuperação;"
         " use kb_tree quando o usuário precisar de orientação.",
     ]
