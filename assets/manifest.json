@@ -602,16 +602,16 @@
     },
     {
       "name": "scribe",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "path": "assets/skills/scribe",
       "files": [
         {
           "path": "SKILL.md",
-          "sha256": "5f36b7eb7f31f0dff85cd2a5ff3076cfe42554158f341de0af6922ccc60140d1"
+          "sha256": "b1810525c1b7aedae509d7b60bc142d24c49af3b5b968b50e5d2e18d023db3c2"
         },
         {
           "path": "template.md",
-          "sha256": "3ea8cc773d1d445c44e6c27212452f44f8a5f26c17797cecb032fb3c137be759"
+          "sha256": "4b110b02f8f5544e0f08980a7a1f334133baf9ea3b1c0c214944b63e16e43712"
         }
       ]
     },
