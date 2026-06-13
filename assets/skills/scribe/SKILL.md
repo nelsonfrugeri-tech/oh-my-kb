@@ -3,7 +3,7 @@ version: 1.0.0
 ---
 
 <!-- content_version: 1.0.0 | locale: pt-BR | updated: 2026-06-06 -->
-# Scribe — playbook para escrever notas no oh-my-kb
+# Scribe — playbook para escrever notas no oh-my-harness
 
 Esta skill diz ao harness **como preencher os campos** que o `kb_write` espera.
 O contrato mecânico (quais campos são obrigatórios, os valores válidos de `type`,
@@ -193,7 +193,7 @@ nova **não deve** ser linkado. O critério qualitativo da seção acima prevale
 **Quando recalibrar:** mude estes números se algum destes parâmetros mudar:
 - Modelo de embedding (substituir BGE-M3 por outro modelo)
 - `k` do Qdrant RRF (padrão atual: 60)
-- `_PREFETCH_MULTIPLIER` em `oh_my_kb/services/search.py` (padrão atual: 4)
+- `_PREFETCH_MULTIPLIER` em `oh_my_harness/kb/services/search.py` (padrão atual: 4)
 - Tamanho típico do corpus (corpus > 500 notas pode tolerar threshold maior)
 
 Os números acima derivam da fórmula RRF com `k = 60` (padrão do Qdrant) e
@@ -221,7 +221,7 @@ dois prefetches independentes. Para ajustá-los ao seu corpus:
    `top_k × 4` candidatos por sub-query antes de calcular o RRF. Com
    `top_k=10` (recomendado para links_out), o pool de candidatos por lista é
    40 documentos. Se `_PREFETCH_MULTIPLIER` mudar em
-   `oh_my_kb/services/search.py`, toda a distribuição de scores muda — recalibre.
+   `oh_my_harness/kb/services/search.py`, toda a distribuição de scores muda — recalibre.
 
 **BGE-M3:** os vetores denso e esparso do BGE-M3 são treinados com objetivos
 complementares (semântica vs. lexical). A concordância entre as duas listas

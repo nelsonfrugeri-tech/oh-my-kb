@@ -42,7 +42,7 @@ class TestOmkConfigDefaults:
         assert cfg.harness.active == "claude-code"
         assert cfg.qdrant.container_name == "oh-my-harness-qdrant"
 
-    def test_core_notes_root_default_contains_oh_my_kb(self) -> None:
+    def test_core_notes_root_default_contains_oh_my_harness(self) -> None:
         cfg = load_omk_config()
         assert "oh-my-harness" in str(cfg.core.notes_root)
 

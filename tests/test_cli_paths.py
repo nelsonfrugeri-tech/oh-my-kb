@@ -10,7 +10,7 @@ from oh_my_harness.kb.cli.paths import (
 )
 
 
-def test_default_data_root_is_visible_oh_my_kb_dir() -> None:
+def test_default_data_root_is_visible_oh_my_harness_dir() -> None:
     assert Path.home() / "oh-my-harness" == DEFAULT_DATA_ROOT
     assert not DEFAULT_DATA_ROOT.name.startswith(".")
 

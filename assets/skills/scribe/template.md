@@ -2,7 +2,7 @@
 # Template do corpo da nota
 
 Este arquivo define a **estrutura do campo `body`** de toda nota
-escrita no oh-my-kb. Ele **não** define o `summary` — esse é
+escrita no oh-my-harness. Ele **não** define o `summary` — esse é
 escrito separadamente, conforme as regras em
 [`skill://scribe/SKILL.md`](skill://scribe/SKILL.md).
 

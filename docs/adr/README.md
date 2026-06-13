@@ -1,6 +1,8 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for `oh-my-kb`.
+This directory contains Architecture Decision Records (ADRs) for `oh-my-harness`
+(formerly `oh-my-kb`; ADRs accepted before the rename retain the original name in
+their text by the immutability rule below).
 
 ## Format
 
