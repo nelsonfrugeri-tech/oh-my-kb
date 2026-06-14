@@ -222,14 +222,14 @@ class TestDependenciesParsing:
                     "version": "1.0.0",
                     "path": "assets/workflows/create-feature.ts",
                     "sha256": "wfsha",
-                    "dependencies": {"agents": ["tech_pm", "developer", "qa"]},
+                    "dependencies": {"agents": ["tech-pm", "developer", "qa"]},
                 }
             ],
         }
         manifest = _parse_manifest(data)
         wf = manifest.workflows[0]
         assert isinstance(wf.dependencies, Dependencies)
-        assert wf.dependencies.agents == ["tech_pm", "developer", "qa"]
+        assert wf.dependencies.agents == ["tech-pm", "developer", "qa"]
         assert wf.dependencies.skills == []
 
     def test_workflow_without_dependencies_defaults_to_empty(self) -> None:

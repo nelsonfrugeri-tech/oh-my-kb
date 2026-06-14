@@ -45,9 +45,9 @@ _AGENTS = [
         dependencies=Dependencies(skills=["test", "research", "review"]),
     ),
     AgentEntry(
-        name="tech_pm",
+        name="tech-pm",
         version="1.0.0",
-        path="assets/agents/tech_pm.md",
+        path="assets/agents/tech-pm.md",
         sha256="ghi",
         dependencies=Dependencies(skills=["research", "review"]),
     ),
@@ -59,7 +59,7 @@ _WORKFLOWS = [
         version="1.0.0",
         path="assets/workflows/create-feature.ts",
         sha256="wf1",
-        dependencies=Dependencies(agents=["developer", "qa", "tech_pm"]),
+        dependencies=Dependencies(agents=["developer", "qa", "tech-pm"]),
     ),
 ]
 
@@ -153,7 +153,7 @@ class TestResolveWorkflow:
         skill_names = {s.name for s in rs.skills}
         assert "developer" in agent_names
         assert "qa" in agent_names
-        assert "tech_pm" in agent_names
+        assert "tech-pm" in agent_names
         assert "implement" in skill_names
         assert "test" in skill_names
         assert "research" in skill_names

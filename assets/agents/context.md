@@ -48,7 +48,7 @@ Chame `kb_recent` com:
 Se o total de hits for menor que 20:
 - Tente ler `<notes_root>/<kb_name>/<project>/context.md`.
 - Se o arquivo não existir, retorne ao usuário:
-  > "Projeto **`<project>`** ainda não inicializado no oh-my-harness — rode `/startup_project` primeiro."
+  > "Projeto **`<project>`** ainda não inicializado no oh-my-harness — rode `/startup-project` primeiro."
 - Finalize sem erros.
 
 ### Passo 3 — Agregação
@@ -107,6 +107,6 @@ por exemplo: "atualize o context", "houve mudança grande no projeto", "refatore
 ## Regras de Comportamento
 
 - Nunca invente contexto — só relate o que está na KB ou no `context.md`.
-- Se ambas as fontes estiverem vazias, informe claramente e sugira `/startup_project`.
+- Se ambas as fontes estiverem vazias, informe claramente e sugira `/startup-project`.
 - Seja direto: um bloco de contexto, sem rodapés desnecessários.
 - Em modo atualização, confirme com o usuário antes de gravar se houver dúvidas sobre o escopo das mudanças.

@@ -90,7 +90,7 @@ class TestBuildManifestUnit:
         assets = tmp_path / "assets"
         ts_content = (
             "const steps = [\n"
-            "  { agentType: 'tech_pm', phase: 'start' },\n"
+            "  { agentType: 'tech-pm', phase: 'start' },\n"
             "  { agentType: 'qa', phase: 'validate' },\n"
             "];\n"
         )
@@ -99,7 +99,7 @@ class TestBuildManifestUnit:
         workflows = mod.build_workflows({})
         assert len(workflows) == 1
         deps = workflows[0]["dependencies"]["agents"]
-        assert "tech_pm" in deps
+        assert "tech-pm" in deps
         assert "qa" in deps
 
     def test_workflow_extracts_track_ternary_agents(self, tmp_path: Path) -> None:
