@@ -4,7 +4,7 @@ SHELL := /bin/bash
 UV ?= uv
 PKG := oh_my_harness
 
-.PHONY: help install venv sync test lint format typecheck check clean
+.PHONY: help install venv sync test lint format typecheck check clean manifest
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make \033[36m<target>\033[0m\n\nTargets:\n"} \
@@ -30,6 +30,9 @@ typecheck: ## Type-check the package with mypy
 	$(UV) run mypy $(PKG)
 
 check: lint typecheck test ## Run lint, type-check and tests (CI gate)
+
+manifest: ## Rebuild assets/manifest.json from the assets/ tree (idempotent)
+	$(UV) run python scripts/build_manifest.py
 
 clean: ## Remove the virtualenv and tool caches
 	rm -rf .venv .pytest_cache .mypy_cache .ruff_cache

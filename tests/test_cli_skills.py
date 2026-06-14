@@ -248,3 +248,22 @@ class TestSkillsUpdate:
 
         assert result.exit_code == 0, result.output
         assert "up-to-date" in result.output.lower()
+
+
+class TestSkillsNoDepsFlag:
+    """Skills are leaves — --no-deps has the same effect as default for them."""
+
+    @respx.mock
+    def test_pull_no_deps_still_downloads_the_skill(
+        self, runner: CliRunner, isolated_home: Path
+    ) -> None:
+        respx.get(MANIFEST_URL).mock(return_value=httpx.Response(200, json=_MANIFEST))
+        skill_file_url = f"{RAW_BASE_URL}/assets/skills/python/SKILL.md"
+        respx.get(skill_file_url).mock(return_value=httpx.Response(200, text=_SKILL_CONTENT))
+
+        with patch.object(Path, "home", return_value=isolated_home):
+            result = runner.invoke(app, ["skills", "pull", "--no-deps", "python"])
+
+        assert result.exit_code == 0, result.output
+        skill_md = isolated_home / ".claude" / "skills" / "python" / "SKILL.md"
+        assert skill_md.exists()

@@ -224,3 +224,69 @@ class TestAgentsUpdate:
 
         assert result.exit_code == 0, result.output
         assert "up-to-date" in result.output.lower()
+
+
+# Manifest with a skill dependency on developer agent
+_MANIFEST_WITH_DEPS = {
+    "schema_version": 1,
+    "skills": [
+        {
+            "name": "implement",
+            "version": "1.0.0",
+            "path": "assets/skills/implement",
+            "files": [{"path": "SKILL.md", "sha256": "impl_sha"}],
+        }
+    ],
+    "agents": [
+        {
+            "name": "developer",
+            "version": "1.0.0",
+            "path": "assets/agents/developer.md",
+            "sha256": "dev_sha",
+            "dependencies": {"skills": ["implement"]},
+        }
+    ],
+}
+
+
+class TestAgentsPullWithDeps:
+    @respx.mock
+    def test_pull_agent_also_pulls_skill_deps(
+        self, runner: CliRunner, isolated_home: Path
+    ) -> None:
+        """Pulling an agent should also download its declared skill dependencies."""
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MANIFEST_WITH_DEPS)
+        )
+        agent_url = f"{RAW_BASE_URL}/assets/agents/developer.md"
+        skill_url = f"{RAW_BASE_URL}/assets/skills/implement/SKILL.md"
+        respx.get(agent_url).mock(return_value=httpx.Response(200, text=_AGENT_CONTENT))
+        respx.get(skill_url).mock(return_value=httpx.Response(200, text="# implement\n"))
+
+        with patch.object(Path, "home", return_value=isolated_home):
+            result = runner.invoke(app, ["agents", "pull", "developer"])
+
+        assert result.exit_code == 0, result.output
+        assert (isolated_home / ".claude" / "agents" / "developer.md").exists()
+        assert (isolated_home / ".claude" / "skills" / "implement" / "SKILL.md").exists()
+
+    @respx.mock
+    def test_pull_no_deps_skips_skill_deps(
+        self, runner: CliRunner, isolated_home: Path
+    ) -> None:
+        """--no-deps must skip skill dependencies."""
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MANIFEST_WITH_DEPS)
+        )
+        agent_url = f"{RAW_BASE_URL}/assets/agents/developer.md"
+        respx.get(agent_url).mock(return_value=httpx.Response(200, text=_AGENT_CONTENT))
+
+        with patch.object(Path, "home", return_value=isolated_home):
+            result = runner.invoke(app, ["agents", "pull", "--no-deps", "developer"])
+
+        assert result.exit_code == 0, result.output
+        assert (isolated_home / ".claude" / "agents" / "developer.md").exists()
+        # Skill must NOT be downloaded
+        assert not (
+            isolated_home / ".claude" / "skills" / "implement" / "SKILL.md"
+        ).exists()

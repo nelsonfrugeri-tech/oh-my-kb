@@ -9,10 +9,12 @@ import respx
 from oh_my_harness.kb.cli._remote import (
     MANIFEST_URL,
     AgentEntry,
+    Dependencies,
     Manifest,
     SkillEntry,
     SkillFile,
     WorkflowEntry,
+    _parse_manifest,
     fetch_text,
     load_remote_manifest,
 )
@@ -168,3 +170,102 @@ class TestLoadRemoteManifest:
         respx.get(MANIFEST_URL).mock(return_value=httpx.Response(503, text="unavailable"))
         with pytest.raises(RuntimeError, match="503"):
             load_remote_manifest()
+
+
+class TestDependenciesParsing:
+    def test_agent_dependencies_parsed_from_manifest(self) -> None:
+        data = {
+            "schema_version": 1,
+            "skills": [],
+            "agents": [
+                {
+                    "name": "developer",
+                    "version": "1.0.0",
+                    "path": "assets/agents/developer.md",
+                    "sha256": "abc",
+                    "dependencies": {"skills": ["implement", "test"]},
+                }
+            ],
+        }
+        manifest = _parse_manifest(data)
+        agent = manifest.agents[0]
+        assert isinstance(agent.dependencies, Dependencies)
+        assert agent.dependencies.skills == ["implement", "test"]
+        assert agent.dependencies.agents == []
+
+    def test_agent_without_dependencies_defaults_to_empty(self) -> None:
+        data = {
+            "schema_version": 1,
+            "skills": [],
+            "agents": [
+                {
+                    "name": "developer",
+                    "version": "1.0.0",
+                    "path": "assets/agents/developer.md",
+                    "sha256": "abc",
+                }
+            ],
+        }
+        manifest = _parse_manifest(data)
+        agent = manifest.agents[0]
+        assert agent.dependencies.skills == []
+        assert agent.dependencies.agents == []
+
+    def test_workflow_dependencies_parsed_from_manifest(self) -> None:
+        data = {
+            "schema_version": 1,
+            "skills": [],
+            "agents": [],
+            "workflows": [
+                {
+                    "name": "create-feature",
+                    "version": "1.0.0",
+                    "path": "assets/workflows/create-feature.ts",
+                    "sha256": "wfsha",
+                    "dependencies": {"agents": ["tech_pm", "developer", "qa"]},
+                }
+            ],
+        }
+        manifest = _parse_manifest(data)
+        wf = manifest.workflows[0]
+        assert isinstance(wf.dependencies, Dependencies)
+        assert wf.dependencies.agents == ["tech_pm", "developer", "qa"]
+        assert wf.dependencies.skills == []
+
+    def test_workflow_without_dependencies_defaults_to_empty(self) -> None:
+        data = {
+            "schema_version": 1,
+            "skills": [],
+            "agents": [],
+            "workflows": [
+                {
+                    "name": "create-feature",
+                    "version": "1.0.0",
+                    "path": "assets/workflows/create-feature.ts",
+                    "sha256": "wfsha",
+                }
+            ],
+        }
+        manifest = _parse_manifest(data)
+        wf = manifest.workflows[0]
+        assert wf.dependencies.agents == []
+        assert wf.dependencies.skills == []
+
+    def test_partial_dependencies_field_is_backwards_compatible(self) -> None:
+        """A manifest that only has `skills` inside dependencies (no `agents` key) must not fail."""
+        data = {
+            "schema_version": 1,
+            "skills": [],
+            "agents": [
+                {
+                    "name": "dev",
+                    "version": "1.0.0",
+                    "path": "p",
+                    "sha256": "h",
+                    "dependencies": {"skills": ["research"]},
+                }
+            ],
+        }
+        manifest = _parse_manifest(data)
+        assert manifest.agents[0].dependencies.skills == ["research"]
+        assert manifest.agents[0].dependencies.agents == []

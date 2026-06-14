@@ -253,3 +253,91 @@ class TestWorkflowsUpdate:
 
         assert result.exit_code == 0, result.output
         assert "up-to-date" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# Manifest with full dep graph for dep-resolution tests
+# ---------------------------------------------------------------------------
+
+_MANIFEST_WITH_DEPS = {
+    "schema_version": 1,
+    "skills": [
+        {
+            "name": "implement",
+            "version": "1.0.0",
+            "path": "assets/skills/implement",
+            "files": [{"path": "SKILL.md", "sha256": "impl_sha"}],
+        }
+    ],
+    "agents": [
+        {
+            "name": "developer",
+            "version": "1.0.0",
+            "path": "assets/agents/developer.md",
+            "sha256": "dev_sha",
+            "dependencies": {"skills": ["implement"]},
+        }
+    ],
+    "workflows": [
+        {
+            "name": "create-feature",
+            "version": "1.0.0",
+            "path": "assets/workflows/create-feature.ts",
+            "sha256": "wf_sha",
+            "dependencies": {"agents": ["developer"]},
+        }
+    ],
+}
+
+
+class TestWorkflowsPullWithDeps:
+    @respx.mock
+    def test_pull_workflow_also_pulls_agents_and_skills(
+        self, runner: CliRunner, isolated_home: Path
+    ) -> None:
+        """Pulling a workflow must download its agent deps and their skill deps."""
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MANIFEST_WITH_DEPS)
+        )
+        respx.get(f"{RAW_BASE_URL}/assets/workflows/create-feature.ts").mock(
+            return_value=httpx.Response(200, text=_WORKFLOW_CONTENT)
+        )
+        respx.get(f"{RAW_BASE_URL}/assets/agents/developer.md").mock(
+            return_value=httpx.Response(200, text="# developer\n")
+        )
+        respx.get(f"{RAW_BASE_URL}/assets/skills/implement/SKILL.md").mock(
+            return_value=httpx.Response(200, text="# implement\n")
+        )
+
+        with patch.object(Path, "home", return_value=isolated_home):
+            result = runner.invoke(app, ["workflows", "pull", "create-feature"])
+
+        assert result.exit_code == 0, result.output
+        assert (isolated_home / ".claude" / "workflows" / "create-feature.ts").exists()
+        assert (isolated_home / ".claude" / "agents" / "developer.md").exists()
+        assert (isolated_home / ".claude" / "skills" / "implement" / "SKILL.md").exists()
+
+    @respx.mock
+    def test_pull_no_deps_skips_agent_and_skill_deps(
+        self, runner: CliRunner, isolated_home: Path
+    ) -> None:
+        """--no-deps must pull only the workflow file itself."""
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MANIFEST_WITH_DEPS)
+        )
+        respx.get(f"{RAW_BASE_URL}/assets/workflows/create-feature.ts").mock(
+            return_value=httpx.Response(200, text=_WORKFLOW_CONTENT)
+        )
+
+        with patch.object(Path, "home", return_value=isolated_home):
+            result = runner.invoke(
+                app, ["workflows", "pull", "--no-deps", "create-feature"]
+            )
+
+        assert result.exit_code == 0, result.output
+        assert (isolated_home / ".claude" / "workflows" / "create-feature.ts").exists()
+        # Agent and skill must NOT be downloaded
+        assert not (isolated_home / ".claude" / "agents" / "developer.md").exists()
+        assert not (
+            isolated_home / ".claude" / "skills" / "implement" / "SKILL.md"
+        ).exists()

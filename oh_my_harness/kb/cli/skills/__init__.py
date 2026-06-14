@@ -6,7 +6,8 @@ from typing import Annotated
 
 import typer
 
-from oh_my_harness.kb.cli._remote import load_remote_manifest
+from oh_my_harness.kb.cli._deps import resolve, resolve_all
+from oh_my_harness.kb.cli._remote import Manifest, SkillEntry, load_remote_manifest
 from oh_my_harness.kb.cli.skills._ops import (
     local_version,
     pull_skill,
@@ -39,12 +40,64 @@ def list_cmd() -> None:
         typer.echo(f"{entry.name:<22}  {loc:<10}  {entry.version:<10}  {status}")
 
 
+def _pull_skills_list(
+    entries: list[SkillEntry],
+    manifest: Manifest,
+    label: str,
+    no_deps: bool,
+) -> None:
+    """Pull a list of skill entries, optionally resolving transitive deps first."""
+    dest = skills_dest_root()
+
+    if no_deps:
+        for entry in entries:
+            try:
+                n = pull_skill(entry, dest)
+                typer.secho(f"  pulled {entry.name} ({n} files)", fg=typer.colors.GREEN)
+            except RuntimeError as exc:
+                typer.secho(f"  warning: {entry.name}: {exc}", fg=typer.colors.YELLOW, err=True)
+        return
+
+    # Resolve transitive closure for the full set of entries
+    resolved_names: set[str] = set()
+    resolved_entries: list[SkillEntry] = []
+    for entry in entries:
+        rs = resolve(manifest, "skill", entry.name)
+        for s in rs.skills:
+            if s.name not in resolved_names:
+                resolved_names.add(s.name)
+                resolved_entries.append(s)
+
+    if len(resolved_entries) > len(entries):
+        dep_count = len(resolved_entries) - len(entries)
+        typer.echo(f"pulling {label} ({dep_count} skills as dependencies)")
+
+    already_pulled: set[str] = set()
+    for entry in resolved_entries:
+        if entry.name in already_pulled:
+            continue
+        already_pulled.add(entry.name)
+        try:
+            n = pull_skill(entry, dest)
+            typer.secho(f"  pulled {entry.name} ({n} files)", fg=typer.colors.GREEN)
+        except RuntimeError as exc:
+            typer.secho(f"  warning: {entry.name}: {exc}", fg=typer.colors.YELLOW, err=True)
+
+
 @skills_app.command("pull")
 def pull_cmd(
     name: Annotated[str | None, typer.Argument(help="Skill name to pull.")] = None,
     all_skills: Annotated[bool, typer.Option("--all", help="Pull all skills.")] = False,
+    no_deps: Annotated[
+        bool,
+        typer.Option("--no-deps", help="Pull only the named skill, skip dependency resolution."),
+    ] = False,
 ) -> None:
-    """Download skill(s) to ~/.claude/skills/."""
+    """Download skill(s) to ~/.claude/skills/.
+
+    By default also pulls transitive dependencies.  Use --no-deps for legacy
+    behaviour (pull only the named asset).
+    """
     if not name and not all_skills:
         typer.secho("provide a skill name or --all", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
@@ -55,27 +108,17 @@ def pull_cmd(
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
 
-    dest = skills_dest_root()
-
     if all_skills:
-        for entry in manifest.skills:
-            try:
-                n = pull_skill(entry, dest)
-                typer.secho(f"  pulled {entry.name} ({n} files)", fg=typer.colors.GREEN)
-            except RuntimeError as exc:
-                typer.secho(f"  warning: {entry.name}: {exc}", fg=typer.colors.YELLOW, err=True)
+        rs = resolve_all(manifest, "skill")
+        _pull_skills_list(rs.skills, manifest, "all skills", no_deps=True)
         return
 
     entry_map = {e.name: e for e in manifest.skills}
     if name not in entry_map:
         typer.secho(f"error: skill '{name}' not found in manifest", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
-    try:
-        n = pull_skill(entry_map[name], dest)
-        typer.secho(f"  pulled {name} ({n} files)", fg=typer.colors.GREEN)
-    except RuntimeError as exc:
-        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from exc
+
+    _pull_skills_list([entry_map[name]], manifest, name, no_deps=no_deps)
 
 
 @skills_app.command("diff")
@@ -123,8 +166,18 @@ def diff_cmd(
 def update_cmd(
     name: Annotated[str | None, typer.Argument(help="Skill name to update.")] = None,
     yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation.")] = False,
+    no_deps: Annotated[
+        bool,
+        typer.Option(
+            "--no-deps", help="Update only the named skill, skip dependency resolution."
+        ),
+    ] = False,
 ) -> None:
-    """Update skill(s) that are not up-to-date."""
+    """Update skill(s) that are not up-to-date.
+
+    By default also updates transitive dependencies.  Use --no-deps for legacy
+    behaviour (update only the named asset).
+    """
     try:
         manifest = load_remote_manifest()
     except RuntimeError as exc:
@@ -142,6 +195,18 @@ def update_cmd(
                 err=True,
             )
             raise typer.Exit(code=1)
+
+    # Resolve deps unless --no-deps
+    if not no_deps:
+        resolved_names: set[str] = set()
+        resolved_entries: list[SkillEntry] = []
+        for entry in entries:
+            rs = resolve(manifest, "skill", entry.name)
+            for s in rs.skills:
+                if s.name not in resolved_names:
+                    resolved_names.add(s.name)
+                    resolved_entries.append(s)
+        entries = resolved_entries
 
     to_update = [e for e in entries if skill_status(e, dest) != "up-to-date"]
     if not to_update:
@@ -171,7 +236,11 @@ def update_cmd(
             typer.echo("Update cancelled.")
             raise typer.Exit(code=0)
 
+    already_updated: set[str] = set()
     for entry in to_update:
+        if entry.name in already_updated:
+            continue
+        already_updated.add(entry.name)
         try:
             n = pull_skill(entry, dest)
             typer.secho(f"  updated {entry.name} ({n} files)", fg=typer.colors.GREEN)

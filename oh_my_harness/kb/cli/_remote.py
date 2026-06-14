@@ -25,6 +25,18 @@ class SkillFile:
 
 
 @dataclass(frozen=True)
+class Dependencies:
+    """Optional dependency declarations for agents and workflows.
+
+    A missing/null ``dependencies`` field in the manifest means no deps.
+    Skills are leaf nodes and never declare dependencies.
+    """
+
+    skills: list[str] = field(default_factory=list)
+    agents: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class SkillEntry:
     name: str
     version: str
@@ -38,6 +50,7 @@ class AgentEntry:
     version: str
     path: str
     sha256: str
+    dependencies: Dependencies = field(default_factory=Dependencies)
 
 
 @dataclass(frozen=True)
@@ -46,6 +59,7 @@ class WorkflowEntry:
     version: str
     path: str
     sha256: str
+    dependencies: Dependencies = field(default_factory=Dependencies)
 
 
 @dataclass(frozen=True)
@@ -54,6 +68,14 @@ class Manifest:
     skills: list[SkillEntry]
     agents: list[AgentEntry]
     workflows: list[WorkflowEntry] = field(default_factory=list)
+
+
+def _parse_dependencies(raw: dict[str, Any]) -> Dependencies:
+    """Parse a ``dependencies`` dict from manifest JSON into a :class:`Dependencies`."""
+    return Dependencies(
+        skills=list(raw.get("skills", [])),
+        agents=list(raw.get("agents", [])),
+    )
 
 
 def _parse_manifest(data: dict[str, Any]) -> Manifest:
@@ -72,6 +94,7 @@ def _parse_manifest(data: dict[str, Any]) -> Manifest:
             version=a["version"],
             path=a["path"],
             sha256=a["sha256"],
+            dependencies=_parse_dependencies(a.get("dependencies", {})),
         )
         for a in data.get("agents", [])
     ]
@@ -81,6 +104,7 @@ def _parse_manifest(data: dict[str, Any]) -> Manifest:
             version=w["version"],
             path=w["path"],
             sha256=w["sha256"],
+            dependencies=_parse_dependencies(w.get("dependencies", {})),
         )
         for w in data.get("workflows", [])
     ]
