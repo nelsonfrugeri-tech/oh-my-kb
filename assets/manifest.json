@@ -184,6 +184,17 @@
       ]
     },
     {
+      "name": "feature",
+      "version": "1.0.0",
+      "path": "assets/skills/feature",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "faf65bf71ad9305f6aa7744f685761b8e2a333feff56b4b80c3b0bb4381f1940"
+        }
+      ]
+    },
+    {
       "name": "frontend-ui",
       "version": "1.0.0",
       "path": "assets/skills/frontend-ui",
@@ -833,6 +844,14 @@
       "version": "1.0.0",
       "path": "assets/agents/startup_project.md",
       "sha256": "b2e986ad52b53fdde3893d7a3ab990c21e602ce3c09ef844c463f95bfb2f3241"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "create-feature",
+      "version": "1.0.0",
+      "path": "assets/workflows/create-feature.ts",
+      "sha256": "42ad380db820129913b1866a4db908f3b1ed2b43d5c1edb70425638b4c5fbd48"
     }
   ]
 }

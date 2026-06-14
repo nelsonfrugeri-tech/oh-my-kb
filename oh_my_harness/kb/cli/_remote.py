@@ -1,4 +1,4 @@
-"""Remote manifest constants and fetcher for ``omh skills`` / ``omh agents``."""
+"""Remote manifest constants and fetcher for ``omh skills`` / ``omh agents`` / ``omh workflows``."""
 
 from __future__ import annotations
 
@@ -41,10 +41,19 @@ class AgentEntry:
 
 
 @dataclass(frozen=True)
+class WorkflowEntry:
+    name: str
+    version: str
+    path: str
+    sha256: str
+
+
+@dataclass(frozen=True)
 class Manifest:
     schema_version: int
     skills: list[SkillEntry]
     agents: list[AgentEntry]
+    workflows: list[WorkflowEntry] = field(default_factory=list)
 
 
 def _parse_manifest(data: dict[str, Any]) -> Manifest:
@@ -66,10 +75,20 @@ def _parse_manifest(data: dict[str, Any]) -> Manifest:
         )
         for a in data.get("agents", [])
     ]
+    workflows = [
+        WorkflowEntry(
+            name=w["name"],
+            version=w["version"],
+            path=w["path"],
+            sha256=w["sha256"],
+        )
+        for w in data.get("workflows", [])
+    ]
     return Manifest(
         schema_version=int(data.get("schema_version", 1)),
         skills=skills,
         agents=agents,
+        workflows=workflows,
     )
 
 

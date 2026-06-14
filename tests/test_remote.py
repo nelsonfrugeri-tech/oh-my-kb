@@ -12,6 +12,7 @@ from oh_my_harness.kb.cli._remote import (
     Manifest,
     SkillEntry,
     SkillFile,
+    WorkflowEntry,
     fetch_text,
     load_remote_manifest,
 )
@@ -34,6 +35,20 @@ _MINIMAL_MANIFEST = {
             "sha256": "def456",
         }
     ],
+    "workflows": [
+        {
+            "name": "create-feature",
+            "version": "1.0.0",
+            "path": "assets/workflows/create-feature.ts",
+            "sha256": "ghi789",
+        }
+    ],
+}
+
+_MANIFEST_WITHOUT_WORKFLOWS = {
+    "schema_version": 1,
+    "skills": [],
+    "agents": [],
 }
 
 
@@ -89,6 +104,7 @@ class TestLoadRemoteManifest:
         assert manifest.schema_version == 1
         assert len(manifest.skills) == 1
         assert len(manifest.agents) == 1
+        assert len(manifest.workflows) == 1
 
     @respx.mock
     def test_skill_entry_fields(self) -> None:
@@ -116,6 +132,28 @@ class TestLoadRemoteManifest:
         assert agent.name == "developer"
         assert agent.version == "1.0.0"
         assert agent.sha256 == "def456"
+
+    @respx.mock
+    def test_workflow_entry_fields(self) -> None:
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MINIMAL_MANIFEST)
+        )
+        manifest = load_remote_manifest()
+        workflow = manifest.workflows[0]
+        assert isinstance(workflow, WorkflowEntry)
+        assert workflow.name == "create-feature"
+        assert workflow.version == "1.0.0"
+        assert workflow.path == "assets/workflows/create-feature.ts"
+        assert workflow.sha256 == "ghi789"
+
+    @respx.mock
+    def test_workflows_defaults_to_empty_list_when_absent(self) -> None:
+        """Older manifests without 'workflows' key must not break parsing."""
+        respx.get(MANIFEST_URL).mock(
+            return_value=httpx.Response(200, json=_MANIFEST_WITHOUT_WORKFLOWS)
+        )
+        manifest = load_remote_manifest()
+        assert manifest.workflows == []
 
     @respx.mock
     def test_raises_on_invalid_json(self) -> None:

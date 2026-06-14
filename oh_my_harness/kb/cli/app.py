@@ -18,6 +18,7 @@ from oh_my_harness.kb.cli.config import (
 )
 from oh_my_harness.kb.cli.paths import default_notes_root_for
 from oh_my_harness.kb.cli.skills import skills_app
+from oh_my_harness.kb.cli.workflows import workflows_app
 from oh_my_harness.kb.services import collection_name_for
 from oh_my_harness.kb.storage import QdrantStore, get_qdrant_url
 
@@ -57,6 +58,7 @@ universe_app = typer.Typer(
 app.add_typer(universe_app, name="kb")
 app.add_typer(skills_app, name="skills")
 app.add_typer(agents_app, name="agents")
+app.add_typer(workflows_app, name="workflows")
 
 
 @app.command("help")
@@ -210,11 +212,12 @@ def install_cmd(
         bold=True,
     )
 
-    # ── [8/9] Download skills and agents (optional) ──
+    # ── [8/9] Download skills, agents and workflows (optional) ──
     if choices.download_extras:
-        typer.echo("  [8/9] Baixando skills e agents...")
+        typer.echo("  [8/9] Baixando skills, agents e workflows...")
         from oh_my_harness.kb.cli.agents._ops import pull_all_agents
         from oh_my_harness.kb.cli.skills._ops import pull_all_skills
+        from oh_my_harness.kb.cli.workflows._ops import pull_all_workflows
 
         skills_count, skills_errors = pull_all_skills()
         if skills_errors:
@@ -226,22 +229,30 @@ def install_cmd(
             for err in agents_errors:
                 typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
 
-        if skills_errors or agents_errors:
+        workflows_count, workflows_errors = pull_all_workflows()
+        if workflows_errors:
+            for err in workflows_errors:
+                typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
+
+        any_errors = skills_errors or agents_errors or workflows_errors
+        if any_errors:
             typer.secho(
-                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados"
+                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados,"
+                f" workflows: {workflows_count} baixados"
                 " (alguns falharam — rode `omh skills pull --all` depois)",
                 fg=typer.colors.YELLOW,
             )
         else:
             typer.secho(
-                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados",
+                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados,"
+                f" workflows: {workflows_count} baixados",
                 fg=typer.colors.GREEN,
                 bold=True,
             )
     else:
         typer.secho(
-            "  [8/9] skills e agents pulados (rode `omh skills pull --all` "
-            "e `omh agents pull --all` depois se mudar de ideia)",
+            "  [8/9] skills, agents e workflows pulados (rode `omh skills pull --all`, "
+            "`omh agents pull --all` e `omh workflows pull --all` depois se mudar de ideia)",
             fg=typer.colors.YELLOW,
         )
 
