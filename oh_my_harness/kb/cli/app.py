@@ -93,8 +93,8 @@ def install_cmd(
     typer.echo("  Instalando Oh My Harness...")
     typer.echo("")
 
-    # ── [1/8] Docker check ──
-    typer.echo("  [1/8] Verificando Docker...")
+    # ── [1/9] Docker check ──
+    typer.echo("  [1/9] Verificando Docker...")
     from oh_my_harness.kb.infra.docker_qdrant import DockerNotRunningError, QdrantContainer
     try:
         qc = QdrantContainer(
@@ -106,10 +106,10 @@ def install_cmd(
     except DockerNotRunningError as exc:
         typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
-    typer.secho("  [1/8] Docker OK", fg=typer.colors.GREEN)
+    typer.secho("  [1/9] Docker OK", fg=typer.colors.GREEN)
 
-    # ── [2/8] Ensure Qdrant container ──
-    typer.echo("  [2/8] Iniciando Qdrant (qdrant/qdrant:latest) ...")
+    # ── [2/9] Ensure Qdrant container ──
+    typer.echo("  [2/9] Iniciando Qdrant (qdrant/qdrant:latest) ...")
     try:
         qc.ensure_image()
         action = qc.ensure_running()
@@ -120,18 +120,18 @@ def install_cmd(
         typer.secho(f"  error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
     typer.secho(
-        f"  [2/8] Qdrant {action} na porta {choices.qdrant_port}",
+        f"  [2/9] Qdrant {action} na porta {choices.qdrant_port}",
         fg=typer.colors.GREEN,
     )
 
-    # ── [3/8] Create knowledge base directory ──
-    typer.echo(f"  [3/8] Criando knowledge base '{choices.universe}' ...")
+    # ── [3/9] Create knowledge base directory ──
+    typer.echo(f"  [3/9] Criando knowledge base '{choices.universe}' ...")
     universe_dir = choices.notes_root / choices.universe
     universe_dir.mkdir(parents=True, exist_ok=True)
-    typer.secho(f"  [3/8] {universe_dir}/", fg=typer.colors.GREEN)
+    typer.secho(f"  [3/9] {universe_dir}/", fg=typer.colors.GREEN)
 
-    # ── [4/8] Persist configuration ──
-    typer.echo("  [4/8] Salvando configuracao ...")
+    # ── [4/9] Persist configuration ──
+    typer.echo("  [4/9] Salvando configuracao ...")
     from oh_my_harness.kb.cli.config import config_path
 
     omk_cfg = OmkConfig(
@@ -160,37 +160,37 @@ def install_cmd(
     if not store.collection_exists(coll_name):
         store.ensure_collection(coll_name)
 
-    typer.secho(f"  [4/8] {config_path()}", fg=typer.colors.GREEN)
+    typer.secho(f"  [4/9] {config_path()}", fg=typer.colors.GREEN)
 
-    # ── [5/8] Generate dynamic block ──
-    typer.echo("  [5/8] Gerando bloco de regras ...")
+    # ── [5/9] Generate dynamic block ──
+    typer.echo("  [5/9] Gerando bloco de regras ...")
     from oh_my_harness.kb.agents.template import render_dynamic_block
     render_dynamic_block(choices.universe)
-    typer.secho("  [5/8] Bloco gerado com sucesso", fg=typer.colors.GREEN)
+    typer.secho("  [5/9] Bloco gerado com sucesso", fg=typer.colors.GREEN)
 
-    # ── [6/8] Bootstrap harness ──
-    typer.echo("  [6/8] Injetando bloco em ~/.claude/CLAUDE.md ...")
+    # ── [6/9] Bootstrap harness ──
+    typer.echo("  [6/9] Injetando bloco em ~/.claude/CLAUDE.md ...")
     from oh_my_harness.kb.agents.bootstrap import do_bootstrap
     report = do_bootstrap(choices.harness, choices.universe)
     typer.secho(
-        f"  [6/8] Bloco omh {report.action} em {report.target_file}",
+        f"  [6/9] Bloco omh {report.action} em {report.target_file}",
         fg=typer.colors.GREEN,
         bold=True,
     )
 
-    # ── [7/8] Write initial user preferences block ──
-    typer.echo("  [7/8] Escrevendo seção 'Preferências do Usuário' ...")
+    # ── [7/9] Write initial user preferences block ──
+    typer.echo("  [7/9] Escrevendo seção 'Preferências do Usuário' ...")
     from oh_my_harness.agents.preferences.install import write_initial_preferences
     prefs_action = write_initial_preferences()
     typer.secho(
-        f"  [7/8] Seção 'Preferências do Usuário' {prefs_action} em ~/.claude/CLAUDE.md",
+        f"  [7/9] Seção 'Preferências do Usuário' {prefs_action} em ~/.claude/CLAUDE.md",
         fg=typer.colors.GREEN,
         bold=True,
     )
 
-    # ── [8/8] Download skills and agents (optional) ──
+    # ── [8/9] Download skills and agents (optional) ──
     if choices.download_extras:
-        typer.echo("  [8/8] Baixando skills e agents...")
+        typer.echo("  [8/9] Baixando skills e agents...")
         from oh_my_harness.kb.cli.agents._ops import pull_all_agents
         from oh_my_harness.kb.cli.skills._ops import pull_all_skills
 
@@ -206,21 +206,37 @@ def install_cmd(
 
         if skills_errors or agents_errors:
             typer.secho(
-                f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados"
+                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados"
                 " (alguns falharam — rode `omh skills pull --all` depois)",
                 fg=typer.colors.YELLOW,
             )
         else:
             typer.secho(
-                f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados",
+                f"  [8/9] skills: {skills_count} baixados, agents: {agents_count} baixados",
                 fg=typer.colors.GREEN,
                 bold=True,
             )
     else:
         typer.secho(
-            "  [8/8] skills e agents pulados (rode `omh skills pull --all` "
+            "  [8/9] skills e agents pulados (rode `omh skills pull --all` "
             "e `omh agents pull --all` depois se mudar de ideia)",
             fg=typer.colors.YELLOW,
+        )
+
+    # ── [9/9] Configure SessionStart hook ──
+    typer.echo("  [9/9] Configurando SessionStart hook (auto-load de contexto)...")
+    from oh_my_harness.kb.agents.hooks import install_session_start
+    hook_report = install_session_start(choices.harness)
+    if hook_report.action == "skipped":
+        typer.secho(
+            f"  [9/9] SessionStart hook nao suportado para harness '{choices.harness}', pulando",
+            fg=typer.colors.YELLOW,
+        )
+    else:
+        typer.secho(
+            f"  [9/9] hook {hook_report.action} em {hook_report.settings_path}",
+            fg=typer.colors.GREEN,
+            bold=True,
         )
 
     typer.echo("")

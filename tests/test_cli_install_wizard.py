@@ -206,7 +206,7 @@ class TestInstallCLIYes:
 
         assert result.exit_code == 0, result.output
 
-    def test_output_contains_all_8_steps(
+    def test_output_contains_all_9_steps(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
         home = tmp_path / "home"
@@ -225,8 +225,30 @@ class TestInstallCLIYes:
         ):
             result = runner.invoke(app, ["install", "--yes"])
 
-        for step in range(1, 9):
-            assert f"[{step}/8]" in result.output, f"step {step}/8 missing from output"
+        for step in range(1, 10):
+            assert f"[{step}/9]" in result.output, f"step {step}/9 missing from output"
+
+    def test_output_contains_session_start_hook_step(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        home = tmp_path / "home"
+        home.mkdir()
+        fake_client = _fake_client()
+
+        with (
+            patch.object(Path, "home", return_value=home),
+            patch(
+                "oh_my_harness.kb.infra.docker_qdrant.QdrantContainer._docker",
+                return_value=fake_client,
+            ),
+            patch("oh_my_harness.kb.storage.QdrantStore.healthcheck", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.collection_exists", return_value=True),
+            patch("oh_my_harness.kb.storage.QdrantStore.ensure_collection"),
+        ):
+            result = runner.invoke(app, ["install", "--yes"])
+
+        assert "[9/9]" in result.output
+        assert "SessionStart" in result.output or "hook" in result.output.lower()
 
     def test_generates_claude_md(self, runner: CliRunner, tmp_path: Path) -> None:
         home = tmp_path / "home"
