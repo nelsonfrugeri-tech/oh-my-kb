@@ -6,6 +6,7 @@ from pathlib import Path
 
 import typer
 
+from oh_my_harness import __version__ as _OMH_VERSION
 from oh_my_harness.kb.cli.agents import agents_app
 from oh_my_harness.kb.cli.config import (
     KbAlreadyExistsError,
@@ -28,6 +29,27 @@ app = typer.Typer(
     ),
     no_args_is_help=True,
 )
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"omh {_OMH_VERSION}")
+        raise typer.Exit()
+
+
+@app.callback()
+def _root(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show the omh CLI version and exit.",
+    ),
+) -> None:
+    """oh-my-harness CLI (omh)."""
+    return None
 universe_app = typer.Typer(
     help="Create, list and switch between knowledge bases.",
     no_args_is_help=True,
