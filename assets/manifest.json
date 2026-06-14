@@ -678,6 +678,17 @@
       ]
     },
     {
+      "name": "startup-project",
+      "version": "1.0.0",
+      "path": "assets/skills/startup-project",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "fd5d18e9482d4466194b9e9eddf9deaf7babb1763b1186e9e0b24f2cc7555597"
+        }
+      ]
+    },
+    {
       "name": "typescript",
       "version": "1.0.0",
       "path": "assets/skills/typescript",
@@ -793,6 +804,12 @@
       "version": "1.0.0",
       "path": "assets/agents/tech_pm.md",
       "sha256": "223ff3f908029478f9980e729155c80967e74b03c61a5763c134e204a07803bd"
+    },
+    {
+      "name": "startup_project",
+      "version": "1.0.0",
+      "path": "assets/agents/startup_project.md",
+      "sha256": "b2e986ad52b53fdde3893d7a3ab990c21e602ce3c09ef844c463f95bfb2f3241"
     }
   ]
 }
