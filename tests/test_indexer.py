@@ -91,7 +91,7 @@ def test_path_slugifies_project(
 def test_write_note_creates_collection_for_universe(
     indexer: Indexer, store: QdrantStore
 ) -> None:
-    note = make_note(universe="research")
+    note = make_note(kb_name="research")
     collection = collection_name_for("research")
     assert collection == f"{COLLECTION_PREFIX}research"
     assert store.collection_exists(collection) is False
@@ -247,7 +247,7 @@ def test_read_note_by_id_raises_on_universe_mismatch(
     indexer: Indexer, store: QdrantStore
 ) -> None:
     """Payload universe mismatch triggers NoteNotFoundError (defence-in-depth)."""
-    note = make_note(universe="engineering")
+    note = make_note(kb_name="engineering")
     indexer.write_note(note)
 
     # Manually corrupt the payload to simulate a mis-indexed point.

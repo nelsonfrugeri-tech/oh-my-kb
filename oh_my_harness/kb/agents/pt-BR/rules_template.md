@@ -1,9 +1,14 @@
-<!-- content_version: 1 | locale: pt-BR | updated: 2026-06-11 -->
-# kb-mcp — regras de memória e base de conhecimento
+<!-- content_version: 1 | locale: pt-BR | updated: 2026-06-13 -->
+# oh-my-harness — regras de memória e base de conhecimento
 
-kb-mcp é a memória de longo prazo deste projeto. As notas persistem como arquivos Markdown
-indexados no Qdrant. O universo ativo é **{universe}**. Toda consulta e escrita
-é automaticamente escopada a ele — nunca passe o universo como argumento de ferramenta.
+oh-my-harness é um harness modular para IA. A knowledge base ativa é **{kb_name}**.
+
+Módulos:
+- **kb** — knowledge base persistente via MCP (ferramentas abaixo). As notas são
+  escopadas à knowledge base ativa automaticamente — nunca passe como argumento de ferramenta.
+- **agents** — agentes pessoais via MCP (veja seção "Agentes pessoais" abaixo).
+
+A CLI `omh` orquestra tudo: `omh kb`, `omh skills`, `omh agents`.
 
 Ferramentas: `kb_search` (recuperação semântica), `kb_tree` (diretório estrutural),
 `kb_expand` (nota completa + links resolvidos), `kb_write` (registrar/superseder uma nota),
@@ -15,7 +20,7 @@ Ferramentas: `kb_search` (recuperação semântica), `kb_tree` (diretório estru
 
 Use quando o usuário se referir a contexto passado, uma decisão estabelecida, convenção
 ou procedimento, e a informação não estiver na sessão atual.
-Prefira também `kb_search` quando o universo for grande ou a pergunta for sobre
+Prefira também `kb_search` quando a knowledge base for grande ou a pergunta for sobre
 similaridade de conteúdo ("o que sabemos sobre X?", "qual é nossa política sobre Y?").
 
 Não use `kb_search` para explorar estrutura — para isso existe `kb_tree`.
@@ -25,7 +30,7 @@ Não use `kb_search` para explorar estrutura — para isso existe `kb_tree`.
 ## Quando navegar — `kb_tree` + `kb_expand`
 
 Use `kb_tree` quando a pergunta for estrutural: "o que existe?", "quais tópicos
-este universo cobre?", "quais notas estão no projeto X?". Ele retorna um mapa
+esta knowledge base cobre?", "quais notas estão no projeto X?". Ele retorna um mapa
 agrupado por projeto com ids, títulos, tipos e summaries das notas — sem custo de
 embedding, sem o corpo completo.
 
@@ -37,7 +42,7 @@ id de link retornado. Encadeie chamadas para exploração multi-salto:
 kb_tree → escolha o id → kb_expand → siga o id do link → kb_expand → ...
 ```
 
-Prefira navegação em vez de busca quando o universo ou projeto for pequeno, ou quando
+Prefira navegação em vez de busca quando a knowledge base ou projeto for pequeno, ou quando
 a pergunta for sobre relações entre notas.
 
 ---

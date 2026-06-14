@@ -91,7 +91,7 @@ async def handle_kb_expand(
             TextContent(
                 type="text",
                 text=(
-                    f"kb_expand: note '{raw_id}' not found in universe '{universe}'.\n"
+                    f"kb_expand: note '{raw_id}' not found in knowledge base '{universe}'.\n"
                     "Use kb_tree to list valid ids, or kb_search to find notes by content."
                 ),
             )

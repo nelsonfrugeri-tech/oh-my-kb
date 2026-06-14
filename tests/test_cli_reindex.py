@@ -56,7 +56,7 @@ def populated_universe(isolated_env: Path) -> tuple[str, Path]:
     save_config(cfg)
 
     # Write one note onto disk so reindex has something to upsert.
-    note = make_note(title="Hello World", universe=universe_name)
+    note = make_note(title="Hello World", kb_name=universe_name)
     (notes_root / f"{note.slug}.md").write_text(to_markdown(note), encoding="utf-8")
 
     return universe_name, notes_root
@@ -100,7 +100,7 @@ def test_runner_raises_universe_not_found_when_name_unknown(
 def test_runner_uses_active_universe_when_no_arg(
     populated_universe: tuple[str, Path],
 ) -> None:
-    """ReindexRunner.run() uses the active universe from config when universe=None."""
+    """ReindexRunner.run() uses the active universe from config when kb_name=None."""
     _universe_name, _notes_root = populated_universe
     store = QdrantStore(IN_MEMORY)
     stub = StubEmbedder()
@@ -133,7 +133,7 @@ def test_runner_uses_explicit_universe_arg(
     save_config(cfg)
 
     # Write a note into 'alt's notes_root.
-    note = make_note(title="Alt Note", universe="alt")
+    note = make_note(title="Alt Note", kb_name="alt")
     (alt_root / f"{note.slug}.md").write_text(to_markdown(note), encoding="utf-8")
 
     store = QdrantStore(IN_MEMORY)

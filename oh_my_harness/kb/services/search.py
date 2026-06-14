@@ -6,8 +6,8 @@ each vector independently, and fuses the two ranked lists with Reciprocal
 Rank Fusion. Filters (``project``, ``archived``) are applied as Qdrant
 payload conditions so they run server-side rather than after fusion.
 
-A missing universe collection is *not* an error — it just means "no notes
-yet in this universe", and the service returns an empty list.
+A missing knowledge base collection is *not* an error — it just means "no notes
+yet in this knowledge base", and the service returns an empty list.
 """
 
 from __future__ import annotations
@@ -52,12 +52,12 @@ class SearchService:
     def search(
         self,
         query: str,
-        universe: str,
+        kb_name: str,
         project: str | None = None,
         top_k: int = 5,
         include_archived: bool = False,
     ) -> list[SearchResult]:
-        collection = collection_name_for(universe)
+        collection = collection_name_for(kb_name)
         if not self._store.collection_exists(collection):
             return []
 

@@ -8,9 +8,9 @@ import typer
 
 from oh_my_harness.kb.cli.agents import agents_app
 from oh_my_harness.kb.cli.config import (
-    UniverseAlreadyExistsError,
-    UniverseNotFoundError,
-    add_universe,
+    KbAlreadyExistsError,
+    KbNotFoundError,
+    add_kb,
     load_config,
     save_config,
     set_active,
@@ -23,7 +23,7 @@ from oh_my_harness.kb.storage import QdrantStore, get_qdrant_url
 app = typer.Typer(
     name="omh",
     help=(
-        "oh-my-harness — install, manage universes, expose help. "
+        "oh-my-harness — install, manage knowledge bases, expose help. "
         "Knowledge interaction stays in MCP."
     ),
     no_args_is_help=True,
@@ -124,8 +124,8 @@ def install_cmd(
         fg=typer.colors.GREEN,
     )
 
-    # ── [3/8] Create universe directory ──
-    typer.echo(f"  [3/8] Criando universe '{choices.universe}' ...")
+    # ── [3/8] Create knowledge base directory ──
+    typer.echo(f"  [3/8] Criando knowledge base '{choices.universe}' ...")
     universe_dir = choices.notes_root / choices.universe
     universe_dir.mkdir(parents=True, exist_ok=True)
     typer.secho(f"  [3/8] {universe_dir}/", fg=typer.colors.GREEN)
@@ -137,7 +137,7 @@ def install_cmd(
     omk_cfg = OmkConfig(
         core=OmkCoreConfig(
             notes_root=choices.notes_root,
-            default_universe=choices.universe,
+            default_kb=choices.universe,
             models_cache=choices.models_cache,
         ),
         qdrant=OmkQdrantConfig(
@@ -151,7 +151,7 @@ def install_cmd(
     qdrant_url = f"http://localhost:{choices.qdrant_port}"
     cli_cfg = load_config()
     if not cli_cfg.has(choices.universe):
-        cli_cfg = add_universe(cli_cfg, name=choices.universe, notes_root=universe_dir)
+        cli_cfg = add_kb(cli_cfg, name=choices.universe, notes_root=universe_dir)
     cli_cfg = set_active(cli_cfg, choices.universe)
     save_config(cli_cfg)
 
@@ -188,32 +188,39 @@ def install_cmd(
         bold=True,
     )
 
-    # ── [8/8] Download skills and agents ──
-    typer.echo("  [8/8] Baixando skills e agents...")
-    from oh_my_harness.kb.cli.agents._ops import pull_all_agents
-    from oh_my_harness.kb.cli.skills._ops import pull_all_skills
+    # ── [8/8] Download skills and agents (optional) ──
+    if choices.download_extras:
+        typer.echo("  [8/8] Baixando skills e agents...")
+        from oh_my_harness.kb.cli.agents._ops import pull_all_agents
+        from oh_my_harness.kb.cli.skills._ops import pull_all_skills
 
-    skills_count, skills_errors = pull_all_skills()
-    if skills_errors:
-        for err in skills_errors:
-            typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
+        skills_count, skills_errors = pull_all_skills()
+        if skills_errors:
+            for err in skills_errors:
+                typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
 
-    agents_count, agents_errors = pull_all_agents()
-    if agents_errors:
-        for err in agents_errors:
-            typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
+        agents_count, agents_errors = pull_all_agents()
+        if agents_errors:
+            for err in agents_errors:
+                typer.secho(f"  warning: {err}", fg=typer.colors.YELLOW, err=True)
 
-    if skills_errors or agents_errors:
-        typer.secho(
-            f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados"
-            " (alguns falharam — rode `omh skills pull --all` depois)",
-            fg=typer.colors.YELLOW,
-        )
+        if skills_errors or agents_errors:
+            typer.secho(
+                f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados"
+                " (alguns falharam — rode `omh skills pull --all` depois)",
+                fg=typer.colors.YELLOW,
+            )
+        else:
+            typer.secho(
+                f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados",
+                fg=typer.colors.GREEN,
+                bold=True,
+            )
     else:
         typer.secho(
-            f"  [8/8] skills: {skills_count} baixados, agents: {agents_count} baixados",
-            fg=typer.colors.GREEN,
-            bold=True,
+            "  [8/8] skills e agents pulados (rode `omh skills pull --all` "
+            "e `omh agents pull --all` depois se mudar de ideia)",
+            fg=typer.colors.YELLOW,
         )
 
     typer.echo("")
@@ -276,8 +283,8 @@ def universe_create_cmd(
         else Path(notes_root).expanduser()
     )
     try:
-        cfg = add_universe(load_config(), name=name, notes_root=target)
-    except UniverseAlreadyExistsError as exc:
+        cfg = add_kb(load_config(), name=name, notes_root=target)
+    except KbAlreadyExistsError as exc:
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
 
@@ -305,7 +312,7 @@ def universe_list_cmd() -> None:
     """List configured knowledge bases; the active one is marked with ``*``."""
     cfg = load_config()
     if not cfg.universes:
-        typer.echo("no universes configured yet. Run `omh install` first.")
+        typer.echo("No knowledge bases configured yet. Run `omh install` first.")
         raise typer.Exit(code=0)
     for u in cfg.universes:
         marker = "*" if u.name == cfg.active else " "
@@ -319,7 +326,7 @@ def universe_use_cmd(
     """Set ``name`` as the active knowledge base."""
     try:
         cfg = set_active(load_config(), name)
-    except UniverseNotFoundError as exc:
+    except KbNotFoundError as exc:
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
     save_config(cfg)
@@ -328,23 +335,24 @@ def universe_use_cmd(
 
 @app.command("reindex")
 def reindex_cmd(
-    universe_name: str | None = typer.Option(
+    kb_name: str | None = typer.Option(
         None,
+        "--kb",
         "--universe",
         "-u",
-        help="Universe to reindex. Defaults to the active universe.",
+        help="Knowledge base to reindex. Defaults to the active knowledge base.",
     ),
 ) -> None:
     """Reconcile the Qdrant collection with markdown files on disk."""
-    from oh_my_harness.kb.cli.reindex import NoActiveUniverseError, ReindexRunner
+    from oh_my_harness.kb.cli.reindex import NoActiveKbError, ReindexRunner
 
     try:
         runner = ReindexRunner()
-        report = runner.run(universe_name)
-    except NoActiveUniverseError as exc:
+        report = runner.run(kb_name)
+    except NoActiveKbError as exc:
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
-    except UniverseNotFoundError as exc:
+    except KbNotFoundError as exc:
         typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from exc
 

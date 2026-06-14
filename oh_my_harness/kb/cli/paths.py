@@ -1,12 +1,12 @@
 """Path conventions for the o-kb-client.
 
-A single ``data_root`` (default ``~/oh-my-harness``) holds every universe as a
-visible sub-directory named ``slug(universe)``. That keeps notes editable
+A single ``data_root`` (default ``~/oh-my-harness``) holds every knowledge base as a
+visible sub-directory named ``slug(kb_name)``. That keeps notes editable
 and git-versionable without hiding them under a dotfile.
 
-``KB_NOTES_ROOT`` is the **per-universe** override per the issue spec: when
-set, it replaces the default ``data_root / slug(universe)`` for the universe
-currently being acted on. Callers pass that resolved Path to :class:`Indexer`.
+``KB_NOTES_ROOT`` is the **per-kb** override: when set, it replaces the default
+``data_root / slug(kb_name)`` for the knowledge base currently being acted on.
+Callers pass that resolved Path to :class:`Indexer`.
 
 Implementation note: the actual helpers live in
 :mod:`oh_my_harness.kb.services.paths` (the neutral shared layer) so that the MCP

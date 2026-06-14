@@ -37,7 +37,7 @@ class Note(BaseModel):
     title: str
     type: NoteType
     project: str
-    universe: str
+    kb_name: str
     created_at: datetime = Field(default_factory=_utc_now)
     entities: list[str] = Field(default_factory=list)
     links_out: list[UUID] = Field(default_factory=list)
@@ -46,7 +46,12 @@ class Note(BaseModel):
     summary: str
     body: str = ""
 
-    @field_validator("title", "project", "universe", "summary")
+    # Backward-compatible property for call sites that still read .universe.
+    @property
+    def universe(self) -> str:  # backward-compatible alias
+        return self.kb_name
+
+    @field_validator("title", "project", "kb_name", "summary")
     @classmethod
     def _non_empty(cls, value: str) -> str:
         if not value or not value.strip():
@@ -59,6 +64,20 @@ class Note(BaseModel):
         if value.tzinfo is None:
             raise ValueError("must be timezone-aware")
         return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate_universe_field(cls, data: object) -> object:
+        """Accept legacy ``universe`` key as a fallback for ``kb_name``.
+
+        Existing .md files on disk and Qdrant payloads store the field as
+        ``universe``; this validator maps it to ``kb_name`` transparently so
+        deserialization of existing notes works without data migration.
+        """
+        if isinstance(data, dict) and "universe" in data and "kb_name" not in data:
+            data = dict(data)
+            data["kb_name"] = data.pop("universe")
+        return data
 
     @model_validator(mode="after")
     def _ensure_slug(self) -> Note:

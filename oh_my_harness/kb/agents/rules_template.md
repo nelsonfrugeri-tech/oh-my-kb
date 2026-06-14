@@ -1,8 +1,13 @@
-# kb-mcp — memory and knowledge base rules
+# oh-my-harness — knowledge base rules
 
-kb-mcp is this project's long-term memory. Notes persist as Markdown files
-indexed in Qdrant. The active universe is **{universe}**. Every query and write
-is scoped to it automatically — never pass the universe as a tool argument.
+oh-my-harness is a modular AI harness. The active knowledge base is **{kb_name}**.
+
+Modules:
+- **kb** — persistent knowledge base via MCP (tools below). Notes are scoped to the
+  active knowledge base automatically — never pass it as a tool argument.
+- **agents** — personal agents via MCP (see "Personal agents" section below).
+
+The `omh` CLI orchestrates everything: `omh kb`, `omh skills`, `omh agents`.
 
 Tools: `kb_search` (semantic retrieval), `kb_tree` (structural directory),
 `kb_expand` (full note + resolved links), `kb_write` (register/supersede a note),
@@ -14,7 +19,7 @@ Tools: `kb_search` (semantic retrieval), `kb_tree` (structural directory),
 
 Use when the user refers to past context, an established decision, convention,
 or procedure, and the information is not already in the current session.
-Also prefer `kb_search` when the universe is large or the question is about
+Also prefer `kb_search` when the knowledge base is large or the question is about
 content similarity ("what do we know about X?", "what's our policy on Y?").
 
 Do not use `kb_search` to explore structure — that is `kb_tree`.
@@ -24,7 +29,7 @@ Do not use `kb_search` to explore structure — that is `kb_tree`.
 ## When to navigate — `kb_tree` + `kb_expand`
 
 Use `kb_tree` when the question is structural: "what exists?", "what topics
-does this universe cover?", "what notes are in project X?". It returns a
+does this knowledge base cover?", "what notes are in project X?". It returns a
 project-grouped map of note ids, titles, types, and summaries — no embedding
 cost, no full body.
 
@@ -36,7 +41,7 @@ link id. Chain calls for multi-hop exploration:
 kb_tree → pick id → kb_expand → follow link id → kb_expand → ...
 ```
 
-Prefer navigation over search when the universe or project is small, or when
+Prefer navigation over search when the knowledge base or project is small, or when
 the question is about relationships between notes.
 
 ---

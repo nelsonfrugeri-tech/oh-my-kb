@@ -1,11 +1,11 @@
 """Navigation service.
 
-Provides two cheap, complementary views on a universe so the harness can
+Provides two cheap, complementary views on a knowledge base so the harness can
 *navigate* (not just search) the knowledge base:
 
 * :meth:`NavigationService.get_tree` — a project-grouped map of notes built
   **from Qdrant payloads only**. No filesystem reads, no embedding calls;
-  this is what keeps the tree cheap at any universe size.
+  this is what keeps the tree cheap at any knowledge base size.
 * :meth:`NavigationService.expand` — the full content of a single note
   (reconstructed from disk) plus the one-hop metadata of the notes its
   ``links_out`` points to (resolved from payloads, again without reading
@@ -77,16 +77,16 @@ class NavigationService:
 
     def get_tree(
         self,
-        universe: str,
+        kb_name: str,
         project: str | None = None,
         include_archived: bool = False,
     ) -> Tree:
-        """Return ``{project: [TreeNode, ...]}`` for ``universe``.
+        """Return ``{project: [TreeNode, ...]}`` for the knowledge base.
 
         Reads only payloads — never opens a single ``.md`` file. Empty when
-        the universe has no collection yet.
+        the knowledge base has no collection yet.
         """
-        collection = collection_name_for(universe)
+        collection = collection_name_for(kb_name)
         if not self._store.collection_exists(collection):
             return {}
 
@@ -110,17 +110,17 @@ class NavigationService:
             offset = next_offset
         return tree
 
-    def expand(self, note_id: UUID, universe: str) -> ExpandResult:
+    def expand(self, note_id: UUID, kb_name: str) -> ExpandResult:
         """Reconstruct ``note_id`` from disk and resolve its ``links_out``.
 
         Links that point to a missing or archived note are silently dropped
         from the result — the harness shouldn't try to follow them.
         """
-        note = self._indexer.read_note_by_id(note_id, universe)
+        note = self._indexer.read_note_by_id(note_id, kb_name)
         if not note.links_out:
             return ExpandResult(note=note, links=[])
 
-        collection = collection_name_for(universe)
+        collection = collection_name_for(kb_name)
         link_ids = [str(uid) for uid in note.links_out]
         records = self._store.client.retrieve(
             collection_name=collection,

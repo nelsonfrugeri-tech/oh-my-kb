@@ -49,7 +49,7 @@ def test_semantically_close_query_ranks_target_note_first(
                 title=f"nota {idx}",
                 type=NoteType.DECISION,
                 project="oh-my-harness",
-                universe="engineering",
+                kb_name="engineering",
                 created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
                 summary=summary,
             )
@@ -57,7 +57,7 @@ def test_semantically_close_query_ranks_target_note_first(
 
     results = search.search(
         "como armazenamos vetores e fazemos busca híbrida?",
-        universe="engineering",
+        kb_name="engineering",
         top_k=5,
     )
 

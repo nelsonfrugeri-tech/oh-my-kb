@@ -42,23 +42,41 @@ HARNESS_COMING_SOON: list[str] = ["claude-desktop", "cursor", "copilot"]
 
 # Natural-language trigger phrases for each tool name.
 # These appear in the generated ~/.claude/CLAUDE.md block so the harness can
-# understand when to invoke each tool.  If a tool is not listed here, the
-# block renderer falls back to the tool's own description field.
+# understand when to invoke each tool.  Each phrase is **agentic-first**: the
+# harness should decide to call the tool from semantic signals in the
+# conversation, not wait for an explicit user request (user requests also
+# trigger, but they are not the only trigger).
 TOOL_TRIGGERS: dict[str, str] = {
     "kb_write": (
-        "Use quando o usuário pedir para salvar, registrar ou documentar algo"
+        "Use proativamente sempre que surgir conhecimento NOVO sobre o projeto ou usuário "
+        "(decisão tomada, procedimento estabelecido, evento ocorrido, referência útil, "
+        "padrão descoberto, fato sobre o usuário, algo criado/alterado significativamente). "
+        "REGRA RÍGIDA: NUNCA chame esta tool de forma síncrona no loop principal — "
+        "SEMPRE delegue a escrita para um sub-agent (Task/Agent). Também execute "
+        "quando o usuário pedir explicitamente"
     ),
     "kb_search": (
-        "Use quando o usuário pedir para buscar, encontrar ou lembrar algo"
+        "Use proativamente sempre que detectar referência semântica ao passado, a um "
+        "procedimento, a uma funcionalidade, a uma ferramenta usada antes, a uma decisão "
+        "anterior, ou a qualquer assunto que não esteja claro no contexto atual da sessão. "
+        "Em dúvida, busque — é barato; ignorar memória existente quebra continuidade. "
+        "Também execute quando o usuário pedir explicitamente"
     ),
     "kb_tree": (
-        "Use quando o usuário pedir uma visão geral, mapa ou estrutura do conhecimento"
+        "Use para se orientar antes de buscar em uma knowledge base grande, ou quando "
+        "a pergunta for estrutural (\"o que existe?\", \"quais tópicos esse projeto cobre?\"). "
+        "Também execute quando o usuário pedir um mapa do conhecimento"
     ),
     "kb_expand": (
-        "Use quando o usuário quiser aprofundar, ler na íntegra ou seguir links de uma nota"
+        "Use para ler uma nota completa e seguir seus links — quando uma busca retornou "
+        "um resultado promissor que merece aprofundamento, ou para navegar o grafo via "
+        "links_out. Também execute quando o usuário pedir os detalhes de uma nota"
     ),
     "kb_recent": (
-        "Use quando o usuário pedir as últimas notas, histórico recente ou novidades de um projeto"
+        "Use quando a pergunta tiver dimensão temporal explícita ou implícita "
+        "(\"últimas decisões\", \"o que mudou\", \"o que aconteceu recentemente\") ou "
+        "quando precisar do histórico recente para situar uma resposta. Também "
+        "execute quando o usuário pedir últimas notas/novidades"
     ),
 }
 

@@ -18,36 +18,45 @@ from oh_my_harness.kb.agents.template import render_dynamic_block
 @dataclass(frozen=True, slots=True)
 class BootstrapReport:
     harness: str
-    universe: str
+    kb_name: str
     target_file: Path
     action: InjectAction
     bytes_written: int
 
+    # Backward-compatible alias — kept so existing call sites that read .universe still work.
+    @property
+    def universe(self) -> str:  # backward-compatible alias
+        return self.kb_name
 
-class NoActiveUniverseError(ValueError):
-    """Raised when no active universe is configured."""
+
+class NoActiveKbError(ValueError):
+    """Raised when no active knowledge base is configured."""
+
+
+# Backward-compatible alias.
+NoActiveUniverseError = NoActiveKbError  # backward-compatible alias
 
 
 def do_bootstrap(
     harness: str,
-    universe: str,
+    kb_name: str,
     *,
     home: Path | None = None,
 ) -> BootstrapReport:
-    """Single entry point for the wizard (step 6) and ``omk resource update``.
+    """Single entry point for the wizard (step 6) and ``omh`` resource commands.
 
     Orchestrates: ``resolve_harness`` → ``render_dynamic_block`` →
     ``inject_block`` → write.
 
     Args:
         harness: Harness name (e.g. ``"claude-code"``).
-        universe: Active universe name.
+        kb_name: Active knowledge base name.
         home: Override for :func:`Path.home` — used in tests to avoid
             touching the real ``~/.claude/CLAUDE.md``.  When provided the
             override is applied for the duration of the call only.
 
     Returns:
-        :class:`BootstrapReport` with ``target``, ``action``, and
+        :class:`BootstrapReport` with ``target_file``, ``action``, and
         ``bytes_written``.
     """
     from unittest.mock import patch
@@ -55,15 +64,17 @@ def do_bootstrap(
     project_path = Path.cwd()
     if home is not None:
         with patch.object(Path, "home", return_value=home):
-            return bootstrap(harness=harness, project_path=project_path, active_universe=universe)
-    return bootstrap(harness=harness, project_path=project_path, active_universe=universe)
+            return bootstrap(harness=harness, project_path=project_path, active_kb=kb_name)
+    return bootstrap(harness=harness, project_path=project_path, active_kb=kb_name)
 
 
 def bootstrap(
     *,
     harness: str,
     project_path: Path,
-    active_universe: str | None,
+    active_kb: str | None = None,
+    # Backward-compatible parameter name — maps to active_kb when active_kb is None.
+    active_universe: str | None = None,
 ) -> BootstrapReport:
     """Inject the kb-mcp rules block into *harness*'s target file.
 
@@ -72,13 +83,15 @@ def bootstrap(
     harnesses the target lives under *project_path*.
 
     Raises:
-        NoActiveUniverseError: if ``active_universe`` is ``None``.
+        NoActiveKbError: if both ``active_kb`` and ``active_universe`` are ``None``.
         UnknownHarnessError: if *harness* is not in :data:`HARNESS_REGISTRY`.
         FileNotFoundError: if *project_path* does not exist or is not a directory
             (only checked for *project*-scoped harnesses).
     """
-    if active_universe is None:
-        raise NoActiveUniverseError("no active universe; run `omk install` first")
+    # Resolve the kb name from the canonical param, then the legacy alias.
+    resolved_kb = active_kb if active_kb is not None else active_universe
+    if resolved_kb is None:
+        raise NoActiveKbError("no active knowledge base; run `omh install` first")
 
     h = resolve_harness(harness)  # raises UnknownHarnessError if unknown
 
@@ -89,11 +102,11 @@ def bootstrap(
 
     target = target_path_for(h, project_path)
 
-    # For global harnesses, ensure the parent directory exists (Bug 4 fix: safe creation).
+    # For global harnesses, ensure the parent directory exists.
     if h.scope == "global":
         target.parent.mkdir(parents=True, exist_ok=True)
 
-    new_block = render_dynamic_block(active_universe)
+    new_block = render_dynamic_block(resolved_kb)
     wrapped_block = f"{START_MARKER}\n{new_block.rstrip()}\n{END_MARKER}\n"
 
     current = target.read_text(encoding="utf-8") if target.exists() else None
@@ -104,7 +117,7 @@ def bootstrap(
 
     return BootstrapReport(
         harness=h.name,
-        universe=active_universe,
+        kb_name=resolved_kb,
         target_file=target,
         action=action,
         bytes_written=len(wrapped_block.encode("utf-8")),

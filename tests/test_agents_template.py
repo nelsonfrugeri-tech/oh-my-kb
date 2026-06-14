@@ -3,14 +3,14 @@ from oh_my_harness.kb.agents.template import load_template, render_dynamic_block
 
 def test_load_template_returns_pt_br():
     content = load_template()
-    assert "{universe}" in content  # placeholder present
+    assert "{kb_name}" in content  # placeholder present
     assert "pt-BR" in content  # content_version marker
 
 
-def test_render_rules_substitutes_universe():
-    result = render_rules("my-universe")
-    assert "{universe}" not in result
-    assert "my-universe" in result
+def test_render_rules_substitutes_kb_name():
+    result = render_rules("my-kb")
+    assert "{kb_name}" not in result
+    assert "my-kb" in result
 
 
 def test_load_template_fallback(tmp_path, monkeypatch):

@@ -65,7 +65,7 @@ def _note(
         "title": title,
         "type": note_type,
         "project": project,
-        "universe": universe,
+        "kb_name": universe,
         "summary": summary,
         "body": f"# {title}\n\n{summary}",
         "links_out": links_out or [],
@@ -153,7 +153,7 @@ def test_full_flow_with_real_embedder(
     # -----------------------------------------------------------------------
     results = search_svc.search(
         query="vector store for hybrid semantic search",
-        universe=UNIVERSE,
+        kb_name=UNIVERSE,
         top_k=3,
     )
     assert results, "Search returned no results"
@@ -165,7 +165,7 @@ def test_full_flow_with_real_embedder(
     # -----------------------------------------------------------------------
     # Step 3: get_tree — should see 3 distinct projects.
     # -----------------------------------------------------------------------
-    tree = nav_svc.get_tree(universe=UNIVERSE)
+    tree = nav_svc.get_tree(kb_name=UNIVERSE)
     assert len(tree) == 3, f"Expected 3 projects in tree, got {list(tree.keys())}"
     assert "architecture" in tree
     assert "api" in tree
@@ -175,7 +175,7 @@ def test_full_flow_with_real_embedder(
     # -----------------------------------------------------------------------
     # Step 4: expand note_bgem3 — its links_out should resolve to note_infra.
     # -----------------------------------------------------------------------
-    expand = nav_svc.expand(note_bgem3.id, universe=UNIVERSE)
+    expand = nav_svc.expand(note_bgem3.id, kb_name=UNIVERSE)
     assert expand.note.id == note_bgem3.id
     assert len(expand.links) == 1, (
         f"Expected 1 resolved link for note_bgem3, got {len(expand.links)}"
@@ -207,7 +207,7 @@ def test_full_flow_with_real_embedder(
     # -----------------------------------------------------------------------
     results_v2 = search_svc.search(
         query="vector store for hybrid semantic search",
-        universe=UNIVERSE,
+        kb_name=UNIVERSE,
         top_k=5,
         include_archived=False,
     )
@@ -236,7 +236,7 @@ def test_full_flow_with_real_embedder(
 
     report1 = reindex_universe(
         indexer=indexer,
-        universe=UNIVERSE,
+        kb_name=UNIVERSE,
         notes_root=tmp_path,
     )
 
@@ -262,7 +262,7 @@ def test_full_flow_with_real_embedder(
     # -----------------------------------------------------------------------
     report2 = reindex_universe(
         indexer=indexer,
-        universe=UNIVERSE,
+        kb_name=UNIVERSE,
         notes_root=tmp_path,
     )
     assert report2.removed == 0, (

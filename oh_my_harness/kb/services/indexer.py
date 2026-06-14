@@ -8,13 +8,13 @@ Orchestrates the three layers below it:
 
 Dependencies arrive by constructor injection so tests can use the
 ``QdrantStore(':memory:')`` backend and a stub embedder. No env var lookups
-happen here — the CLI/MCP layer resolves the per-universe ``notes_root``
+happen here — the CLI/MCP layer resolves the per-knowledge-base ``notes_root``
 and passes a concrete ``Path`` to the constructor.
 
-Collection layout: each ``universe`` maps to its own Qdrant collection named
-``kb_<slug(universe)>``. Per-note files live under
+Collection layout: each knowledge base maps to its own Qdrant collection named
+``kb_<slug(kb_name)>``. Per-note files live under
 ``<notes_root>/<slug(project)>/<note.slug>.md`` — ``notes_root`` is already
-universe-scoped, so the indexer adds only the project subdirectory.
+kb-scoped, so the indexer adds only the project subdirectory.
 """
 
 from __future__ import annotations
@@ -46,13 +46,13 @@ class WriteResult:
     absolute_path: Path
 
 
-def collection_name_for(universe: str) -> str:
-    """Return the Qdrant collection name for a given ``universe``.
+def collection_name_for(kb_name: str) -> str:
+    """Return the Qdrant collection name for a given knowledge base.
 
-    Convention: ``kb_<slug(universe)>``. Search never crosses universes, so
+    Convention: ``kb_<slug(kb_name)>``. Search never crosses knowledge bases, so
     isolation is at the collection boundary.
     """
-    return f"{COLLECTION_PREFIX}{slugify(universe)}"
+    return f"{COLLECTION_PREFIX}{slugify(kb_name)}"
 
 
 class Indexer:
@@ -63,13 +63,13 @@ class Indexer:
 
     @property
     def notes_root(self) -> Path:
-        """The universe-scoped directory where this indexer writes notes."""
+        """The kb-scoped directory where this indexer writes notes."""
         return self._notes_root
 
     def path_for(self, note: Note) -> Path:
         """Return the filesystem path where this note's .md will live.
 
-        ``notes_root`` is already universe-scoped, so only the project
+        ``notes_root`` is already kb-scoped, so only the project
         slug is added under it before the file name.
         """
         return self._notes_root / slugify(note.project) / f"{note.slug}.md"
@@ -99,7 +99,7 @@ class Indexer:
         # because write_note is idempotent — re-running with the same note.id
         # overwrites the point and creates the file.  Reversing steps 3 and 4
         # re-introduces the orphan-.md bug fixed in issue #25.
-        collection = collection_name_for(note.universe)
+        collection = collection_name_for(note.kb_name)
         self._store.ensure_collection(collection)
 
         path = self.path_for(note)
@@ -151,7 +151,7 @@ class Indexer:
         (3) upsert      — idempotent
         (no file write)
         """
-        collection = collection_name_for(note.universe)
+        collection = collection_name_for(note.kb_name)
         self._store.ensure_collection(collection)
 
         embedding = self._embedder.embed_text(note.summary)
@@ -169,17 +169,17 @@ class Indexer:
         )
         self._store.client.upsert(collection_name=collection, points=[point])
 
-    def read_note_by_id(self, note_id: UUID, universe: str) -> Note:
+    def read_note_by_id(self, note_id: UUID, kb_name: str) -> Note:
         """Load a note's full content from disk using the Qdrant payload's path.
 
         Raises :class:`NoteNotFoundError` when:
-        * no point exists for ``note_id`` in ``universe``'s collection,
+        * no point exists for ``note_id`` in the knowledge base's collection,
         * the payload is missing the ``path`` field,
-        * the payload's ``universe`` field does not match the requested
-          universe (defence-in-depth against index corruption),
+        * the payload's ``universe`` key does not match ``kb_name``
+          (defence-in-depth against index corruption),
         * the file at the stored path no longer exists on disk.
         """
-        collection = collection_name_for(universe)
+        collection = collection_name_for(kb_name)
         records = self._store.client.retrieve(
             collection_name=collection,
             ids=[str(note_id)],
@@ -188,13 +188,14 @@ class Indexer:
         )
         if not records:
             raise NoteNotFoundError(
-                f"note {note_id} not found in universe '{universe}'"
+                f"note {note_id} not found in knowledge base '{kb_name}'"
             )
         payload = records[0].payload or {}
-        if payload.get("universe") != universe:
+        # Payload key is "universe" for backward compat with stored notes.
+        if payload.get("universe") != kb_name:
             raise NoteNotFoundError(
-                f"note {note_id} payload universe '{payload.get('universe')}' "
-                f"does not match requested universe '{universe}'"
+                f"note {note_id} payload kb '{payload.get('universe')}' "
+                f"does not match requested knowledge base '{kb_name}'"
             )
         path_str = payload.get("path")
         if not isinstance(path_str, str):
@@ -217,7 +218,8 @@ class Indexer:
             "title": note.title,
             "type": note.type.value,
             "project": note.project,
-            "universe": note.universe,
+            # Payload key is "universe" for backward compat with stored Qdrant data.
+            "universe": note.kb_name,
             "created_at": note.created_at.isoformat(),
             "entities": list(note.entities),
             # Store a path relative to notes_root so the index is portable

@@ -82,7 +82,7 @@ def _note(
         title=title,
         type=NoteType.DECISION,
         project=project,
-        universe=universe,
+        kb_name=universe,
         created_at=created,
         summary=summary,
         archived=archived,
@@ -193,7 +193,7 @@ def test_since_includes_notes_exactly_at_boundary(
             title="boundary",
             type=NoteType.DECISION,
             project="default",
-            universe="engineering",
+            kb_name="engineering",
             created_at=since,
             summary="note exactly at the boundary",
         )
@@ -297,7 +297,7 @@ def test_with_topic_since_includes_notes_exactly_at_boundary(
             title="boundary-topic",
             type=NoteType.DECISION,
             project="default",
-            universe="engineering",
+            kb_name="engineering",
             created_at=since,
             summary="note exactly at the boundary",
         )
@@ -324,7 +324,7 @@ def test_with_topic_since_boundary_handles_tz_correctly(
             title="tz-note",
             type=NoteType.DECISION,
             project="default",
-            universe="engineering",
+            kb_name="engineering",
             created_at=created_local,
             summary="note with non-UTC timezone created_at",
         )

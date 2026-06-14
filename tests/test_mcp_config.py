@@ -39,10 +39,10 @@ def test_notes_root_uses_default_layout_when_unset(monkeypatch: pytest.MonkeyPat
     assert get_active_notes_root() == expected
 
 
-def test_explicit_universe_argument_overrides_env(
+def test_explicit_kb_name_argument_overrides_env(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv(UNIVERSE_ENV, "research")
     monkeypatch.delenv(DATA_ROOT_ENV, raising=False)
     expected = Path.home() / "oh-my-harness" / "personal"
-    assert get_active_notes_root(universe="personal") == expected
+    assert get_active_notes_root(kb_name="personal") == expected

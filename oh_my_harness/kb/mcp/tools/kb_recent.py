@@ -118,7 +118,7 @@ async def handle_kb_recent(
             TextContent(
                 type="text",
                 text=(
-                    f"kb_recent: no notes found in universe '{universe}'"
+                    f"kb_recent: no notes found in knowledge base '{universe}'"
                     f"{filter_summary}."
                 ),
             )
@@ -169,7 +169,7 @@ def _format_hits(
     topic_ctx = f", topic={topic!r}" if topic else ""
 
     header = (
-        f"kb_recent: {len(hits)} note(s) in universe '{universe}'"
+        f"kb_recent: {len(hits)} note(s) in knowledge base '{universe}'"
         f"{filter_ctx}{topic_ctx}, {order_label}\n"
     )
     blocks: list[str] = []

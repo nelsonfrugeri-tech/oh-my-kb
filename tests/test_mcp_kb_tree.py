@@ -39,7 +39,7 @@ def _note(
         "title": title,
         "type": NoteType.DECISION,
         "project": project,
-        "universe": universe,
+        "kb_name": universe,
         "created_at": datetime(2026, 5, 10, 14, 32, tzinfo=UTC),
         "summary": summary or f"summary of {title}",
         "archived": archived,
@@ -67,7 +67,7 @@ async def test_kb_tree_groups_by_project(
     # Header
     assert "kb_tree:" in text
     assert "2 note(s)" in text
-    assert "universe 'work'" in text
+    assert "knowledge base 'work'" in text
 
     # Both project sections present
     assert "=== backend ===" in text

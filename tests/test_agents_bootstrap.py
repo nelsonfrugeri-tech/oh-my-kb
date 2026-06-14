@@ -14,7 +14,8 @@ import pytest
 
 from oh_my_harness.kb.agents.bootstrap import (
     BootstrapReport,
-    NoActiveUniverseError,
+    NoActiveKbError,
+    NoActiveUniverseError,  # backward-compatible alias
     bootstrap,
     do_bootstrap,
 )
@@ -114,10 +115,11 @@ class TestBootstrapCreated:
         home = _fake_home(tmp_path)
         with patch.object(Path, "home", return_value=home):
             report = bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="my-universe"
+                harness="claude-code", project_path=tmp_path, active_kb="my-kb"
             )
         assert report.harness == "claude-code"
-        assert report.universe == "my-universe"
+        assert report.kb_name == "my-kb"
+        assert report.universe == "my-kb"  # alias still works
         assert report.target_file == _global_target(home)
         assert report.bytes_written > 0
 
@@ -242,29 +244,29 @@ class TestBootstrapIdempotent:
 
 
 class TestBootstrapReplaced:
-    def test_different_universe_returns_replaced(self, tmp_path: Path) -> None:
+    def test_different_kb_returns_replaced(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)
         with patch.object(Path, "home", return_value=home):
             bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-one"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-one"
             )
             report2 = bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-two"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-two"
             )
         assert report2.action == InjectAction.REPLACED
 
-    def test_replaced_file_contains_new_universe(self, tmp_path: Path) -> None:
+    def test_replaced_file_contains_new_kb_name(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)
         with patch.object(Path, "home", return_value=home):
             bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-one"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-one"
             )
             bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-two"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-two"
             )
         text = _global_target(home).read_text(encoding="utf-8")
-        assert "universe-two" in text
-        assert "universe-one" not in text
+        assert "kb-two" in text
+        assert "kb-one" not in text
 
     def test_user_content_preserved_on_replace(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)
@@ -273,10 +275,10 @@ class TestBootstrapReplaced:
         target.write_text("# User rules\n\nKeep this.\n", encoding="utf-8")
         with patch.object(Path, "home", return_value=home):
             bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-one"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-one"
             )
             bootstrap(
-                harness="claude-code", project_path=tmp_path, active_universe="universe-two"
+                harness="claude-code", project_path=tmp_path, active_kb="kb-two"
             )
         text = target.read_text(encoding="utf-8")
         assert "# User rules" in text
@@ -284,13 +286,18 @@ class TestBootstrapReplaced:
 
 
 class TestBootstrapErrors:
-    def test_no_active_universe_raises(self, tmp_path: Path) -> None:
-        with pytest.raises(NoActiveUniverseError):
-            bootstrap(harness="claude-code", project_path=tmp_path, active_universe=None)
+    def test_no_active_kb_raises(self, tmp_path: Path) -> None:
+        with pytest.raises(NoActiveKbError):
+            bootstrap(harness="claude-code", project_path=tmp_path, active_kb=None)
 
-    def test_no_active_universe_raises_value_error(self, tmp_path: Path) -> None:
+    def test_no_active_kb_raises_via_alias(self, tmp_path: Path) -> None:
+        # Alias still catches the same exception.
+        with pytest.raises(NoActiveUniverseError):
+            bootstrap(harness="claude-code", project_path=tmp_path, active_kb=None)
+
+    def test_no_active_kb_raises_value_error(self, tmp_path: Path) -> None:
         with pytest.raises(ValueError):
-            bootstrap(harness="claude-code", project_path=tmp_path, active_universe=None)
+            bootstrap(harness="claude-code", project_path=tmp_path, active_kb=None)
 
     def test_unknown_harness_raises(self, tmp_path: Path) -> None:
         with pytest.raises(UnknownHarnessError):
@@ -348,11 +355,12 @@ class TestDoBootstrap:
             report = do_bootstrap("claude-code", "my-universe")
         assert report.bytes_written > 0
 
-    def test_universe_in_report(self, tmp_path: Path) -> None:
+    def test_kb_name_in_report(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)
         with patch.object(Path, "home", return_value=home):
-            report = do_bootstrap("claude-code", "work-universe")
-        assert report.universe == "work-universe"
+            report = do_bootstrap("claude-code", "work-kb")
+        assert report.kb_name == "work-kb"
+        assert report.universe == "work-kb"  # alias still works
 
     def test_home_override_parameter(self, tmp_path: Path) -> None:
         """``home`` param overrides the project_path used internally."""
@@ -367,9 +375,9 @@ class TestDoBootstrap:
             report2 = do_bootstrap("claude-code", "my-universe")
         assert report2.action == InjectAction.UNCHANGED
 
-    def test_file_contains_universe_name(self, tmp_path: Path) -> None:
+    def test_file_contains_kb_name(self, tmp_path: Path) -> None:
         home = _fake_home(tmp_path)
         with patch.object(Path, "home", return_value=home):
-            do_bootstrap("claude-code", "cool-universe")
+            do_bootstrap("claude-code", "cool-kb")
         content = _global_target(home).read_text(encoding="utf-8")
-        assert "cool-universe" in content
+        assert "cool-kb" in content

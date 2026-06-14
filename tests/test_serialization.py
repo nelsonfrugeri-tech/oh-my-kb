@@ -13,7 +13,7 @@ def _fully_populated_note() -> Note:
         title="Arquitetura do KB",
         type=NoteType.DECISION,
         project="oh-my-harness",
-        universe="engineering",
+        kb_name="engineering",
         created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         entities=["nelson", "qdrant"],
         links_out=[
@@ -32,7 +32,7 @@ def _minimal_note() -> Note:
         title="Minimal note",
         type=NoteType.REFERENCE,
         project="oh-my-harness",
-        universe="engineering",
+        kb_name="engineering",
         summary="Apenas o necessário.",
     )
 

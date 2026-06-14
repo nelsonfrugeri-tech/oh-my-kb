@@ -124,7 +124,7 @@ def status_cmd() -> None:
     table.add_row("Container", image_status)
     table.add_row("Status", container_status)
     table.add_row("Port", str(omk_cfg.qdrant.port))
-    table.add_row("Universe", cli_cfg.active or "(none)")
+    table.add_row("Knowledge base", cli_cfg.active or "(none)")
     table.add_row("Notes dir", str(omk_cfg.core.notes_root))
     table.add_row("Config file", str(omk_config_path()))
     table.add_row("Version", version)

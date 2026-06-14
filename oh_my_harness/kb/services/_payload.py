@@ -23,12 +23,12 @@ class SearchResult:
     for no-topic results ordered by ``created_at``.  Do not interpret ``0.0``
     as a relevance score — the MCP handler labels it "n/a".
 
-    ``path`` is **relative to the universe's** ``notes_root`` (matches the
+    ``path`` is **relative to the knowledge base's** ``notes_root`` (matches the
     Indexer payload, kept relative for portability across machines). The
     caller resolves it to an absolute path via the notes_root it already
-    knows for the universe being searched.
+    knows for the knowledge base being searched.
 
-    Fields intentionally omitted for now: ``universe``, ``entities``,
+    Fields intentionally omitted for now: the ``universe`` payload key, ``entities``,
     ``supersedes``. They can be added when a downstream consumer needs them.
     See issue #9 for the full payload spec discussion.
     """

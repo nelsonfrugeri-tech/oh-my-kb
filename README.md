@@ -204,7 +204,7 @@ omh install [--yes]               Interactive setup wizard (--yes accepts all de
 omh start                         Start the Qdrant Docker container (idempotent)
 omh stop                          Stop the Qdrant Docker container
 omh status                        Show system state: Qdrant health, active knowledge base
-omh reindex [--universe NAME]     Reconcile Qdrant collection with markdown files on disk
+omh reindex [--kb NAME]           Reconcile Qdrant collection with markdown files on disk
 ```
 
 ### Knowledge bases
@@ -318,7 +318,7 @@ No local caching — every `diff` or `update` call reflects the current remote s
 ## MCP tools
 
 The `o-kb-mcp` server registers exactly five tools. The knowledge base scope is fixed at
-server start via the `KB_UNIVERSE` environment variable; tool calls cannot override it.
+server start via the `KB_NAME` environment variable; tool calls cannot override it.
 
 | Tool | Natural-language trigger |
 |------|--------------------------|
@@ -337,7 +337,7 @@ injecting the connection block into `~/.claude/CLAUDE.md`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `KB_UNIVERSE` | `default` | Knowledge base name bound to the running MCP server |
+| `KB_NAME` | `default` | Knowledge base name bound to the running MCP server |
 | `KB_QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
 | `OMH_CONFIG_DIR` | `~/.config/oh-my-harness` | Override the config directory (useful for isolated tests) |
 
@@ -384,10 +384,10 @@ those markers untouched.
   `omh kb use` via natural language without leaving the chat.
 - **Additional harness support** — VS Code Copilot, Cursor, and other harnesses that
   support a skills/agents directory convention.
-- **Terminology cleanup** — the `KB_UNIVERSE` env var and several internal strings
-  (wizard prompt, install log, `omh kb list` output) still use the old term `universe`.
-  A follow-up issue will complete the rename to `knowledge base` across all user-facing
-  surfaces (see cleanup issue pending).
+- **Drop the `universe` compat shims** — `KB_UNIVERSE` env var, `default_universe` TOML
+  key, `--universe` reindex flag, and function/class aliases (`add_universe`,
+  `NoActiveUniverseError`, etc.) are kept as silent fallbacks for backward compatibility.
+  Remove them in a future major version once no installations rely on them.
 
 ---
 

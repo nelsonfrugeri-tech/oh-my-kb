@@ -46,9 +46,9 @@ class TestOmkConfigDefaults:
         cfg = load_omk_config()
         assert "oh-my-harness" in str(cfg.core.notes_root)
 
-    def test_core_default_universe_is_default(self) -> None:
+    def test_core_default_kb_is_default(self) -> None:
         cfg = load_omk_config()
-        assert cfg.core.default_universe == "default"
+        assert cfg.core.default_kb == "default"
 
 
 # ---------------------------------------------------------------------------
@@ -60,17 +60,17 @@ class TestOmkConfigRoundTrip:
     def test_save_and_load_core_notes_root(self, tmp_path: Path) -> None:
         notes = tmp_path / "my-notes"
         cfg = OmkConfig(
-            core=OmkCoreConfig(notes_root=notes, default_universe="work"),
+            core=OmkCoreConfig(notes_root=notes, default_kb="work"),
         )
         save_omk_config(cfg)
         loaded = load_omk_config()
         assert loaded.core.notes_root == notes
 
-    def test_save_and_load_core_default_universe(self) -> None:
-        cfg = OmkConfig(core=OmkCoreConfig(default_universe="my-universe"))
+    def test_save_and_load_core_default_kb(self) -> None:
+        cfg = OmkConfig(core=OmkCoreConfig(default_kb="my-kb"))
         save_omk_config(cfg)
         loaded = load_omk_config()
-        assert loaded.core.default_universe == "my-universe"
+        assert loaded.core.default_kb == "my-kb"
 
     def test_save_and_load_qdrant_port(self) -> None:
         cfg = OmkConfig(qdrant=OmkQdrantConfig(port=6334))
@@ -156,7 +156,7 @@ class TestOmkAndCliConfigCoexistence:
         save_config(cli_cfg)
 
         omk_cfg = OmkConfig(
-            core=OmkCoreConfig(default_universe="default"),
+            core=OmkCoreConfig(default_kb="default"),
             harness=OmkHarnessConfig(active="claude-code"),
         )
         save_omk_config(omk_cfg)

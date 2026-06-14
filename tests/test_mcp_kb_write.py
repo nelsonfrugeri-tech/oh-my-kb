@@ -39,7 +39,7 @@ async def test_kb_write_persists_minimal_note(indexer: Indexer, tmp_path: Path) 
     assert "id:" in text
     assert "slug:" in text
     assert "path:" in text
-    assert "universe:engineering" in text
+    assert "kb:      engineering" in text
 
     md_files = list(tmp_path.rglob("*.md"))
     assert len(md_files) == 1
@@ -93,17 +93,17 @@ async def test_kb_write_empty_title_returns_error_text(indexer: Indexer) -> None
     assert "invalid input" in result[0].text
 
 
-async def test_kb_write_universe_is_server_bound_not_input(indexer: Indexer) -> None:
+async def test_kb_write_kb_is_server_bound_not_input(indexer: Indexer) -> None:
     args = {
-        "title": "Server universe wins",
+        "title": "Server knowledge base wins",
         "type": "decision",
         "project": "oh-my-harness",
         "summary": _LONG_VALID_SUMMARY,
         # Note: inputSchema additionalProperties=False would block this in MCP,
-        # but the handler also doesn't *consume* a universe from args.
+        # but the handler also doesn't *consume* a kb name from args.
     }
     result = await handle_kb_write(indexer, "research", args)
-    assert "universe:research" in result[0].text
+    assert "kb:      research" in result[0].text
 
 
 # --- new in #12: light summary validation -------------------------------

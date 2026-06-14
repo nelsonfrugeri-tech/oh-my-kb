@@ -31,7 +31,7 @@ def test_write_then_read_round_trip_with_real_embedder(tmp_path: Path) -> None:
         title="Integração ponta a ponta",
         type=NoteType.DECISION,
         project="oh-my-harness",
-        universe="engineering",
+        kb_name="engineering",
         created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         summary="Validar o caminho completo Indexer → bge-m3 → Qdrant in-memory.",
         body="Conteúdo livre que deve fazer round-trip via from_markdown.",

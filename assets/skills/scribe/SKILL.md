@@ -1,8 +1,8 @@
 ---
-version: 1.0.0
+version: 1.0.2
 ---
 
-<!-- content_version: 1.0.0 | locale: pt-BR | updated: 2026-06-06 -->
+<!-- content_version: 1.0.2 | locale: pt-BR | updated: 2026-06-13 -->
 # Scribe — playbook para escrever notas no oh-my-harness
 
 Esta skill diz ao harness **como preencher os campos** que o `kb_write` espera.
@@ -241,7 +241,7 @@ mensagem clara — mas conhecê-las evita idas e vindas desnecessárias:
 - `summary` não pode ser igual ao `title` (após remover espaços em branco).
 - `type` deve ser um dos cinco valores do enum.
 - `links_out` e `supersedes` devem ser UUIDs válidos.
-- `universe` é **definido pelo servidor** e não faz parte da entrada da ferramenta — nunca o inclua. O servidor resolve o universo ativo na inicialização a partir de `KB_UNIVERSE`; o schema de entrada rejeita campos extras. Consulte [ADR-002](../../../../docs/adr/ADR-002-server-bound-universe.md).
+- A knowledge base é **definida pelo servidor** e não faz parte da entrada da ferramenta — nunca a inclua. O servidor resolve a knowledge base ativa na inicialização a partir de `KB_NAME`; o schema de entrada rejeita campos extras. Consulte [ADR-002](../../../../docs/adr/ADR-002-server-bound-universe.md).
 
 Todo o restante — a *qualidade* do summary, a *escolha certa* do tipo,
 as *entidades não triviais* — é responsabilidade sua.

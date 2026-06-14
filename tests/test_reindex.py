@@ -73,7 +73,7 @@ def test_reindex_empty_universe_does_nothing(
     indexer: Indexer, store: QdrantStore, tmp_path: Path, universe: str
 ) -> None:
     """A universe with no .md files and no Qdrant points stays empty after reindex."""
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     assert report.scanned == 0
     assert report.upserted == 0
@@ -92,15 +92,15 @@ def test_reindex_indexes_existing_md_files(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note_a = make_note(title="Alpha", universe=universe, type=NoteType.DECISION)
-    note_b = make_note(title="Beta", universe=universe, type=NoteType.EVENT)
+    note_a = make_note(title="Alpha", kb_name=universe, type=NoteType.DECISION)
+    note_b = make_note(title="Beta", kb_name=universe, type=NoteType.EVENT)
 
     # Write .md files directly, bypassing the indexer (simulate manual creation).
     for note in (note_a, note_b):
         p = tmp_path / f"{note.slug}.md"
         p.write_text(to_markdown(note), encoding="utf-8")
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     assert report.scanned == 2
     assert report.upserted == 2
@@ -120,7 +120,7 @@ def test_reindex_corrects_path_after_file_moved(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note = make_note(title="Moveable", universe=universe)
+    note = make_note(title="Moveable", kb_name=universe)
 
     # Index via write_note — original path is recorded in Qdrant.
     write_result = indexer.write_note(note)
@@ -136,7 +136,7 @@ def test_reindex_corrects_path_after_file_moved(
     assert not original_path.exists()
     assert moved_path.exists()
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     assert report.scanned == 1
     assert report.upserted == 1
@@ -160,7 +160,7 @@ def test_reindex_removes_orphan_qdrant_points(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note = make_note(title="Ephemeral", universe=universe)
+    note = make_note(title="Ephemeral", kb_name=universe)
 
     write_result = indexer.write_note(note)
     assert _count_points(store, collection) == 1
@@ -168,7 +168,7 @@ def test_reindex_removes_orphan_qdrant_points(
     # Delete the .md from disk — the Qdrant point becomes an orphan.
     write_result.absolute_path.unlink()
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     assert report.scanned == 0
     assert report.upserted == 0
@@ -188,17 +188,17 @@ def test_reindex_is_idempotent(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note_a = make_note(title="One", universe=universe)
-    note_b = make_note(title="Two", universe=universe)
+    note_a = make_note(title="One", kb_name=universe)
+    note_b = make_note(title="Two", kb_name=universe)
 
     indexer.write_note(note_a)
     indexer.write_note(note_b)
 
-    report1 = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report1 = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
     count_after_first = _count_points(store, collection)
     payload_a_first = _get_payload(store, collection, str(note_a.id))
 
-    report2 = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report2 = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
     count_after_second = _count_points(store, collection)
     payload_a_second = _get_payload(store, collection, str(note_a.id))
 
@@ -219,7 +219,7 @@ def test_reindex_handles_subdirectories(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note = make_note(title="Nested Note", universe=universe)
+    note = make_note(title="Nested Note", kb_name=universe)
 
     # Write via indexer, which places the file under <project_slug>/<slug>.md.
     indexer.write_note(note)
@@ -227,7 +227,7 @@ def test_reindex_handles_subdirectories(
     # Clear the Qdrant collection so reindex has to re-create the point.
     store.client.delete_collection(collection_name=collection)
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     assert report.scanned == 1
     assert report.upserted == 1
@@ -250,14 +250,14 @@ def test_reindex_skips_invalid_md(
     import logging
 
     # Create one valid note and one malformed file.
-    valid_note = make_note(title="Valid Note", universe=universe)
+    valid_note = make_note(title="Valid Note", kb_name=universe)
     indexer.write_note(valid_note)
 
     bad_md = tmp_path / "broken.md"
     bad_md.write_text("no frontmatter here, just plain text", encoding="utf-8")
 
     with caplog.at_level(logging.WARNING, logger="oh_my_harness.kb.services.reindex"):
-        report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+        report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     # 2 files scanned: 1 valid + 1 broken.
     assert report.scanned == 2
@@ -295,16 +295,16 @@ def test_reindex_skips_md_with_mismatched_universe(
     other_universe = "completely_different_universe"
 
     # Note written for a DIFFERENT universe — same notes_root, different universe field.
-    other_note = make_note(title="Foreign Note", universe=other_universe)
+    other_note = make_note(title="Foreign Note", kb_name=other_universe)
     foreign_md = tmp_path / f"{other_note.slug}.md"
     foreign_md.write_text(to_markdown(other_note), encoding="utf-8")
 
     # Also one valid note for the target universe.
-    valid_note = make_note(title="Local Note", universe=universe)
+    valid_note = make_note(title="Local Note", kb_name=universe)
     valid_md = tmp_path / f"{valid_note.slug}.md"
     valid_md.write_text(to_markdown(valid_note), encoding="utf-8")
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     # Both files are scanned and upserted (each into its own collection).
     assert report.scanned == 2
@@ -331,7 +331,7 @@ def test_reindex_service_delegates_to_reindex_universe(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     collection = collection_name_for(universe)
-    note = make_note(title="Service Test", universe=universe)
+    note = make_note(title="Service Test", kb_name=universe)
     indexer.write_note(note)
 
     service = ReindexService(indexer=indexer)
@@ -356,10 +356,10 @@ def test_reindex_prints_summary(
     universe: str,
 ) -> None:
     """ReindexReport.__str__ matches the expected summary format."""
-    note = make_note(title="Summary Test", universe=universe)
+    note = make_note(title="Summary Test", kb_name=universe)
     indexer.write_note(note)
 
-    report = reindex_universe(indexer=indexer, universe=universe, notes_root=tmp_path)
+    report = reindex_universe(indexer=indexer, kb_name=universe, notes_root=tmp_path)
 
     summary = str(report)
     assert "reindex:" in summary

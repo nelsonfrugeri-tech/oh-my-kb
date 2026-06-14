@@ -42,7 +42,7 @@ def _make_note(title: str, summary: str, days_ago: int) -> Note:
         title=title,
         type=NoteType.DECISION,
         project="oh-my-harness",
-        universe="engineering",
+        kb_name="engineering",
         created_at=NOW - timedelta(days=days_ago),
         summary=summary,
     )

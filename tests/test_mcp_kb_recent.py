@@ -62,7 +62,7 @@ def _note(
         title=title,
         type=NoteType.DECISION,
         project=project,
-        universe=universe,
+        kb_name=universe,
         created_at=NOW - timedelta(days=days_ago),
         summary=summary,
         archived=archived,

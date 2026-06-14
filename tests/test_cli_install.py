@@ -18,13 +18,16 @@ from oh_my_harness.kb.cli.config import (
     load_config,
 )
 from oh_my_harness.kb.cli.installer import (
-    DEFAULT_UNIVERSE,
+    DEFAULT_KB,
     Installer,
     QdrantUnreachableError,
 )
 from oh_my_harness.kb.cli.paths import DATA_ROOT_ENV
 from oh_my_harness.kb.embedding import Embedder, EmbeddingResult, SparseVector
 from oh_my_harness.kb.storage import DENSE_DIM, IN_MEMORY, QdrantStore
+
+# Backward-compatible alias kept so existing assertions using DEFAULT_UNIVERSE keep working.
+DEFAULT_UNIVERSE = DEFAULT_KB
 
 
 class _FakeEmbedder(Embedder):

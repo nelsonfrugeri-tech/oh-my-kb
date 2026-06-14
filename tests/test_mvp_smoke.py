@@ -87,7 +87,7 @@ def test_mvp_full_flow(
         title="Decisão de usar Qdrant",
         type=NoteType.DECISION,
         project="backend",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         created_at=base_time,
         summary=(
             "Decidimos usar Qdrant como banco de dados vetorial por suportar"
@@ -99,7 +99,7 @@ def test_mvp_full_flow(
         title="Incidente no pipeline de deploy",
         type=NoteType.EVENT,
         project="backend",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         created_at=base_time + timedelta(hours=1),
         summary="Falha no pipeline de CI/CD causou deploy quebrado em produção.",
         body="Root cause: variável de ambiente ausente no stage de build.",
@@ -108,7 +108,7 @@ def test_mvp_full_flow(
         title="Procedimento de rollback",
         type=NoteType.PROCEDURE,
         project="backend",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         created_at=base_time + timedelta(hours=2),
         links_out=[note_a.id],
         summary="Passos para realizar rollback seguro da aplicação backend.",
@@ -118,7 +118,7 @@ def test_mvp_full_flow(
         title="Referência sobre React 19",
         type=NoteType.REFERENCE,
         project="frontend",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         created_at=base_time + timedelta(hours=3),
         summary="Documentação e notas sobre React 19 e as novas concurrent features.",
         body="React 19 traz melhorias de performance e a Actions API.",
@@ -139,7 +139,7 @@ def test_mvp_full_flow(
     # ------------------------------------------------------------------
     results = search_svc.search(
         query="vector database",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         include_archived=False,
     )
     assert results, "search returned empty"
@@ -150,7 +150,7 @@ def test_mvp_full_flow(
     # ------------------------------------------------------------------
     # 3. kb_tree: no project filter → 4 notes, 2 projects
     # ------------------------------------------------------------------
-    tree = nav_svc.get_tree(universe=SMOKE_UNIVERSE)
+    tree = nav_svc.get_tree(kb_name=SMOKE_UNIVERSE)
     all_ids = {node.id for nodes in tree.values() for node in nodes}
     assert str(note_a.id) in all_ids
     assert str(note_b.id) in all_ids
@@ -165,7 +165,7 @@ def test_mvp_full_flow(
     # ------------------------------------------------------------------
     # 4. kb_tree: project="backend" → 3 notes
     # ------------------------------------------------------------------
-    tree_backend = nav_svc.get_tree(universe=SMOKE_UNIVERSE, project="backend")
+    tree_backend = nav_svc.get_tree(kb_name=SMOKE_UNIVERSE, project="backend")
     assert "backend" in tree_backend
     assert len(tree_backend["backend"]) == 3
     assert "frontend" not in tree_backend
@@ -173,7 +173,7 @@ def test_mvp_full_flow(
     # ------------------------------------------------------------------
     # 5. kb_expand: note_c → body + link to note_a resolved
     # ------------------------------------------------------------------
-    expanded = nav_svc.expand(note_id=note_c.id, universe=SMOKE_UNIVERSE)
+    expanded = nav_svc.expand(note_id=note_c.id, kb_name=SMOKE_UNIVERSE)
     assert expanded.note.id == note_c.id
     assert len(expanded.links) == 1
     assert expanded.links[0].id == str(note_a.id)
@@ -185,7 +185,7 @@ def test_mvp_full_flow(
         title="Decisão de usar Qdrant v2",
         type=NoteType.DECISION,
         project="backend",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         created_at=base_time + timedelta(hours=4),
         supersedes=note_a.id,
         summary=(
@@ -203,7 +203,7 @@ def test_mvp_full_flow(
     # Search WITHOUT archived → note_e on top, note_a absent.
     results_no_arch = search_svc.search(
         query="vector database",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         include_archived=False,
     )
     result_ids_no_arch = [r.id for r in results_no_arch]
@@ -213,7 +213,7 @@ def test_mvp_full_flow(
     # Search WITH archived → both appear.
     results_with_arch = search_svc.search(
         query="vector database",
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         include_archived=True,
     )
     result_ids_with_arch = [r.id for r in results_with_arch]
@@ -237,7 +237,7 @@ def test_mvp_full_flow(
 
     report = reindex_universe(
         indexer=indexer,
-        universe=SMOKE_UNIVERSE,
+        kb_name=SMOKE_UNIVERSE,
         notes_root=tmp_path,
     )
     # 5 files scanned: note_b, note_c, note_d (moved), note_e + archived_a written by write_note.

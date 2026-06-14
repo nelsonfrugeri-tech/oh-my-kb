@@ -14,7 +14,12 @@ from oh_my_harness.kb.services.paths import (
     get_notes_root,
 )
 from oh_my_harness.kb.services.recent import RecentService
-from oh_my_harness.kb.services.reindex import ReindexReport, ReindexService, reindex_universe
+from oh_my_harness.kb.services.reindex import (
+    ReindexReport,
+    ReindexService,
+    reindex_kb,
+    reindex_universe,  # backward-compatible alias
+)
 from oh_my_harness.kb.services.search import SearchResult, SearchService
 
 __all__ = [
@@ -32,5 +37,6 @@ __all__ = [
     "TreeNode",
     "collection_name_for",
     "get_notes_root",
-    "reindex_universe",
+    "reindex_kb",
+    "reindex_universe",  # backward-compatible alias
 ]

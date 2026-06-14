@@ -4,8 +4,8 @@ Dependencies (``QdrantStore``, ``BGEM3Embedder``, ``Indexer``,
 :class:`SearchService`, :class:`RecentService`, :class:`NavigationService`)
 are built **once** when the server boots and reused for every tool invocation
 — that's the whole point of running an MCP server instead of doing one-shot
-CLIs.  Universe is server-bound via ``KB_UNIVERSE``; tool inputs cannot
-widen it.
+CLIs.  The knowledge base is server-bound via ``KB_NAME``; tool inputs cannot
+change it.
 
 The handlers themselves live in :mod:`oh_my_harness.kb.mcp.tools` so they can be
 unit-tested without touching the SDK; this module only wires them into the
@@ -26,7 +26,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
 from oh_my_harness.kb.embedding import BGEM3Embedder, Embedder
-from oh_my_harness.kb.mcp.config import get_active_notes_root, get_active_universe
+from oh_my_harness.kb.mcp.config import get_active_kb, get_active_notes_root
 from oh_my_harness.kb.mcp.tools import (
     KB_EXPAND_TOOL,
     KB_RECENT_TOOL,
@@ -58,7 +58,7 @@ class KBServerContext:
     a half-built dependency graph.
     """
 
-    universe: str
+    kb_name: str
     qdrant_url: str
     notes_root: Path
     store: QdrantStore
@@ -67,6 +67,11 @@ class KBServerContext:
     search_service: SearchService
     recent_service: RecentService
     navigation_service: NavigationService
+
+    # Backward-compatible property for code that still reads .universe.
+    @property
+    def universe(self) -> str:
+        return self.kb_name
 
 
 def build_context(
@@ -77,11 +82,15 @@ def build_context(
     store: QdrantStore | None = None,
     embedder: Embedder | None = None,
 ) -> KBServerContext:
-    """Resolve env → concrete deps. Every parameter is overridable for tests."""
-    resolved_universe = universe if universe is not None else get_active_universe()
+    """Resolve env → concrete deps. Every parameter is overridable for tests.
+
+    The ``universe`` parameter is kept for backward compatibility with existing
+    test call sites; it maps directly to the ``kb_name`` field.
+    """
+    resolved_kb = universe if universe is not None else get_active_kb()
     resolved_url = qdrant_url if qdrant_url is not None else get_qdrant_url()
     resolved_root = (
-        notes_root if notes_root is not None else get_active_notes_root(resolved_universe)
+        notes_root if notes_root is not None else get_active_notes_root(resolved_kb)
     )
     resolved_store = store if store is not None else QdrantStore(resolved_url)
     resolved_embedder = embedder if embedder is not None else BGEM3Embedder()
@@ -94,7 +103,7 @@ def build_context(
     recent_service = RecentService(store=resolved_store, embedder=resolved_embedder)
     navigation_service = NavigationService(store=resolved_store, indexer=indexer)
     return KBServerContext(
-        universe=resolved_universe,
+        kb_name=resolved_kb,
         qdrant_url=resolved_url,
         notes_root=resolved_root,
         store=resolved_store,
@@ -151,13 +160,13 @@ def _log_startup(context: KBServerContext) -> None:
     print(
         (
             f"{SERVER_NAME} ready\n"
-            f"  universe   : {context.universe}\n"
-            f"  qdrant_url : {context.qdrant_url}\n"
-            f"  notes_root : {context.notes_root}\n"
-            f"  tools      : kb_write, kb_search, kb_recent, kb_tree, kb_expand\n"
-            f"  model      : bge-m3 (lazy — first call triggers load/download ~2 GB)\n"
-            f"  skills     : manage with `omh skills pull|diff|update`\n"
-            f"  agents     : manage with `omh agents pull|diff|update`"
+            f"  knowledge base : {context.kb_name}\n"
+            f"  qdrant_url     : {context.qdrant_url}\n"
+            f"  notes_root     : {context.notes_root}\n"
+            f"  tools          : kb_write, kb_search, kb_recent, kb_tree, kb_expand\n"
+            f"  model          : bge-m3 (lazy — first call triggers load/download ~2 GB)\n"
+            f"  skills         : manage with `omh skills pull|diff|update`\n"
+            f"  agents         : manage with `omh agents pull|diff|update`"
         ),
         file=sys.stderr,
         flush=True,

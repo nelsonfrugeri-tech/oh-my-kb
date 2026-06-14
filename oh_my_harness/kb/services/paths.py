@@ -1,7 +1,7 @@
-"""Shared path conventions — universe data-root helpers.
+"""Shared path conventions — knowledge base data-root helpers.
 
 Both CLI and MCP adapters need to resolve a notes-root directory from
-``KB_NOTES_ROOT`` and a universe slug.  Keeping this logic in the ``services``
+``KB_NOTES_ROOT`` and a knowledge base slug.  Keeping this logic in the ``services``
 layer (neutral between adapters) prevents ``mcp/`` from importing ``cli/``.
 
 ``cli/paths.py`` re-exports :data:`DATA_ROOT_ENV` and
@@ -29,7 +29,7 @@ DEFAULT_DATA_ROOT = Path.home() / "oh-my-harness"
 
 
 def get_data_root() -> Path:
-    """Return the data root (parent of every universe directory)."""
+    """Return the data root (parent of every knowledge base directory)."""
     raw = os.environ.get(DATA_ROOT_ENV)
     if raw:
         return Path(raw).expanduser()
@@ -42,11 +42,11 @@ def get_data_root() -> Path:
 get_notes_root = get_data_root
 
 
-def default_notes_root_for(universe: str, data_root: Path | None = None) -> Path:
-    """Return the default notes-root path for ``universe``.
+def default_notes_root_for(kb_name: str, data_root: Path | None = None) -> Path:
+    """Return the default notes-root path for knowledge base ``kb_name``.
 
-    Result: ``data_root / slug(universe)``.  ``data_root`` defaults to
+    Result: ``data_root / slug(kb_name)``.  ``data_root`` defaults to
     :func:`get_data_root` so callers don't have to thread it through.
     """
     base = data_root if data_root is not None else get_data_root()
-    return base / slugify(universe)
+    return base / slugify(kb_name)

@@ -17,9 +17,9 @@ from oh_my_harness.kb.services import NavigationService, TreeNode
 KB_TREE_TOOL = Tool(
     name="kb_tree",
     description=(
-        "Map the active universe as a project-grouped directory of note summaries. "
+        "Map the active knowledge base as a project-grouped directory of note summaries. "
         "Use when the question is about what *exists* or what *relates* "
-        "('what notes are in project X?', 'what topics does this universe cover?'), "
+        "('what notes are in project X?', 'what topics does this knowledge base cover?'), "
         "or when you need ids to feed into kb_expand. "
         "Do *not* use for semantic similarity queries — that is kb_search. "
         "Returns summaries only, never full body; call kb_expand on any id to read a note completely."  # noqa: E501
@@ -75,11 +75,11 @@ async def handle_kb_tree(
 def _format_empty(universe: str, project: str | None) -> str:
     if project:
         return (
-            f"kb_tree: no notes found in universe '{universe}' (project={project}).\n"
+            f"kb_tree: no notes found in knowledge base '{universe}' (project={project}).\n"
             "Use kb_write to start recording notes, or remove the project filter to see all projects."  # noqa: E501
         )
     return (
-        f"kb_tree: universe '{universe}' has no notes yet.\n"
+        f"kb_tree: knowledge base '{universe}' has no notes yet.\n"
         "Use kb_write to start recording notes."
     )
 
@@ -91,7 +91,7 @@ def _format_tree(
     total: int,
 ) -> str:
     project_suffix = f" (project={project})" if project else ""
-    header = f"kb_tree: {total} note(s) in universe '{universe}'{project_suffix}"
+    header = f"kb_tree: {total} note(s) in knowledge base '{universe}'{project_suffix}"
 
     blocks: list[str] = [header]
     for proj, nodes in sorted(tree.items()):

@@ -12,7 +12,7 @@ def _minimal_payload(**overrides: object) -> dict[str, object]:
         "title": "Desenho das tools",
         "type": NoteType.DECISION,
         "project": "oh-my-harness",
-        "universe": "engineering",
+        "kb_name": "engineering",
         "summary": "Decisão arquitetural sobre as tools do MCP.",
     }
     payload.update(overrides)
@@ -51,7 +51,7 @@ def test_invalid_type_value_raises() -> None:
         Note.model_validate(_minimal_payload(type="not-a-type"))
 
 
-@pytest.mark.parametrize("field", ["title", "project", "universe", "summary"])
+@pytest.mark.parametrize("field", ["title", "project", "kb_name", "summary"])
 @pytest.mark.parametrize("bad_value", ["", "   ", "\t\n"])
 def test_required_string_fields_reject_empty_or_whitespace(field: str, bad_value: str) -> None:
     with pytest.raises(ValidationError):

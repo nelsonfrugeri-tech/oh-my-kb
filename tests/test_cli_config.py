@@ -6,9 +6,9 @@ from oh_my_harness.kb.cli.config import (
     CONFIG_DIR_ENV,
     CONFIG_FILE_NAME,
     CLIConfig,
-    UniverseAlreadyExistsError,
-    UniverseNotFoundError,
-    add_universe,
+    KbAlreadyExistsError,
+    KbNotFoundError,
+    add_kb,
     config_path,
     load_config,
     save_config,
@@ -37,7 +37,7 @@ def test_load_config_returns_empty_when_missing(config_dir: Path) -> None:
 def test_save_then_load_round_trip(config_dir: Path, tmp_path: Path) -> None:
     notes_root = tmp_path / "oh-my-harness" / "default"
     base = CLIConfig()
-    base = add_universe(base, name="default", notes_root=notes_root)
+    base = add_kb(base, name="default", notes_root=notes_root)
     base = set_active(base, "default")
     written_path = save_config(base)
 
@@ -52,33 +52,33 @@ def test_save_then_load_round_trip(config_dir: Path, tmp_path: Path) -> None:
     assert restored.universes[0].collection == "kb_default"
 
 
-def test_add_universe_appends_and_sets_collection(config_dir: Path, tmp_path: Path) -> None:
-    cfg = add_universe(CLIConfig(), name="engineering", notes_root=tmp_path)
+def test_add_kb_appends_and_sets_collection(config_dir: Path, tmp_path: Path) -> None:
+    cfg = add_kb(CLIConfig(), name="engineering", notes_root=tmp_path)
     assert cfg.universes[0].collection == "kb_engineering"
     assert cfg.has("engineering")
 
 
-def test_add_universe_rejects_duplicate(config_dir: Path, tmp_path: Path) -> None:
-    cfg = add_universe(CLIConfig(), name="default", notes_root=tmp_path)
-    with pytest.raises(UniverseAlreadyExistsError):
-        add_universe(cfg, name="default", notes_root=tmp_path)
+def test_add_kb_rejects_duplicate(config_dir: Path, tmp_path: Path) -> None:
+    cfg = add_kb(CLIConfig(), name="default", notes_root=tmp_path)
+    with pytest.raises(KbAlreadyExistsError):
+        add_kb(cfg, name="default", notes_root=tmp_path)
 
 
 def test_set_active_changes_active_field(config_dir: Path, tmp_path: Path) -> None:
-    cfg = add_universe(CLIConfig(), name="default", notes_root=tmp_path)
+    cfg = add_kb(CLIConfig(), name="default", notes_root=tmp_path)
     cfg = set_active(cfg, "default")
     assert cfg.active == "default"
 
 
-def test_set_active_unknown_universe_raises(config_dir: Path) -> None:
-    with pytest.raises(UniverseNotFoundError):
+def test_set_active_unknown_kb_raises(config_dir: Path) -> None:
+    with pytest.raises(KbNotFoundError):
         set_active(CLIConfig(), "nope")
 
 
 def test_save_creates_config_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     target = tmp_path / "nested" / "dir"
     monkeypatch.setenv(CONFIG_DIR_ENV, str(target))
-    cfg = add_universe(CLIConfig(), name="default", notes_root=tmp_path)
+    cfg = add_kb(CLIConfig(), name="default", notes_root=tmp_path)
 
     written = save_config(cfg)
 

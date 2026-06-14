@@ -1,7 +1,7 @@
 """Reindex service — reconcile Qdrant with markdown files on disk.
 
 The canonical source of truth for which notes *exist* is the filesystem.
-``reindex_universe`` performs a full reconciliation:
+``reindex_kb`` performs a full reconciliation (``reindex_universe`` is a backward-compatible alias):
 
 1. Discover all ``.md`` files under ``notes_root``, parse each one with
    :func:`~oh_my_harness.kb.core.from_markdown`, and upsert the Qdrant point for
@@ -13,7 +13,7 @@ The canonical source of truth for which notes *exist* is the filesystem.
 
 Idempotency: running twice in a row produces the same Qdrant state.
 
-:class:`ReindexService` is a thin class wrapper around :func:`reindex_universe`
+:class:`ReindexService` is a thin class wrapper around :func:`reindex_kb`
 that accepts pre-constructed ``indexer`` — useful when callers already hold that
 object and want to avoid re-creation.
 """
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True, slots=True)
 class ReindexReport:
-    """Summary produced by :func:`reindex_universe`."""
+    """Summary produced by :func:`reindex_kb`."""
 
     scanned: int
     upserted: int
@@ -46,12 +46,12 @@ class ReindexReport:
         )
 
 
-def reindex_universe(
+def reindex_kb(
     indexer: Indexer,
-    universe: str,
+    kb_name: str,
     notes_root: Path,
 ) -> ReindexReport:
-    """Reconcile the Qdrant collection for ``universe`` with files in ``notes_root``.
+    """Reconcile the Qdrant collection for ``kb_name`` with files in ``notes_root``.
 
     Parameters
     ----------
@@ -59,8 +59,8 @@ def reindex_universe(
         Fully wired :class:`Indexer` (store + embedder + notes_root).  The
         ``notes_root`` on this indexer is used as the root from which relative
         paths are resolved and stored in payloads.
-    universe:
-        The universe name whose collection will be reconciled.
+    kb_name:
+        The knowledge base name whose collection will be reconciled.
     notes_root:
         Directory to scan for ``.md`` files.  Typically ``indexer.notes_root``,
         but passed explicitly so the function signature is testable in isolation.
@@ -70,12 +70,12 @@ def reindex_universe(
     ReindexReport
         A summary of the reconciliation.
     """
-    collection = collection_name_for(universe)
+    collection = collection_name_for(kb_name)
     # Intentional private access — same package, avoids adding a public getter.
     store = indexer._store
 
     # Step 0: ensure the collection exists so scroll calls don't crash on an
-    # empty universe.
+    # empty knowledge base.
     store.ensure_collection(collection)
 
     # -----------------------------------------------------------------------
@@ -156,7 +156,7 @@ def reindex_universe(
 
 
 class ReindexService:
-    """Class wrapper around :func:`reindex_universe` for dependency-injected callers.
+    """Class wrapper around :func:`reindex_kb` for dependency-injected callers.
 
     Holds a pre-constructed :class:`Indexer` and delegates every call to the
     functional implementation so logic lives in exactly one place.
@@ -165,14 +165,30 @@ class ReindexService:
     def __init__(self, indexer: Indexer) -> None:
         self._indexer = indexer
 
-    def reindex(self, universe: str) -> ReindexReport:
-        """Reconcile the Qdrant collection for ``universe`` with files on disk.
+    def reindex(self, kb_name: str) -> ReindexReport:
+        """Reconcile the Qdrant collection for ``kb_name`` with files on disk.
 
-        Delegates to :func:`reindex_universe` using the injected indexer's
+        Delegates to :func:`reindex_kb` using the injected indexer's
         ``notes_root`` as the scan directory.
         """
-        return reindex_universe(
+        return reindex_kb(
             indexer=self._indexer,
-            universe=universe,
+            kb_name=kb_name,
             notes_root=self._indexer.notes_root,
         )
+
+
+# Backward-compatible alias — callers that reference reindex_universe keep working.
+# Accepts both ``kb_name`` (canonical) and ``universe`` (deprecated alias) as keyword.
+def reindex_universe(
+    indexer: Indexer,
+    notes_root: Path,
+    kb_name: str = "",
+    universe: str = "",
+) -> ReindexReport:
+    """Backward-compatible alias for :func:`reindex_kb`.
+
+    Accepts ``kb_name`` (canonical) or ``universe`` (deprecated) as keyword argument.
+    """
+    resolved = kb_name or universe
+    return reindex_kb(indexer=indexer, kb_name=resolved, notes_root=notes_root)

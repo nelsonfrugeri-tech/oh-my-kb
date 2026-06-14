@@ -63,12 +63,37 @@ def _validate_port(raw: Any) -> int:
     return port
 
 
-def _validate_universe(raw: Any) -> str:
-    """Return a stripped non-empty universe name."""
+def _validate_kb_name(raw: Any) -> str:
+    """Return a stripped non-empty knowledge base name."""
     name = str(raw).strip()
     if not name:
-        raise ValueError("universe name cannot be empty")
+        raise ValueError("knowledge base name cannot be empty")
     return name
+
+
+# Backward-compatible alias used by existing tests that import _validate_universe.
+_validate_universe = _validate_kb_name
+
+
+def _validate_bool(raw: Any) -> bool:
+    """Accept y/n/sim/nao (and their booleans) and return a bool."""
+    if isinstance(raw, bool):
+        return raw
+    s = str(raw).strip().lower()
+    if s in {"y", "yes", "s", "sim", "true", "1"}:
+        return True
+    if s in {"n", "no", "nao", "não", "false", "0"}:
+        return False
+    raise ValueError(f"answer must be y/n, got: {raw!r}")
+
+
+def _display_default(value: Any) -> str:
+    """Render a step default for display in prompts ("s"/"n" for bools)."""
+    if value is True:
+        return "s"
+    if value is False:
+        return "n"
+    return str(value)
 
 
 def _validate_harness(raw: Any) -> str:
@@ -85,19 +110,30 @@ def _validate_harness(raw: Any) -> str:
     return name
 
 
-# Default step definitions (used by the wizard unless overridden)
+# Default step definitions (used by the wizard unless overridden).
+#
+# Step order is intentional: ask which harness to configure FIRST (it scopes the
+# rest of the install), then where files go, then knowledge base identity, then
+# infrastructure (Qdrant + model cache), and finally whether to pull the
+# project's skills/agents.
 DEFAULT_STEPS: list[WizardStep] = [
     WizardStep(
+        id="harness",
+        prompt="Qual harness voce quer configurar?",
+        default="claude-code",
+        validator=_validate_harness,
+    ),
+    WizardStep(
         id="notes_root",
-        prompt="Onde suas notas serao armazenadas?",
+        prompt="Onde a instalacao do oh-my-harness sera feita?",
         default=Path.home() / "oh-my-harness",
         validator=_validate_path,
     ),
     WizardStep(
-        id="universe",
-        prompt="Nome do universe inicial?",
-        default="default",
-        validator=_validate_universe,
+        id="kb",
+        prompt="Nome da knowledge base inicial?",
+        default="knowledge_base",
+        validator=_validate_kb_name,
     ),
     WizardStep(
         id="qdrant_port",
@@ -112,10 +148,10 @@ DEFAULT_STEPS: list[WizardStep] = [
         validator=_validate_path,
     ),
     WizardStep(
-        id="harness",
-        prompt="Qual assistente de IA voce quer configurar? (ex: claude-code)",
-        default="claude-code",
-        validator=_validate_harness,
+        id="download_extras",
+        prompt="Baixar skills e agents do projeto?",
+        default=True,
+        validator=_validate_bool,
     ),
 ]
 
@@ -130,10 +166,17 @@ class InstallChoices:
     """User's configuration decisions collected by :class:`Wizard`."""
 
     notes_root: Path
-    universe: str
+    kb_name: str
     qdrant_port: int
     models_cache: Path
     harness: str
+    download_extras: bool = True
+
+    # Backward-compatible property so code that reads .universe still works
+    # while we migrate call sites.
+    @property
+    def universe(self) -> str:
+        return self.kb_name
 
     def summary(self) -> str:
         """Return a human-readable summary table."""
@@ -141,21 +184,24 @@ class InstallChoices:
 
         h = HARNESS_REGISTRY.get(self.harness)
         harness_label = f"{self.harness}  ({h.display_path})" if h else self.harness
+        extras_label = "sim" if self.download_extras else "nao"
+        rules_file = h.display_path if h else "(arquivo de regras do harness)"
         lines = [
             "",
             "  Resumo da instalacao:",
             "",
+            f"    Harness              {harness_label}",
             f"    Diretorio de notas   {self.notes_root}/",
-            f"    Universe             {self.universe}",
+            f"    Knowledge base       {self.kb_name}",
             f"    Qdrant               localhost:{self.qdrant_port}  (Docker)",
             f"    Cache de modelos     {self.models_cache}/",
-            f"    Harness              {harness_label}",
+            f"    Skills + agents      {extras_label}",
             "",
             "  As seguintes alteracoes serao feitas na sua maquina:",
             f"    * Container Docker qdrant/qdrant iniciado na porta {self.qdrant_port}",
-            f"    * Diretorio {self.notes_root}/{self.universe}/ criado",
+            f"    * Diretorio {self.notes_root}/{self.kb_name}/ criado",
             "    * ~/.config/oh-my-harness/config.toml criado/atualizado",
-            "    * ~/.claude/CLAUDE.md modificado (bloco omk inserido no inicio)",
+            f"    * {rules_file} modificado (bloco omh inserido no inicio)",
             "",
         ]
         return "\n".join(lines)
@@ -198,7 +244,7 @@ class Wizard:
         elif self._non_interactive or not sys.stdin.isatty():
             raw = step.default
         else:
-            default_str = str(step.default)
+            default_str = _display_default(step.default)
             raw = typer.prompt(step.prompt, default=default_str)
 
         if step.validator is not None:
@@ -208,12 +254,15 @@ class Wizard:
     def _print_header(self) -> None:
         typer.echo("")
         typer.secho(
-            "  Oh My KB -- Setup Wizard",
+            "  oh-my-harness -- Setup Wizard",
             fg=typer.colors.CYAN,
             bold=True,
         )
         typer.echo("")
-        typer.echo("  Bem-vindo ao Oh My KB. Vamos configurar sua base de conhecimento.")
+        typer.echo(
+            "  Bem-vindo ao oh-my-harness. Vamos configurar seu harness, "
+            "a knowledge base e os extras do projeto."
+        )
         typer.echo("  Pressione Enter para aceitar o valor padrao de cada opcao.")
         typer.echo("")
 
@@ -239,7 +288,7 @@ class Wizard:
             if step.id == "harness":
                 value = self._run_harness_step(step)
             else:
-                typer.echo(f"  Default: {step.default}")
+                typer.echo(f"  Default: {_display_default(step.default)}")
                 value = self._ask(step)
 
             results[step.id] = value
@@ -247,10 +296,11 @@ class Wizard:
 
         return InstallChoices(
             notes_root=results["notes_root"],
-            universe=results["universe"],
+            kb_name=results["kb"],
             qdrant_port=results["qdrant_port"],
             models_cache=results["models_cache"],
             harness=results["harness"],
+            download_extras=results.get("download_extras", True),
         )
 
     def _run_harness_step(self, step: WizardStep) -> str:

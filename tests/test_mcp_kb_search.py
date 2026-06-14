@@ -15,7 +15,7 @@ def _note(summary: str, project: str = "oh-my-harness") -> Note:
         title=summary[:40] or "note",
         type=NoteType.DECISION,
         project=project,
-        universe="engineering",
+        kb_name="engineering",
         created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         summary=summary,
     )

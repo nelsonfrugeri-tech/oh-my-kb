@@ -27,7 +27,7 @@ def _note(
         title=title or summary.split(".")[0][:80],
         type=NoteType.DECISION,
         project=project,
-        universe=universe,
+        kb_name=universe,
         created_at=datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         summary=summary,
         archived=archived,
@@ -38,7 +38,7 @@ def _note(
 
 
 def test_missing_collection_returns_empty_list(search_service: SearchService) -> None:
-    assert search_service.search("anything", universe="brand-new") == []
+    assert search_service.search("anything", kb_name="brand-new") == []
 
 
 def test_existing_but_empty_collection_returns_empty_list(
@@ -47,7 +47,7 @@ def test_existing_but_empty_collection_returns_empty_list(
     from oh_my_harness.kb.services.indexer import collection_name_for
 
     store.ensure_collection(collection_name_for("engineering"))
-    assert search_service.search("anything", universe="engineering") == []
+    assert search_service.search("anything", kb_name="engineering") == []
 
 
 # --- happy path --------------------------------------------------------
@@ -59,7 +59,7 @@ def test_returns_search_result_with_payload_fields(
     note = _note(summary="Decisão sobre arquitetura de tools no MCP.")
     indexer.write_note(note)
 
-    results = search_service.search(note.summary, universe=note.universe, top_k=5)
+    results = search_service.search(note.summary, kb_name=note.kb_name, top_k=5)
 
     assert len(results) == 1
     hit = results[0]
@@ -83,7 +83,7 @@ def test_respects_top_k(indexer: Indexer, search_service: SearchService) -> None
     for s in summaries:
         indexer.write_note(_note(summary=s))
 
-    results = search_service.search("qualquer coisa", universe="engineering", top_k=3)
+    results = search_service.search("qualquer coisa", kb_name="engineering", top_k=3)
     assert len(results) == 3
 
 
@@ -93,7 +93,7 @@ def test_results_are_sorted_by_score_desc(
     for s in ("alpha", "beta", "gamma"):
         indexer.write_note(_note(summary=s))
 
-    results = search_service.search("alpha", universe="engineering", top_k=3)
+    results = search_service.search("alpha", kb_name="engineering", top_k=3)
     scores = [r.score for r in results]
     assert scores == sorted(scores, reverse=True)
 
@@ -108,8 +108,8 @@ def test_project_filter_restricts_results(
     indexer.write_note(_note(summary="A2", project="alpha"))
     indexer.write_note(_note(summary="B1", project="beta"))
 
-    alpha = search_service.search("anything", universe="engineering", project="alpha", top_k=10)
-    beta = search_service.search("anything", universe="engineering", project="beta", top_k=10)
+    alpha = search_service.search("anything", kb_name="engineering", project="alpha", top_k=10)
+    beta = search_service.search("anything", kb_name="engineering", project="beta", top_k=10)
 
     assert {r.project for r in alpha} == {"alpha"}
     assert len(alpha) == 2
@@ -123,7 +123,7 @@ def test_archived_excluded_by_default(
     indexer.write_note(_note(summary="ativa"))
     indexer.write_note(_note(summary="arquivada", archived=True))
 
-    results = search_service.search("anything", universe="engineering", top_k=10)
+    results = search_service.search("anything", kb_name="engineering", top_k=10)
     assert {r.summary for r in results} == {"ativa"}
 
 
@@ -134,7 +134,7 @@ def test_include_archived_returns_both(
     indexer.write_note(_note(summary="arquivada", archived=True))
 
     results = search_service.search(
-        "anything", universe="engineering", top_k=10, include_archived=True
+        "anything", kb_name="engineering", top_k=10, include_archived=True
     )
     assert {r.summary for r in results} == {"ativa", "arquivada"}
 
@@ -147,7 +147,7 @@ def test_filter_combination_archived_and_project(
     indexer.write_note(_note(summary="beta-ativa", project="beta"))
 
     results = search_service.search(
-        "anything", universe="engineering", project="alpha", top_k=10
+        "anything", kb_name="engineering", project="alpha", top_k=10
     )
     assert {r.summary for r in results} == {"alpha-ativa"}
 
@@ -157,6 +157,6 @@ def test_project_filter_with_no_match_returns_empty(
 ) -> None:
     indexer.write_note(_note(summary="A", project="alpha"))
     results = search_service.search(
-        "anything", universe="engineering", project="unknown", top_k=5
+        "anything", kb_name="engineering", project="unknown", top_k=5
     )
     assert results == []

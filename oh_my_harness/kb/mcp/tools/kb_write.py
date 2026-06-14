@@ -5,8 +5,8 @@ Handlers are exposed as plain ``async def`` functions taking the dependency
 without spinning up a real MCP server. The server module wires them into
 the :class:`Server` instance via a closure that captures the dependency.
 
-The active universe is **server-bound** — taken from the server context, not
-from the tool input — so the harness can't write into the wrong universe by
+The active knowledge base is **server-bound** — taken from the server context, not
+from the tool input — so the harness can't write into the wrong knowledge base by
 accident.
 """
 
@@ -31,13 +31,13 @@ SUMMARY_MAX_LEN: Final[int] = 800
 KB_WRITE_TOOL = Tool(
     name="kb_write",
     description=(
-        "Register a piece of knowledge as a note in the active universe. "
+        "Register a piece of knowledge as a note in the active knowledge base. "
         "Call when recording a decision, event, procedure, reference, or "
         "conversation the user just made or described. The 'summary' field "
         "is the dense prose that gets indexed for similarity search; write "
         "it as a self-contained paragraph, not a label. The note is "
         "persisted as a .md file on disk and indexed in Qdrant. "
-        "The universe is server-bound — do not include it in the input."
+        "The knowledge base is server-bound — do not include it in the input."
     ),
     inputSchema={
         "type": "object",
@@ -114,7 +114,7 @@ async def handle_kb_write(
         f"  id:      {result.id}\n"
         f"  slug:    {result.slug}\n"
         f"  path:    {result.relative_path}\n"
-        f"  universe:{universe}"
+        f"  kb:      {universe}"
     )
     return [TextContent(type="text", text=body)]
 
@@ -152,13 +152,13 @@ def _validate_summary(*, title: str, summary: str) -> str | None:
 def _build_note(arguments: dict[str, Any], *, universe: str) -> Note:
     """Translate the raw tool input into a :class:`Note` (pydantic validates).
 
-    Universe is injected from the server context — never from the input.
+    Knowledge base name is injected from the server context — never from the input.
     """
     fields: dict[str, Any] = {
         "title": arguments["title"],
         "type": arguments["type"],
         "project": arguments["project"],
-        "universe": universe,
+        "kb_name": universe,
         "summary": arguments["summary"],
     }
     if "body" in arguments:

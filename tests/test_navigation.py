@@ -38,7 +38,7 @@ def _note(
         "title": title,
         "type": NoteType.DECISION,
         "project": project,
-        "universe": universe,
+        "kb_name": universe,
         "created_at": datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         "summary": summary or f"summary of {title}",
         "archived": archived,

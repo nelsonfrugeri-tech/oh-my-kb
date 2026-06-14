@@ -68,7 +68,7 @@ def make_note(**overrides: object) -> Note:
         "title": "Arquitetura do KB",
         "type": NoteType.DECISION,
         "project": "oh-my-harness",
-        "universe": "engineering",
+        "kb_name": "engineering",
         "created_at": datetime(2026, 5, 31, 14, 30, tzinfo=UTC),
         "summary": "Decisão sobre como as camadas se conversam.",
         "body": "# Detalhes\n\nDescrição longa que não vai pro payload.",

@@ -1,7 +1,7 @@
-"""Multiverse configuration for the o-kb-client.
+"""Knowledge base configuration for the o-kb-client.
 
-Persists the list of universes (each with ``name``, ``notes_root``,
-``collection``) plus the active universe in a TOML file under
+Persists the list of knowledge bases (each with ``name``, ``notes_root``,
+``collection``) plus the active knowledge base in a TOML file under
 ``~/.config/oh-my-harness/config.toml``. The directory is XDG-style hidden
 because it's machine config — note **data** lives in plain sight under
 ``~/oh-my-harness/`` (see :mod:`oh_my_harness.kb.cli.paths`).
@@ -11,8 +11,16 @@ The collection name is **never** computed locally — it is delegated to
 never disagree.
 
 Two schemas coexist in the same TOML file using disjoint top-level sections:
-- :class:`CLIConfig` — ``universes`` + ``active`` (original schema).
+- :class:`CLIConfig` — ``universes`` + ``active`` (original schema, kept for
+  backward compatibility; the domain objects are ``Universe`` but the user-facing
+  language is "knowledge base").
 - :class:`OmkConfig` — ``[core]``, ``[qdrant]``, ``[harness]`` sections.
+
+Migration note
+--------------
+The ``[core]`` section previously used ``default_universe``; it now writes
+``default_kb``. On read, if ``default_kb`` is absent the code falls back to
+``default_universe`` (silent — no deprecation warning).
 """
 
 from __future__ import annotations
@@ -31,12 +39,20 @@ DEFAULT_CONFIG_DIR = Path.home() / ".config" / "oh-my-harness"
 CONFIG_FILE_NAME = "config.toml"
 
 
-class UniverseAlreadyExistsError(ValueError):
-    """Raised when adding a universe whose name already exists in the config."""
+class KbAlreadyExistsError(ValueError):
+    """Raised when adding a knowledge base whose name already exists in the config."""
 
 
-class UniverseNotFoundError(LookupError):
-    """Raised when activating or referencing a universe that isn't in the config."""
+# Backward-compatible alias.
+UniverseAlreadyExistsError = KbAlreadyExistsError  # backward-compatible alias
+
+
+class KbNotFoundError(LookupError):
+    """Raised when activating or referencing a knowledge base that isn't in the config."""
+
+
+# Backward-compatible alias.
+UniverseNotFoundError = KbNotFoundError  # backward-compatible alias
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,30 +145,34 @@ def save_config(cfg: CLIConfig) -> Path:
     return path
 
 
-def add_universe(cfg: CLIConfig, *, name: str, notes_root: Path) -> CLIConfig:
-    """Return a new ``CLIConfig`` with ``name`` added.
+def add_kb(cfg: CLIConfig, *, name: str, notes_root: Path) -> CLIConfig:
+    """Return a new ``CLIConfig`` with knowledge base ``name`` added.
 
-    Raises :class:`UniverseAlreadyExistsError` if a universe with that name
+    Raises :class:`KbAlreadyExistsError` if a knowledge base with that name
     already exists. The collection is derived from
     :func:`oh_my_harness.kb.services.collection_name_for`.
     """
     if cfg.has(name):
-        raise UniverseAlreadyExistsError(f"knowledge base '{name}' already exists")
-    new_universe = Universe(
+        raise KbAlreadyExistsError(f"knowledge base '{name}' already exists")
+    new_kb = Universe(
         name=name,
         notes_root=notes_root,
         collection=collection_name_for(name),
     )
-    return replace(cfg, universes=[*cfg.universes, new_universe])
+    return replace(cfg, universes=[*cfg.universes, new_kb])
+
+
+# Backward-compatible alias — existing imports keep working.
+add_universe = add_kb  # backward-compatible alias
 
 
 def set_active(cfg: CLIConfig, name: str) -> CLIConfig:
     """Return a new ``CLIConfig`` whose ``active`` is ``name``.
 
-    Raises :class:`UniverseNotFoundError` if ``name`` is not in the config.
+    Raises :class:`KbNotFoundError` if ``name`` is not in the config.
     """
     if not cfg.has(name):
-        raise UniverseNotFoundError(f"knowledge base '{name}' is not configured")
+        raise KbNotFoundError(f"knowledge base '{name}' is not configured")
     return replace(cfg, active=name)
 
 
@@ -166,10 +186,15 @@ class OmkCoreConfig:
     """``[core]`` section of ``config.toml``."""
 
     notes_root: Path = field(default_factory=lambda: Path.home() / "oh-my-harness")
-    default_universe: str = "default"
+    default_kb: str = "default"
     models_cache: Path = field(
         default_factory=lambda: Path.home() / ".cache" / "oh-my-harness" / "models"
     )
+
+    # Backward-compatible property for code that still reads .default_universe.
+    @property
+    def default_universe(self) -> str:
+        return self.default_kb
 
 
 @dataclass(frozen=True, slots=True)
@@ -194,6 +219,8 @@ class OmkConfig:
     Stored under the ``[core]``, ``[qdrant]``, and ``[harness]`` sections of
     ``~/.config/oh-my-harness/config.toml``, which are disjoint from the
     ``universes`` / ``active`` keys used by :class:`CLIConfig`.
+    (The ``universes`` key is a legacy TOML key name kept for file-format
+    backward compatibility — the domain concept is "knowledge base".)
     """
 
     core: OmkCoreConfig = field(default_factory=OmkCoreConfig)
@@ -225,11 +252,17 @@ def load_omk_config() -> OmkConfig:
     harness_raw = raw.get("harness", {})
 
     _defaults = OmkCoreConfig()
+    # Read default_kb; fall back to legacy default_universe key for installed configs.
+    _default_kb_value = (
+        str(core_raw["default_kb"])
+        if "default_kb" in core_raw
+        else str(core_raw.get("default_universe", _defaults.default_kb))
+    )
     core = OmkCoreConfig(
         notes_root=(
             Path(str(core_raw["notes_root"])) if "notes_root" in core_raw else _defaults.notes_root
         ),
-        default_universe=str(core_raw.get("default_universe", _defaults.default_universe)),
+        default_kb=_default_kb_value,
         models_cache=(
             Path(str(core_raw["models_cache"]))
             if "models_cache" in core_raw
@@ -264,7 +297,7 @@ def save_omk_config(cfg: OmkConfig) -> Path:
     # Merge in the new OmkConfig sections (overwrite only our sections)
     existing["core"] = {
         "notes_root": str(cfg.core.notes_root),
-        "default_universe": cfg.core.default_universe,
+        "default_kb": cfg.core.default_kb,
         "models_cache": str(cfg.core.models_cache),
     }
     existing["qdrant"] = {

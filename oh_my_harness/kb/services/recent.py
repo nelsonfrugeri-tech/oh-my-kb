@@ -97,7 +97,7 @@ class RecentService:
 
     def recent(
         self,
-        universe: str,
+        kb_name: str,
         *,
         project: str | None = None,
         topic: str | None = None,
@@ -105,13 +105,13 @@ class RecentService:
         limit: int = 10,
         include_archived: bool = False,
     ) -> list[SearchResult]:
-        """Return notes in ``universe`` ordered newest-first.
+        """Return notes in the knowledge base ordered newest-first.
 
         Parameters
         ----------
-        universe:
-            Active universe; maps to a Qdrant collection via
-            ``collection_name_for(universe)``.
+        kb_name:
+            Active knowledge base; maps to a Qdrant collection via
+            ``collection_name_for(kb_name)``.
         project:
             Optional payload filter — only notes whose ``project`` field matches.
         topic:
@@ -141,7 +141,7 @@ class RecentService:
         if limit < 1 or limit > 100:
             raise ValueError(f"limit must be in [1, 100], got {limit}")
 
-        collection = collection_name_for(universe)
+        collection = collection_name_for(kb_name)
         if not self._store.collection_exists(collection):
             return []
 
