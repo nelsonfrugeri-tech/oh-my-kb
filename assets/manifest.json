@@ -777,6 +777,12 @@
       "sha256": "88ceebdc3ae3bb9101dfa841d8242ce575614d1b0f0f3726deabdf243ae3d5c3"
     },
     {
+      "name": "explorer",
+      "version": "1.0.0",
+      "path": "assets/agents/explorer.md",
+      "sha256": "8b133f0939f7b29c544790e258a02bf2949a8861c1b1bc5479ffc1b782e9ed41"
+    },
+    {
       "name": "qa",
       "version": "1.0.0",
       "path": "assets/agents/qa.md",
