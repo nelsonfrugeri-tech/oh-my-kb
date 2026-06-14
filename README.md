@@ -220,10 +220,10 @@ omh agents update [<name>] --yes   Update without confirmation prompt
 | `architect` | System designer | design, review, research, api-design, security |
 | `qa` | Quality assurance engineer | test, environment, review, research |
 | `sre` | Site reliability engineer | operate, observability, security, review, research |
-| `tech_pm` | Technical product manager | manage, review, research |
+| `tech-pm` | Technical product manager | manage, review, research |
 | `explorer` | Codebase analyst | design, api-design, ai-engineer, research, security |
 | `context` | Context loader/updater | research |
-| `startup_project` | Project initializer | manage, research |
+| `startup-project` | Project initializer | manage, research |
 
 ### Workflows
 
@@ -243,7 +243,7 @@ omh workflows update [<name>] --yes Update without confirmation prompt
 
 | Workflow | Description |
 |----------|-------------|
-| `create-feature` | Full feature pipeline: user story (tech_pm) → implementation (developer/ai-engineer) → validation loop (qa + sre, up to 3 iterations) → pull request |
+| `create-feature` | Full feature pipeline: user story (tech-pm) → implementation (developer/ai-engineer) → validation loop (qa + sre, up to 3 iterations) → pull request |
 
 ---
 
@@ -360,7 +360,7 @@ The manifest stores a sha256 hash for every file, enabling `diff` to detect cont
       "path": "assets/workflows/create-feature.ts",
       "sha256": "ghi789...",
       "dependencies": {
-        "agents": ["tech_pm", "developer", "ai-engineer", "qa", "sre"]
+        "agents": ["tech-pm", "developer", "ai-engineer", "qa", "sre"]
       }
     }
   ]

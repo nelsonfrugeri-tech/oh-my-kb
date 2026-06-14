@@ -190,7 +190,7 @@
       "files": [
         {
           "path": "SKILL.md",
-          "sha256": "faf65bf71ad9305f6aa7744f685761b8e2a333feff56b4b80c3b0bb4381f1940"
+          "sha256": "ccdb6e2b34a3ce502c2088ff75e095be152cff89801e160129d90738af611b3e"
         }
       ]
     },
@@ -655,7 +655,7 @@
       "files": [
         {
           "path": "SKILL.md",
-          "sha256": "fd5d18e9482d4466194b9e9eddf9deaf7babb1763b1186e9e0b24f2cc7555597"
+          "sha256": "e03296708b0f86545706eacd0024ea41c3b379c5e97801bd186add5596d54e76"
         }
       ]
     },
@@ -826,7 +826,7 @@
       "name": "context",
       "version": "1.0.0",
       "path": "assets/agents/context.md",
-      "sha256": "4cddd2605fc0487b156d8d98ea07addcda7fe1070da749070d59ee5bab3f2bec",
+      "sha256": "bbdc2881ca587a33f42577be55a9fd80c1a1a8b3096635f69fc8a55b12d9db59",
       "dependencies": {
         "skills": [
           "research"
@@ -894,10 +894,10 @@
       }
     },
     {
-      "name": "startup_project",
+      "name": "startup-project",
       "version": "1.0.0",
-      "path": "assets/agents/startup_project.md",
-      "sha256": "b2e986ad52b53fdde3893d7a3ab990c21e602ce3c09ef844c463f95bfb2f3241",
+      "path": "assets/agents/startup-project.md",
+      "sha256": "e686674720b103b4f38fb90cdb09814d55e68b022f93888f2c07581478903082",
       "dependencies": {
         "skills": [
           "manage",
@@ -906,10 +906,10 @@
       }
     },
     {
-      "name": "tech_pm",
+      "name": "tech-pm",
       "version": "1.0.0",
-      "path": "assets/agents/tech_pm.md",
-      "sha256": "223ff3f908029478f9980e729155c80967e74b03c61a5763c134e204a07803bd",
+      "path": "assets/agents/tech-pm.md",
+      "sha256": "d826de0a235c9e71b47ed26bbaf999b96fe456b56da7d5c3a026558350a2760e",
       "dependencies": {
         "skills": [
           "manage",
@@ -924,14 +924,14 @@
       "name": "create-feature",
       "version": "1.0.0",
       "path": "assets/workflows/create-feature.ts",
-      "sha256": "42ad380db820129913b1866a4db908f3b1ed2b43d5c1edb70425638b4c5fbd48",
+      "sha256": "8a0849b26227ee20835dda3d40dd3778b0af9edfa4c0eb294508a9a4fda0779a",
       "dependencies": {
         "agents": [
           "ai-engineer",
           "developer",
           "qa",
           "sre",
-          "tech_pm"
+          "tech-pm"
         ]
       }
     }

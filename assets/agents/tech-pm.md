@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-name: tech_pm
+name: tech-pm
 description: >
   Use for product management, writing user stories, defining acceptance criteria,
   prioritizing backlog, planning roadmaps, and stakeholder communication.

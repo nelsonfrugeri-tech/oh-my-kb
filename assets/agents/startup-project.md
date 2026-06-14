@@ -1,6 +1,6 @@
 ---
 version: 1.0.0
-name: startup_project
+name: startup-project
 description: >
   Orquestra a inicialização de um projeto dentro do oh-my-harness. Pergunta ao
   usuário o link remoto do projeto (github/gitlab/etc — opcional) e o nome do

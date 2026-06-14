@@ -1,9 +1,9 @@
 export const meta = {
   name: 'create-feature',
-  description: 'Pipeline de criação de feature após refinamento técnico: user_history (tech_pm) → development (developer ou ai-engineer) → validation_loop[qa+sre] (max 3 iterações) → open_pr (ou escalação ao usuário). Refinamento técnico interativo é feito antes pelo skill /feature.',
+  description: 'Pipeline de criação de feature após refinamento técnico: user_history (tech-pm) → development (developer ou ai-engineer) → validation_loop[qa+sre] (max 3 iterações) → open_pr (ou escalação ao usuário). Refinamento técnico interativo é feito antes pelo skill /feature.',
   whenToUse: 'Após o refinamento técnico interativo estar salvo no KB. Recebe args: { featureName, featureSlug, refinementContent, track }. Track = "developer" ou "ai-engineer" decide quem implementa.',
   phases: [
-    { title: 'user_history', detail: 'tech_pm escreve user story e abre item no sistema de gerenciamento (GitHub Issues por padrão); salva cópia em <feature>/user_history/user_history.md' },
+    { title: 'user_history', detail: 'tech-pm escreve user story e abre item no sistema de gerenciamento (GitHub Issues por padrão); salva cópia em <feature>/user_history/user_history.md' },
     { title: 'development', detail: 'developer ou ai-engineer (conforme track) implementa a feature seguindo refinamento + user_history' },
     { title: 'validation', detail: 'qa (funcional + e2e) e sre (infra + load + stress) em paralelo, gravam evidências em <feature>/validation/*.md; loop até pass ou max 3 iterações' },
     { title: 'fix_iteration', detail: 'developer/ai-engineer corrige problemas reportados por qa/sre, então re-valida' },
@@ -146,7 +146,7 @@ phase('user_history')
 log(`Feature: ${featureName} (${featureSlug}) — track: ${track}`)
 
 const userHistory = await agent(
-  `Você é o tech_pm. Use o refinamento técnico abaixo como base e produza a user history desta feature.
+  `Você é o tech-pm. Use o refinamento técnico abaixo como base e produza a user history desta feature.
 
 # Feature
 ${featureName}
@@ -160,7 +160,7 @@ ${refinementContent}
 3. Devolva tudo no schema, incluindo o markdown completo pronto para ser salvo em ${kbBasePath}/user_history/user_history.md.
 
 Use ferramentas de KB (kb_write) via ToolSearch para salvar o markdown final no path do KB: ${kbBasePath}/user_history/user_history.md`,
-  { agentType: 'tech_pm', label: 'tech_pm:user_history', phase: 'user_history', schema: USER_HISTORY_SCHEMA },
+  { agentType: 'tech-pm', label: 'tech-pm:user_history', phase: 'user_history', schema: USER_HISTORY_SCHEMA },
 )
 
 phase('development')

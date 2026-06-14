@@ -28,7 +28,7 @@ abaixo. Não pule etapas. Não invente nomes, decisões técnicas ou repositóri
    prompt, modelo, NLP, classificação, recomendação. Caso contrário sugira `developer`.
 
 3. **Repositório alvo** — pergunte qual repositório `owner/name` no GitHub vai receber o PR
-   no final. Se o usuário não souber agora, registre como `null` e siga (o tech_pm e o
+   no final. Se o usuário não souber agora, registre como `null` e siga (o tech-pm e o
    implementer tentarão descobrir via `git remote` no momento de criar issue/PR).
 
 ## Fase 1 — `refinement_tech` (interativa)
@@ -94,7 +94,7 @@ Workflow({
 ```
 
 O workflow cuida de:
-- `user_history` — tech_pm escreve user story, abre issue no GitHub, grava em `<slug>/user_history/user_history.md`
+- `user_history` — tech-pm escreve user story, abre issue no GitHub, grava em `<slug>/user_history/user_history.md`
 - `development` — implementer (developer ou ai-engineer) cria branch `feature/<slug>` e implementa
 - `validation_loop` — qa (funcional + e2e) e sre (infra + load + stress) em paralelo, gravam evidências em `<slug>/validation/*.md`, loop até pass ou max 3 iterações
 - `open_pr` — implementer abre PR usando template padronizado, OU escala para o usuário se 3 iterações falharem
