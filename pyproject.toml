@@ -1,6 +1,6 @@
 [project]
 name = "oh-my-harness"
-version = "0.0.0"
+version = "0.0.1"
 description = "Plataforma de tuning e personalização de harness para agentes de IA — knowledge base (o-kb-mcp) e agents (o-agents-mcp)."
 readme = "README.md"
 requires-python = ">=3.12"

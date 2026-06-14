@@ -201,3 +201,26 @@ class TestStatusCmd:
         ):
             result = runner.invoke(app, ["status"])
         assert "1.2.3" in result.output
+
+
+# ---------------------------------------------------------------------------
+# omh --version
+# ---------------------------------------------------------------------------
+
+
+class TestVersionFlag:
+    def test_version_flag_prints_version_and_exits(self, runner: CliRunner) -> None:
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.output.startswith("omh ")
+        assert any(ch.isdigit() for ch in result.output)
+
+    def test_version_short_flag(self, runner: CliRunner) -> None:
+        result = runner.invoke(app, ["-V"])
+        assert result.exit_code == 0
+        assert result.output.startswith("omh ")
+
+    def test_package_version_matches_pyproject(self) -> None:
+        from oh_my_harness import __version__
+
+        assert __version__ == "0.0.1"
