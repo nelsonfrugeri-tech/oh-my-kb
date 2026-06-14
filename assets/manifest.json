@@ -130,6 +130,17 @@
       ]
     },
     {
+      "name": "drink-context",
+      "version": "1.0.0",
+      "path": "assets/skills/drink-context",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "b0ae64ea72c1b7ec16c126e157bfa0db58bfec40681c8f9a15d8947a3f55defb"
+        }
+      ]
+    },
+    {
       "name": "environment",
       "version": "1.0.0",
       "path": "assets/skills/environment",
@@ -769,6 +780,12 @@
       "version": "1.0.0",
       "path": "assets/agents/architect.md",
       "sha256": "bb93d67cd12ca8a5ea8ce723a7a033a4e7394f4ddb996fc7a0cc5e464af7d36d"
+    },
+    {
+      "name": "context",
+      "version": "1.0.0",
+      "path": "assets/agents/context.md",
+      "sha256": "4cddd2605fc0487b156d8d98ea07addcda7fe1070da749070d59ee5bab3f2bec"
     },
     {
       "name": "developer",
